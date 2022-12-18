@@ -21,7 +21,7 @@
         /* Block globals */
         --block-border-radius: 32px;
         --block-padding: 38px;
-        
+
         height: var(--page-height);
         width: var(--page-width);
         margin: 0;
@@ -36,7 +36,8 @@
 
     .mainDrawer {
         width: auto;
-        flex-grow: 1
+        flex-grow: 1;
+        background: blue;
     }
     .rightDrawer {
         width: 417px;

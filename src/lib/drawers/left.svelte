@@ -17,7 +17,8 @@
     }
     .blockRow {
         display: flex;
-        column-gap: 5px;
+        column-gap: 10px;
+        align-items: center;
     }
 </style>
 

@@ -11,7 +11,7 @@
     $: dayWord = date.toLocaleDateString('en-US', { weekday: 'long' });
 
     onMount(() => {
-        const interval = setInterval(() => date = new Date(), 1000);
+      const interval = setInterval(() => date = new Date(), 1000);
 
 	  return () => clearInterval(interval);
 	});
@@ -22,7 +22,6 @@
         font-weight: 600;
         margin: 0;
         letter-spacing: 1px;
-        
     }
     
     h2 {
@@ -31,10 +30,6 @@
         margin: 0.25em 0 0 0;
     }
 </style>
-
-<div class="dateBlock">
- 
-</div>
 
 <Block fontColor="{fontColor}" backgroundColor="{backgroundColor}">
     <h1>

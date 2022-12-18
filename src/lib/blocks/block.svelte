@@ -16,6 +16,7 @@
         flex-direction: column;
         justify-content: center;
         aspect-ratio: 1 / 1.1; /* Make height 10% taller than width */
+        align-self: stretch;
     }
 </style>
 
