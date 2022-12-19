@@ -29,6 +29,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"home-assistant-js-websocket": "^8.0.1",
 		"svelte-material-icons": "^2.0.4"
 	}
 }
