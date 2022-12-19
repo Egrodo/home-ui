@@ -86,7 +86,7 @@ function handleStateMessage(states: WsStateMessage) {
 		},
 		[[], [], [], null]
 	);
-	console.log({ lightEntities, switchEntities, sceneEntities, weatherEntity });
+
 	if (lightEntities.length) {
 		lightStore.addOrUpdate(lightEntities);
 	}
@@ -115,10 +115,7 @@ export async function connect() {
 		});
 		const connection = await createConnection({ auth, setupRetry: -1 });
 		const unsubscribe = subscribeEntities<WsStateMessage>(connection, handleStateMessage);
-
-		// connection.sendMessagePromise<WsStateMessage>({ type: 'get_states' }).then(handleStateMessage);
-
-		// Look at entity.lastChanged and entity.lastUpdated to determine if we need a store update
+		return unsubscribe;
 	} catch (err) {
 		console.error(err);
 	}

@@ -1,13 +1,13 @@
 <script lang="ts">
+	import { connect as connectWs } from '$lib/data/ws';
 	import LeftDrawer from '$lib/drawers/left.svelte';
-	import { init } from '$lib/data';
 	import { onMount } from 'svelte';
 
 	let rightDrawerOpen: boolean = false;
 
 	onMount(() => {
-		// Initialize our data system. Triggers initial states fetching, localStorage, store setting
-		init();
+		// Initialize connection to websocket. Return callback for unsubscribe on unmount
+		return connectWs();
 	});
 </script>
 

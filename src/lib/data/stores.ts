@@ -74,7 +74,7 @@ interface SceneStore {
 	[key: string]: SceneEntity;
 }
 function createSceneStore() {
-	const { subscribe, update } = writable<SceneStore>();
+	const { subscribe, update } = writable<SceneStore>({});
 
 	return {
 		subscribe,
