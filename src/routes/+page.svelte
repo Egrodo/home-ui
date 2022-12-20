@@ -8,8 +8,11 @@
 	} from '$lib/data/stores';
 	import { initWsConnection, handleStateMessage, type WsStateMessage } from '$lib/data/ws';
 	import LeftDrawer from '$lib/drawers/left.svelte';
+	import MainDrawer from '$lib/drawers/main.svelte';
+	import RightDrawer from '$lib/drawers/right.svelte';
 	import { subscribeEntities } from 'home-assistant-js-websocket';
 	import { onMount } from 'svelte';
+	// import { fly } from 'svelte/types/runtime/transition';
 
 	let rightDrawerOpen: boolean = false;
 
@@ -25,6 +28,13 @@
 	switchStore.subscribe(console.log);
 	weatherStore.subscribe(console.log);
 	sceneStore.subscribe(console.log);
+
+	onMount(() => {
+		// ts-ignore
+		window.Debug = {
+			toggleRightDrawer: () => (rightDrawerOpen = !rightDrawerOpen)
+		};
+	});
 </script>
 
 <style>
@@ -56,23 +66,10 @@
 		width: 100%;
 		display: flex;
 	}
-
-	.mainDrawer {
-		width: auto;
-		flex-grow: 1;
-		background: blue;
-	}
-	.rightDrawer {
-		width: 417px;
-		transition: width 0.3s ease-out;
-	}
-	.rightDrawer.closed {
-		width: 0px;
-	}
 </style>
 
 <div class="container">
 	<LeftDrawer />
-	<section class="mainDrawer" />
-	<section class="rightDrawer{rightDrawerOpen === false ? ' closed' : ''}" />
+	<MainDrawer />
+	<RightDrawer open={rightDrawerOpen} />
 </div>
