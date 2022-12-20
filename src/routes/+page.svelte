@@ -1,14 +1,23 @@
 <script lang="ts">
-	import { connect as connectWs } from '$lib/data/ws';
+	import { lightStore, sceneStore, switchStore, weatherStore } from '$lib/data/stores';
+	import { initWsConnection, handleStateMessage, type WsStateMessage } from '$lib/data/ws';
 	import LeftDrawer from '$lib/drawers/left.svelte';
+	import { subscribeEntities } from 'home-assistant-js-websocket';
 	import { onMount } from 'svelte';
 
 	let rightDrawerOpen: boolean = false;
 
-	onMount(() => {
+	onMount(async () => {
 		// Initialize connection to websocket. Return callback for unsubscribe on unmount
-		return connectWs();
+		const connection = await initWsConnection();
+		const unsubscribe = subscribeEntities<WsStateMessage>(connection, handleStateMessage);
+		return unsubscribe;
 	});
+
+	lightStore.subscribe(console.log);
+	switchStore.subscribe(console.log);
+	weatherStore.subscribe(console.log);
+	sceneStore.subscribe(console.log);
 </script>
 
 <style>

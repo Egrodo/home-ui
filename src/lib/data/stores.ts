@@ -7,37 +7,6 @@ interface LightStore {
 function createLightStore() {
 	const { subscribe, update } = writable<LightStore>({});
 
-	// All network operations having to do with lights will happen here
-	// async function toggleLight(lightEntityId: string, newState: 'on' | 'off'): Promise<void> {
-	// 	const formBody = { entity_id: lightEntityId };
-	// 	const url = `${SERVER_URL}/api/services/homeassistant/turn_${newState}`;
-	// 	try {
-	// 		await fetch(url, {
-	// 			method: 'POST',
-	// 			headers: {
-	// 				'Content-Type': 'application/json;charset=utf-8',
-	// 				Authorization: AUTH_KEY,
-	// 				Accept: '*/*',
-	// 				'Accept-Encoding': 'gzip, deflate, br',
-	// 				Connection: 'keep-alive'
-	// 			},
-	// 			body: JSON.stringify(formBody)
-	// 		});
-
-	// 		// If successful, update local store
-	// 		update((lights) => {
-	// 			const newLight = lights.find((light) => light.entity_id === lightEntityId);
-	// 			if (newLight == null)
-	// 				throw new Error('Light that we successfully updated was not found in store?');
-	// 			newLight.state = newState;
-	// 			return lights;
-	// 		});
-	// 	} catch (err) {
-	// 		// TODO: custom error displaying modal
-	// 		console.error(err);
-	// 	}
-	// }
-
 	return {
 		subscribe,
 		// Updater function that merges the new state object into the store object, overwriting old with new when relevant keyed by entity_id

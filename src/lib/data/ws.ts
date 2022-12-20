@@ -1,9 +1,10 @@
-import { PUBLIC_WS_AUTH_KEY, PUBLIC_SERVER_URL } from '$env/static/public';
-import { createConnection, subscribeEntities, Auth } from 'home-assistant-js-websocket';
+import { browser } from '$app/environment';
+import { PUBLIC_WS_AUTH_KEY, PUBLIC_CLIENT_ID, PUBLIC_SERVER_URL } from '$env/static/public';
+import { createConnection, Auth } from 'home-assistant-js-websocket';
 import { lightStore, sceneStore, switchStore, weatherStore } from './stores';
 import type { Entity, LightEntity, SceneEntity, SwitchEntity, WeatherEntity } from './types';
 
-interface WsStateMessage {
+export interface WsStateMessage {
 	[entityId: string]: Entity;
 }
 
@@ -24,7 +25,7 @@ const entityToLastChangedDate = new Map<string, Date>();
  *
  * and processing it into the appropriate stores.
  */
-function handleStateMessage(states: WsStateMessage) {
+export function handleStateMessage(states: WsStateMessage) {
 	// Here I am creating arrays for the updates of each state entity type, but only
 	// if they happened between now and the last time that entity state was updated.
 	// This is to avoid unnecessary re-renders.
@@ -102,21 +103,18 @@ function handleStateMessage(states: WsStateMessage) {
 	}
 }
 
-export async function connect() {
-	let auth;
-	try {
-		auth = new Auth({
+export async function initWsConnection() {
+	if (browser) {
+		const auth = new Auth({
 			hassUrl: PUBLIC_SERVER_URL,
-			clientId: location.host,
+			clientId: PUBLIC_CLIENT_ID,
 			expires: Date.now() + 1e11,
 			expires_in: 1e11,
 			refresh_token: '',
 			access_token: PUBLIC_WS_AUTH_KEY
 		});
-		const connection = await createConnection({ auth, setupRetry: -1 });
-		const unsubscribe = subscribeEntities<WsStateMessage>(connection, handleStateMessage);
-		return unsubscribe;
-	} catch (err) {
-		console.error(err);
+		return createConnection({ auth, setupRetry: -1 });
+	} else {
+		throw new Error('Cannot create websocket connection on server');
 	}
 }
