@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import type { LightEntity, SceneEntity, SwitchEntity, WeatherEntity } from './types';
+import type { Connection } from 'home-assistant-js-websocket';
 
 interface LightStore {
 	[key: string]: LightEntity;
@@ -72,3 +73,15 @@ export const lightStore = createLightStore();
 export const switchStore = createSwitchStore();
 export const sceneStore = createSceneStore();
 export const weatherStore = createWeatherStore();
+
+// Store for the WS connection object so that it can be accessed from anywhere
+function createConnectionStore() {
+	const { subscribe, set } = writable<Connection>();
+
+	return {
+		subscribe,
+		set
+	};
+}
+
+export const connectionStore = createConnectionStore();

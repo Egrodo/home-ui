@@ -32,7 +32,7 @@
 	}
 </style>
 
-<Block {fontColor} {backgroundColor}>
+<Block {fontColor} {backgroundColor} flexGrow>
 	<h1>
 		{dayNum}
 	</h1>

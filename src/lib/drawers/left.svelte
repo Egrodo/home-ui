@@ -2,6 +2,7 @@
 	import DateBlock from '$lib/blocks/date.svelte';
 	import TimeBlock from '$lib/blocks/time.svelte';
 	import Weather from '$lib/blocks/weather.svelte';
+	import Wifi from '$lib/blocks/wifi.svelte';
 </script>
 
 <style>
@@ -12,12 +13,17 @@
 		flex-direction: column;
 		row-gap: 10px;
 		padding: 0 1em;
+		overflow: auto;
 	}
+
 	.leftDrawer > h2 {
 		text-align: center;
 		color: white;
 		margin: 1.5em 0;
 		font-weight: 500;
+	}
+	:global(.leftDrawer > *) {
+		min-width: 100%;
 	}
 	.blockRow {
 		display: flex;
@@ -33,4 +39,5 @@
 		<TimeBlock />
 	</div>
 	<Weather />
+	<Wifi />
 </section>

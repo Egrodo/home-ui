@@ -12,9 +12,10 @@
 	weatherStore.subscribe((weatherState) => {
 		if (weatherState == null) return;
 		temperature = weatherState.attributes.temperature;
-		forecast = formatForecast(weatherState.state); // TODO: Further text processing is needed
+		forecast = formatForecast(weatherState.state);
 		humidity = weatherState.attributes.humidity;
 	});
+	// TODO: Correct weather icons
 </script>
 
 <style>
