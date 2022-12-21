@@ -5,9 +5,11 @@
 	.mainDrawer {
 		height: 100%;
 		flex-grow: 1;
+		flex-basis: 0;
 
 		padding: 1.5em 2em 0 2em;
 		overflow-y: auto;
+		display: flex;
 	}
 
 	.blocksContainer {
@@ -20,9 +22,7 @@
 	.roomSelect {
 		display: flex;
 		flex-direction: row;
-		column-gap: 0.5em;
 		padding: 0;
-		margin: 0 auto;
 		list-style: none;
 		font-size: 2em;
 		font-weight: 500;
@@ -33,6 +33,7 @@
 	}
 	.roomSelect > .selected {
 		width: max-content;
+		margin: 0 auto;
 		color: rgb(220, 220, 220);
 	}
 	.roomSelect > li {
