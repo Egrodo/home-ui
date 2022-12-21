@@ -8,7 +8,7 @@
 <style>
 	.leftDrawer {
 		height: 100%;
-		width: calc(var(--page-width) / 4); /* Left drawer takes up 1/4th of the width */
+		width: 25%;
 		display: flex;
 		flex-direction: column;
 		row-gap: 10px;

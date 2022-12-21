@@ -15,13 +15,16 @@
 		justify-content: center;
 		aspect-ratio: 1 / 1.1; /* Make height 10% taller than width */
 	}
+	.flexGrow {
+		flex-grow: 1;
+		flex-basis: 0;
+	}
 </style>
 
 <div
 	class={`block ${$$props.class || ''}`}
-	style="--background-color:{backgroundColor}; --fontColor: {fontColor}; flex-grow: {flexGrow
-		? 1
-		: 0};"
+	class:flexGrow
+	style="--background-color:{backgroundColor}; --fontColor: {fontColor};"
 >
 	<slot />
 </div>
