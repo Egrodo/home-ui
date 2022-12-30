@@ -30,7 +30,7 @@
 	sceneStore.subscribe(console.log);
 
 	onMount(() => {
-		// ts-ignore
+		// @ts-ignore
 		window.Debug = {
 			toggleRightDrawer: () => (rightDrawerOpen = !rightDrawerOpen)
 		};

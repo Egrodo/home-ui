@@ -1,21 +1,27 @@
-<script>
+<script lang="ts">
+	import type { WeatherStates } from '$lib/data/types';
 	import { weatherStore } from '$lib/data/stores';
-	import { formatForecast } from '$lib/utils';
-	import Cloudy from 'svelte-material-icons/WeatherCloudy.svelte';
+	import WeatherCloudy from 'svelte-material-icons/WeatherCloudy.svelte';
+	import { formatForecast, getWeatherIcon } from '$lib/utils';
 	import Block from './block.svelte';
 	const backgroundColor = '#FFE792'; // warm-yellow
-	const fontColor = '#000'; // black\
+	const fontColor = '#000'; // black
 
-	$: temperature = 0;
+	$: temperature = 5;
 	$: forecast = 'Sunny';
 	$: humidity = 50;
+	$: WeatherIcon = WeatherCloudy;
+
+	const updateWeatherIcon = async (weatherState: WeatherStates | 'off' | 'on') => {
+		WeatherIcon = await getWeatherIcon(weatherState);
+	};
 	weatherStore.subscribe((weatherState) => {
 		if (weatherState == null) return;
 		temperature = weatherState.attributes.temperature;
 		forecast = formatForecast(weatherState.state);
 		humidity = weatherState.attributes.humidity;
+		updateWeatherIcon(weatherState.state);
 	});
-	// TODO: Correct weather icons
 </script>
 
 <style>
@@ -33,12 +39,12 @@
 	h2 {
 		font-size: 1.5em;
 		font-weight: 600;
-		margin: 0.25em 3em;
+		margin: 0.25em;
 	}
 </style>
 
 <Block {fontColor} {backgroundColor} class="weatherBlock">
-	<Cloudy height="8em" width="8em" />
+	<svelte:component this={WeatherIcon} height="8em" width="8em" />
 	<h1>
 		{temperature}°
 	</h1>

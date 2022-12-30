@@ -19,7 +19,7 @@ interface LightEntityAttributes {
 
 type EntityTypes = 'light' | 'switch' | 'scene' | 'weather';
 
-type WeatherStates =
+export type WeatherStates =
 	| 'clear-night'
 	| 'cloudy'
 	| 'exceptional'
