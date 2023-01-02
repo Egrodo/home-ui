@@ -8,12 +8,6 @@ export interface WsStateMessage {
 	[entityId: string]: Entity;
 }
 
-// The idea here is that if I keep track of when the last time a specific entity updated, I
-// can avoid updating the state (and thus causing a re-render) if the state hasn't changed.
-// I know this is probably an overoptimization & that Svelte might be smart enough to not
-// re-render unecessarily anyways,
-const entityToLastChangedDate = new Map<string, Date>();
-
 /**
  * This function handles filtering out data for the:
  *  - lights
@@ -42,51 +36,24 @@ export function handleStateMessage(states: WsStateMessage) {
 			let newWeather = weather;
 			if (entity_id.startsWith('light.')) {
 				const lightEntity = entity as LightEntity;
-				const lastChangedDate = entityToLastChangedDate.get(entity_id);
-				if (lastChangedDate && lastChangedDate < new Date(lightEntity.last_changed)) {
-					entityToLastChangedDate.set(entity_id, new Date(lightEntity.last_changed));
-					lights.push(lightEntity);
-				} else if (!lastChangedDate) {
-					entityToLastChangedDate.set(entity_id, new Date(lightEntity.last_changed));
-					lights.push(lightEntity);
-				}
+				lights.push(lightEntity);
 			} else if (entity_id.startsWith('switch.')) {
 				const switchEntity = entity as SwitchEntity;
-				const lastChangedDate = entityToLastChangedDate.get(entity_id);
-				if (lastChangedDate && lastChangedDate < new Date(switchEntity.last_changed)) {
-					entityToLastChangedDate.set(entity_id, new Date(switchEntity.last_changed));
-					switches.push(switchEntity);
-				} else if (!lastChangedDate) {
-					entityToLastChangedDate.set(entity_id, new Date(switchEntity.last_changed));
-					switches.push(switchEntity);
-				}
+				switches.push(switchEntity);
 			} else if (entity_id.startsWith('scene.')) {
 				const sceneEntity = entity as SceneEntity;
-				const lastChangedDate = entityToLastChangedDate.get(entity_id);
-				if (lastChangedDate && lastChangedDate < new Date(entity.last_changed)) {
-					entityToLastChangedDate.set(entity_id, new Date(sceneEntity.last_changed));
-					scenes.push(sceneEntity);
-				} else if (!lastChangedDate) {
-					entityToLastChangedDate.set(entity_id, new Date(sceneEntity.last_changed));
-					scenes.push(sceneEntity);
-				}
+				scenes.push(sceneEntity);
 			} else if (entity_id === 'weather.home') {
 				// Unlike the other entity types, we only care about one specific weather entity
 				const weatherEntity = entity as WeatherEntity;
-				const lastChangedDate = entityToLastChangedDate.get(entity_id);
-				if (lastChangedDate && lastChangedDate < new Date(weatherEntity.last_changed)) {
-					entityToLastChangedDate.set(entity_id, new Date(weatherEntity.last_changed));
-					newWeather = weatherEntity;
-				} else if (!lastChangedDate) {
-					entityToLastChangedDate.set(entity_id, new Date(weatherEntity.last_changed));
-					newWeather = weatherEntity;
-				}
+				newWeather = weatherEntity;
 			}
 
 			return [lights, switches, scenes, newWeather];
 		},
 		[[], [], [], null]
 	);
+	console.log(lightEntities);
 
 	if (lightEntities.length) {
 		lightStore.addOrUpdate(lightEntities);
