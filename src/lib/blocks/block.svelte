@@ -2,6 +2,7 @@
 	export let backgroundColor: string;
 	export let fontColor: string;
 	export let flexGrow: boolean = false;
+	export let onClick: (() => void) | null = null;
 </script>
 
 <style>
@@ -25,6 +26,8 @@
 	class={`block ${$$props.class || ''}`}
 	class:flexGrow
 	style="--background-color:{backgroundColor}; --fontColor: {fontColor};"
+	role={onClick ? 'button' : 'none'}
+	on:click={onClick}
 >
 	<slot />
 </div>

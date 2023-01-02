@@ -7,19 +7,40 @@
 	const backgroundColor = '#FFE792'; // warm-yellow
 	const fontColor = '#000'; // black
 
-	$: temperature = 5;
-	$: forecast = 'Sunny';
-	$: humidity = 50;
-	$: WeatherIcon = WeatherCloudy;
+	let forecast = 'Sunny';
+	let humidity = 50;
+	let WeatherIcon = WeatherCloudy;
+
+	// We want to allow the user to toggle between °C and °F, regardless of the
+	// unit that the weather entity originally provides (givenUnit)
+	let givenUnit: '°C' | '°F' = '°F';
+	let shownUnit: '°C' | '°F' = '°F';
+
+	// Calculate the temperature by converting the given unit to the selected unit
+	let givenTemperature: number = 0;
+	$: shownTemperature = givenUnit === shownUnit ? givenTemperature : convertTemp();
+
+	const convertTemp = () => {
+		if (givenUnit === '°C') {
+			return Number(((givenTemperature * 9) / 5 + 32).toFixed(1));
+		} else if (givenUnit === '°F') {
+			return Number((((givenTemperature - 32) * 5) / 9).toFixed(1));
+		}
+	};
+	const toggleUnit = () => {
+		shownUnit = shownUnit === '°C' ? '°F' : '°C';
+	};
 
 	const updateWeatherIcon = async (weatherState: WeatherStates | 'off' | 'on') => {
 		WeatherIcon = await getWeatherIcon(weatherState);
 	};
+
 	weatherStore.subscribe((weatherState) => {
 		if (weatherState == null) return;
-		temperature = weatherState.attributes.temperature;
 		forecast = formatForecast(weatherState.state);
 		humidity = weatherState.attributes.humidity;
+		givenUnit = weatherState.attributes.temperature_unit;
+		givenTemperature = weatherState.attributes.temperature;
 		updateWeatherIcon(weatherState.state);
 	});
 </script>
@@ -43,10 +64,10 @@
 	}
 </style>
 
-<Block {fontColor} {backgroundColor} class="weatherBlock">
+<Block {fontColor} {backgroundColor} class="weatherBlock" onClick={toggleUnit}>
 	<svelte:component this={WeatherIcon} height="8em" width="8em" />
 	<h1>
-		{temperature}°
+		{shownTemperature}{shownUnit}
 	</h1>
 	<h2>
 		{forecast} with {humidity}% humidity

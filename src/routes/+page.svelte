@@ -12,7 +12,6 @@
 	import RightDrawer from '$lib/drawers/right.svelte';
 	import { subscribeEntities } from 'home-assistant-js-websocket';
 	import { onMount } from 'svelte';
-	// import { fly } from 'svelte/types/runtime/transition';
 
 	let rightDrawerOpen: boolean = false;
 

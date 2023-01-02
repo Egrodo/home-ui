@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { sceneStore } from "$lib/data/stores";
+
+
 	const roomIds = new Set(['All Rooms', 'Bedroom', 'Living Room', 'Office']);
 
 	let selected: string = 'All Rooms';
@@ -6,6 +9,16 @@
 		const eventTarget = e.target as HTMLUListElement;
 		if (roomIds.has(eventTarget.id)) selected = eventTarget.id;
 	}
+
+	// TODO: subscribe to scenes, lights, and switches, and render each
+	// as blocks but they'll need their own click handlers bc scenes & switches are
+	// toggles but lights should open the right drawer and do other shit
+
+	// Subscribe to scenes
+	let scenes = {};
+	sceneStore.subscribe((newScenes) => {
+		scenes = newScenes;
+	});
 </script>
 
 <style>
@@ -62,5 +75,7 @@
 			<li id={roomStr} class:selected={selected === roomStr}>{roomStr}</li>
 		{/each}
 	</ul>
-	<div class="blocksContainer" />
+	<div class="blocksContainer">
+
+	</div>
 </section>

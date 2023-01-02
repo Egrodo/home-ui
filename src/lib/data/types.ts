@@ -53,6 +53,7 @@ interface ForecastType {
 
 interface WeatherEntityAttributes {
 	temperature: number;
+	temperature_unit: '°C' | '°F';
 	humidity: 75;
 	forecast: ForecastType[];
 	friendly_name: 'Forecast Home';
