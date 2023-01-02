@@ -69,6 +69,9 @@ interface SceneEntityAttributes {
 	friendly_name: string;
 	icon: string;
 	id: string;
+
+	// These are not part of the API response, but I will add them to the attributes
+	color?: string; // hex color
 }
 
 export type LightEntity = PrimitiveEntity<LightEntityAttributes>;

@@ -2,8 +2,9 @@
 	import type { WeatherStates } from '$lib/data/types';
 	import { weatherStore } from '$lib/data/stores';
 	import WeatherCloudy from 'svelte-material-icons/WeatherCloudy.svelte';
-	import { formatForecast, getIcon } from '$lib/utils';
 	import Block from './block.svelte';
+	import { getIcon } from '$lib/utils/getIcon';
+	import { formatForecast } from '$lib/utils/formatForcast';
 	const backgroundColor = '#FFE792'; // warm-yellow
 	const fontColor = '#000'; // black
 

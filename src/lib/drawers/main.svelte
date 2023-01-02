@@ -1,7 +1,9 @@
 <script lang="ts">
+	import Block from '$lib/blocks/block.svelte';
 	import { selectedRoomStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
 	import Scenes from '$lib/groups/scenes.svelte';
+	import ToggleSwitchOutline from 'svelte-material-icons/ToggleSwitchOutline.svelte';
 
 	let selectedRoom: Rooms = Rooms.AllRooms;
 	selectedRoomStore.subscribe((newSelectedRoom) => {
@@ -10,8 +12,10 @@
 
 	function handleRoomClick(e: MouseEvent) {
 		const eventTarget = e.target as HTMLUListElement;
-		if (Object.values(Rooms).includes(eventTarget.id as Rooms))
+		if (Object.values(Rooms).includes(eventTarget.id as Rooms)) {
 			selectedRoom = eventTarget.id as Rooms;
+			selectedRoomStore.set(selectedRoom);
+		}
 	}
 </script>
 
@@ -68,6 +72,15 @@
 		grid-template-columns: repeat(auto-fit, 180px);
 		column-gap: 10px;
 	}
+	.flipIconDown {
+		transform: rotate(-90deg);
+	}
+	.flipIconUp {
+		transform: rotate(90deg);
+	}
+	.blockTitle {
+		font-size: 1.25em;
+	}
 </style>
 
 <section class="mainDrawer">
@@ -77,6 +90,14 @@
 		{/each}
 	</ul>
 	<div class="blocksContainer">
+		<Block backgroundColor="#FFF7DC" fontColor="#000">
+			<span class="flipIconDown"><ToggleSwitchOutline height="5em" width="5em" /></span>
+			<h2 class="blockTitle">All Devices On</h2>
+		</Block>
+		<Block backgroundColor="#1F212E" fontColor="#fff">
+			<span class="flipIconUp"><ToggleSwitchOutline height="5em" width="5em" /></span>
+			<h2 class="blockTitle">All Devices Off</h2>
+		</Block>
 		<Scenes />
 	</div>
 </section>

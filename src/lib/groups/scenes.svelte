@@ -2,7 +2,7 @@
 	import Block from '$lib/blocks/block.svelte';
 	import { selectedRoomStore, sceneStore, type SceneStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
-	import { getIcon } from '$lib/utils';
+	import { getIcon } from '$lib/utils/getIcon';
 	import type { ComponentType } from 'svelte';
 
 	// For blocks whose data doesn't include a color, switch back and forth between
@@ -29,11 +29,26 @@
 				sceneIcons[scene.attributes.id] = icon;
 			}
 
-			// Parse area out of name
+			// Add to room map & parse metadata from name
 			Object.values(Rooms).forEach((roomId) => {
 				if (scene.attributes.friendly_name.includes(roomId)) {
 					sceneRoomMap.set(roomId, scene.attributes.id);
-					scene.attributes.friendly_name = scene.attributes.friendly_name.replace(roomId, '');
+
+					// Remove room name from scene name, but only if we're not in All Room display
+					if (selectedRoom !== Rooms.AllRooms)
+						scene.attributes.friendly_name = scene.attributes.friendly_name.replace(roomId, '');
+					console.log(roomId, scene.attributes.friendly_name);
+					// Extract color from the scene name
+					const colorMatch = scene.attributes.friendly_name.match(/#([0-9A-F]{3}){1,2}\b/i);
+
+					// If we found a color, remove it from the name and set the color attribute
+					if (colorMatch) {
+						scene.attributes.color = colorMatch[0];
+						scene.attributes.friendly_name = scene.attributes.friendly_name.replace(
+							colorMatch[0],
+							''
+						);
+					}
 				}
 			});
 		}
@@ -45,6 +60,11 @@
 	function triggerScene(sceneId: string) {
 		// TODO:
 	}
+
+	$: scenesToShow = Object.values(scenes).filter((scene) => {
+		if (selectedRoom === Rooms.AllRooms) return true;
+		return sceneRoomMap.get(selectedRoom) === scene.attributes.id;
+	});
 </script>
 
 <style>
@@ -53,9 +73,9 @@
 	}
 </style>
 
-{#each Object.values(scenes) as scene, i}
+{#each Object.values(scenesToShow) as scene, i}
 	<Block
-		backgroundColor={getColor(i)}
+		backgroundColor={scene.attributes.color ?? getColor(i)}
 		fontColor={getColor(i + 1)}
 		onClick={() => triggerScene(scene.attributes.id)}
 	>
