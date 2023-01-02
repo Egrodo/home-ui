@@ -11,7 +11,6 @@ export function formatForecast(newForecast: string): string {
 
 export async function getIcon(iconName: WeatherStates | string): Promise<ComponentType> {
 	if (iconName.includes('mdi:')) iconName = iconName.replace('mdi:', '');
-	// console.log(iconName);
 	switch (iconName) {
 		case 'clear-night':
 			return (await await import('svelte-material-icons/WeatherNight.svelte'))

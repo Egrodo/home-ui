@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { Rooms } from './types';
 import type { LightEntity, SceneEntity, SwitchEntity, WeatherEntity } from './types';
 import type { Connection } from 'home-assistant-js-websocket';
 
@@ -86,8 +87,8 @@ function createConnectionStore() {
 
 export const connectionStore = createConnectionStore();
 
-function createRoomIdStore() {
-	const { subscribe, set } = writable<Set<string>>();
+function createSelectedRoomStore() {
+	const { subscribe, set } = writable<Rooms>(Rooms.AllRooms);
 
 	return {
 		subscribe,
@@ -95,4 +96,4 @@ function createRoomIdStore() {
 	};
 }
 
-export const roomIdStore = createRoomIdStore();
+export const selectedRoomStore = createSelectedRoomStore();

@@ -1,19 +1,17 @@
 <script lang="ts">
-	import Block from '$lib/blocks/block.svelte';
-	import { roomIdStore } from '$lib/data/stores';
+	import { selectedRoomStore } from '$lib/data/stores';
+	import { Rooms } from '$lib/data/types';
 	import Scenes from '$lib/groups/scenes.svelte';
-	import { onMount } from 'svelte';
 
-	const roomIds = new Set(['All Rooms', 'Bedroom', 'Living Room', 'Office']);
-
-	onMount(() => {
-		roomIdStore.set(roomIds);
+	let selectedRoom: Rooms = Rooms.AllRooms;
+	selectedRoomStore.subscribe((newSelectedRoom) => {
+		selectedRoom = newSelectedRoom;
 	});
 
-	let selected: string = 'All Rooms';
 	function handleRoomClick(e: MouseEvent) {
 		const eventTarget = e.target as HTMLUListElement;
-		if (roomIds.has(eventTarget.id)) selected = eventTarget.id;
+		if (Object.values(Rooms).includes(eventTarget.id as Rooms))
+			selectedRoom = eventTarget.id as Rooms;
 	}
 </script>
 
@@ -74,8 +72,8 @@
 
 <section class="mainDrawer">
 	<ul class="roomSelect" on:click={handleRoomClick}>
-		{#each [...roomIds] as roomStr}
-			<li id={roomStr} class:selected={selected === roomStr}>{roomStr}</li>
+		{#each [...Object.values(Rooms)] as roomStr}
+			<li id={roomStr} class:selected={selectedRoom === roomStr}>{roomStr}</li>
 		{/each}
 	</ul>
 	<div class="blocksContainer">

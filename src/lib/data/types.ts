@@ -77,3 +77,10 @@ export type SwitchEntity = PrimitiveEntity<SwitchEntityAttributes>;
 export type SceneEntity = PrimitiveEntity<SceneEntityAttributes>;
 
 export type Entity = LightEntity | WeatherEntity | WeatherEntity | SceneEntity | SwitchEntity;
+
+export enum Rooms {
+	AllRooms = 'All Rooms',
+	LivingRoom = 'Living Room',
+	Bedroom = 'Bedroom',
+	Office = 'Office'
+}

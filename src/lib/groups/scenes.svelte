@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
-	import { roomIdStore, sceneStore, type SceneStore } from '$lib/data/stores';
+	import { selectedRoomStore, sceneStore, type SceneStore } from '$lib/data/stores';
+	import { Rooms } from '$lib/data/types';
 	import { getIcon } from '$lib/utils';
 	import type { ComponentType } from 'svelte';
 
@@ -10,9 +11,9 @@
 	const getColor = (i: number) => colors[i % colors.length];
 
 	// Subscribe to rooms
-	let roomIds = new Set<string>();
-	roomIdStore.subscribe((newRoomIds) => {
-		roomIds = newRoomIds;
+	let selectedRoom: Rooms = Rooms.AllRooms;
+	selectedRoomStore.subscribe((newSelectedRoom) => {
+		selectedRoom = newSelectedRoom;
 	});
 	// Subscribe to scenes
 	let scenes: SceneStore = {};
@@ -29,7 +30,7 @@
 			}
 
 			// Parse area out of name
-			roomIds.forEach((roomId) => {
+			Object.values(Rooms).forEach((roomId) => {
 				if (scene.attributes.friendly_name.includes(roomId)) {
 					sceneRoomMap.set(roomId, scene.attributes.id);
 					scene.attributes.friendly_name = scene.attributes.friendly_name.replace(roomId, '');
