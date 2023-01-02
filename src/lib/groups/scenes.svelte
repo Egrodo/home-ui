@@ -20,7 +20,12 @@
 	// Subscribe to scenes
 	let scenes: SceneStore = {};
 	const sceneIcons: { [scene_id: string]: ComponentType } = {};
-	const sceneRoomMap = new Map();
+	const sceneRoomMap = {
+		[Rooms.AllRooms]: new Set(),
+		[Rooms.Bedroom]: new Set(),
+		[Rooms.LivingRoom]: new Set(),
+		[Rooms.Office]: new Set()
+	};
 	sceneStore.subscribe(async (newScenes) => {
 		scenes = newScenes;
 		// Load icons for each scene
@@ -34,7 +39,7 @@
 			// Add to room map & parse metadata from name
 			Object.values(Rooms).forEach((roomId) => {
 				if (scene.attributes.friendly_name.includes(roomId)) {
-					sceneRoomMap.set(roomId, scene.attributes.id);
+					sceneRoomMap[roomId].add(scene.attributes.id);
 
 					// Remove room name from scene name, but only if we're not in All Room display
 					if (selectedRoom !== Rooms.AllRooms)
@@ -65,7 +70,7 @@
 
 	$: scenesToShow = Object.values(scenes).filter((scene) => {
 		if (selectedRoom === Rooms.AllRooms) return true;
-		return sceneRoomMap.get(selectedRoom) === scene.attributes.id;
+		return sceneRoomMap[selectedRoom].has(scene.attributes.id);
 	});
 </script>
 
