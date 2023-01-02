@@ -3,6 +3,8 @@
 	import { selectedRoomStore, sceneStore, type SceneStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
 	import { getIcon } from '$lib/utils/getIcon';
+	import hexToRGB from '$lib/utils/HEXtoRGB';
+	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
 	import type { ComponentType } from 'svelte';
 
 	// For blocks whose data doesn't include a color, switch back and forth between
@@ -76,7 +78,11 @@
 {#each Object.values(scenesToShow) as scene, i}
 	<Block
 		backgroundColor={scene.attributes.color ?? getColor(i)}
-		fontColor={getColor(i + 1)}
+		fontColor={scene.attributes.color
+			? shouldDisplayBlackText(hexToRGB(scene.attributes.color))
+				? 'black'
+				: 'white'
+			: getColor(i + 1)}
 		onClick={() => triggerScene(scene.attributes.id)}
 	>
 		<svelte:component this={sceneIcons[scene.attributes.id]} height="5em" width="5em" />
