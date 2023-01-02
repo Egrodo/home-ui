@@ -55,6 +55,24 @@ export async function getIcon(iconName: WeatherStates | string): Promise<Compone
 		case 'skull-outline':
 			return (await import('svelte-material-icons/SkullOutline.svelte'))
 				.default as unknown as ComponentType;
+		case 'desk-lamp':
+			return (await import('svelte-material-icons/DeskLamp.svelte'))
+				.default as unknown as ComponentType;
+		case 'lightbulb-variant':
+			return (await import('svelte-material-icons/LightbulbVariant.svelte'))
+				.default as unknown as ComponentType;
+		case 'lightbulb-fluorescent-tube':
+			return (await import('svelte-material-icons/LightbulbFluorescentTube.svelte'))
+				.default as unknown as ComponentType;
+		case 'floor-lamp':
+			return (await import('svelte-material-icons/FloorLamp.svelte'))
+				.default as unknown as ComponentType;
+		case 'triangle-outline':
+			return (await import('svelte-material-icons/TriangleOutline.svelte'))
+				.default as unknown as ComponentType;
+		case 'television':
+			return (await import('svelte-material-icons/Television.svelte'))
+				.default as unknown as ComponentType;
 		default:
 			return (await import('svelte-material-icons/HelpRhombusOutline.svelte'))
 				.default as unknown as ComponentType;

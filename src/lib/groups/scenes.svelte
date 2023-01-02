@@ -9,15 +9,13 @@
 
 	// For blocks whose data doesn't include a color, switch back and forth between
 	// these two colors
-	const colors = ['#FFF7DC', '#1F212E'];
-	const getColor = (i: number) => colors[i % colors.length];
+	const defaultColors = ['#FFF7DC', '#1F212E'];
+	const getDefaultColor = (i: number) => defaultColors[i % defaultColors.length];
 
-	// Subscribe to rooms
 	let selectedRoom: Rooms = Rooms.AllRooms;
 	selectedRoomStore.subscribe((newSelectedRoom) => {
 		selectedRoom = newSelectedRoom;
 	});
-	// Subscribe to scenes
 	let scenes: SceneStore = {};
 	const sceneIcons: { [scene_id: string]: ComponentType } = {};
 	const sceneRoomMap = {
@@ -44,7 +42,6 @@
 					// Remove room name from scene name, but only if we're not in All Room display
 					if (selectedRoom !== Rooms.AllRooms)
 						scene.attributes.friendly_name = scene.attributes.friendly_name.replace(roomId, '');
-					console.log(roomId, scene.attributes.friendly_name);
 					// Extract color from the scene name
 					const colorMatch = scene.attributes.friendly_name.match(/#([0-9A-F]{3}){1,2}\b/i);
 
@@ -82,12 +79,12 @@
 
 {#each Object.values(scenesToShow) as scene, i}
 	<Block
-		backgroundColor={scene.attributes.color ?? getColor(i)}
+		backgroundColor={scene.attributes.color ?? getDefaultColor(i)}
 		fontColor={scene.attributes.color
 			? shouldDisplayBlackText(hexToRGB(scene.attributes.color))
 				? 'black'
 				: 'white'
-			: getColor(i + 1)}
+			: getDefaultColor(i + 1)}
 		onClick={() => triggerScene(scene.attributes.id)}
 	>
 		<svelte:component this={sceneIcons[scene.attributes.id]} height="5em" width="5em" />

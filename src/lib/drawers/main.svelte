@@ -2,6 +2,7 @@
 	import Block from '$lib/blocks/block.svelte';
 	import { selectedRoomStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
+	import Lights from '$lib/groups/lights.svelte';
 	import Scenes from '$lib/groups/scenes.svelte';
 	import ToggleSwitchOutline from 'svelte-material-icons/ToggleSwitchOutline.svelte';
 
@@ -99,5 +100,6 @@
 			<h2 class="blockTitle">All Devices Off</h2>
 		</Block>
 		<Scenes />
+		<Lights />
 	</div>
 </section>
