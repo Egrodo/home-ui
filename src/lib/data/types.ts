@@ -67,6 +67,7 @@ interface SwitchEntityAttributes {
 interface SceneEntityAttributes {
 	entity_id: string[]; // This is actually an array of entity_id('s), referring to the devices involved in that scene
 	friendly_name: string;
+	icon: string;
 	id: string;
 }
 

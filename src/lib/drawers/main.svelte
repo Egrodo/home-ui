@@ -1,24 +1,20 @@
 <script lang="ts">
-	import { sceneStore } from "$lib/data/stores";
-
+	import Block from '$lib/blocks/block.svelte';
+	import { roomIdStore } from '$lib/data/stores';
+	import Scenes from '$lib/groups/scenes.svelte';
+	import { onMount } from 'svelte';
 
 	const roomIds = new Set(['All Rooms', 'Bedroom', 'Living Room', 'Office']);
+
+	onMount(() => {
+		roomIdStore.set(roomIds);
+	});
 
 	let selected: string = 'All Rooms';
 	function handleRoomClick(e: MouseEvent) {
 		const eventTarget = e.target as HTMLUListElement;
 		if (roomIds.has(eventTarget.id)) selected = eventTarget.id;
 	}
-
-	// TODO: subscribe to scenes, lights, and switches, and render each
-	// as blocks but they'll need their own click handlers bc scenes & switches are
-	// toggles but lights should open the right drawer and do other shit
-
-	// Subscribe to scenes
-	let scenes = {};
-	sceneStore.subscribe((newScenes) => {
-		scenes = newScenes;
-	});
 </script>
 
 <style>
@@ -30,6 +26,7 @@
 		padding: 1.5em 2em 0 2em;
 		overflow-y: auto;
 		display: flex;
+		flex-direction: column;
 	}
 
 	.blocksContainer {
@@ -67,6 +64,12 @@
 	.roomSelect > .selected {
 		color: rgb(220, 220, 220);
 	}
+
+	.blocksContainer {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, 180px);
+		column-gap: 10px;
+	}
 </style>
 
 <section class="mainDrawer">
@@ -76,6 +79,6 @@
 		{/each}
 	</ul>
 	<div class="blocksContainer">
-
+		<Scenes />
 	</div>
 </section>

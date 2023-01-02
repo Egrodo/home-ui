@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 import type { LightEntity, SceneEntity, SwitchEntity, WeatherEntity } from './types';
 import type { Connection } from 'home-assistant-js-websocket';
 
-interface LightStore {
+export interface LightStore {
 	[key: string]: LightEntity;
 }
 function createLightStore() {
@@ -22,7 +22,7 @@ function createLightStore() {
 	};
 }
 
-interface SwitchStore {
+export interface SwitchStore {
 	[key: string]: SwitchEntity;
 }
 function createSwitchStore() {
@@ -40,7 +40,7 @@ function createSwitchStore() {
 	};
 }
 
-interface SceneStore {
+export interface SceneStore {
 	[key: string]: SceneEntity;
 }
 function createSceneStore() {
@@ -85,3 +85,14 @@ function createConnectionStore() {
 }
 
 export const connectionStore = createConnectionStore();
+
+function createRoomIdStore() {
+	const { subscribe, set } = writable<Set<string>>();
+
+	return {
+		subscribe,
+		set
+	};
+}
+
+export const roomIdStore = createRoomIdStore();

@@ -2,7 +2,7 @@
 	import type { WeatherStates } from '$lib/data/types';
 	import { weatherStore } from '$lib/data/stores';
 	import WeatherCloudy from 'svelte-material-icons/WeatherCloudy.svelte';
-	import { formatForecast, getWeatherIcon } from '$lib/utils';
+	import { formatForecast, getIcon } from '$lib/utils';
 	import Block from './block.svelte';
 	const backgroundColor = '#FFE792'; // warm-yellow
 	const fontColor = '#000'; // black
@@ -32,7 +32,7 @@
 	};
 
 	const updateWeatherIcon = async (weatherState: WeatherStates | 'off' | 'on') => {
-		WeatherIcon = await getWeatherIcon(weatherState);
+		WeatherIcon = await getIcon(weatherState);
 	};
 
 	weatherStore.subscribe((weatherState) => {
