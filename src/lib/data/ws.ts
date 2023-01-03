@@ -53,7 +53,6 @@ export function handleStateMessage(states: WsStateMessage) {
 		},
 		[[], [], [], null]
 	);
-	console.log(lightEntities);
 
 	if (lightEntities.length) {
 		lightStore.addOrUpdate(lightEntities);
@@ -64,7 +63,6 @@ export function handleStateMessage(states: WsStateMessage) {
 	if (sceneEntities.length) {
 		sceneStore.addOrUpdate(sceneEntities);
 	}
-
 	if (weatherEntity) {
 		weatherStore.set(weatherEntity);
 	}

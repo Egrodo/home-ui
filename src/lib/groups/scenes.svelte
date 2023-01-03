@@ -5,7 +5,7 @@
 	import { getIcon } from '$lib/utils/getIcon';
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
-	import type { ComponentType } from 'svelte';
+	import type { ComponentType, SvelteComponent } from 'svelte';
 
 	// For blocks whose data doesn't include a color, switch back and forth between
 	// these two colors
@@ -16,7 +16,10 @@
 	selectedRoomStore.subscribe((newSelectedRoom) => {
 		selectedRoom = newSelectedRoom;
 	});
+
+	// Scene data directly from the WS server, not formatted
 	let scenes: SceneStore = {};
+
 	const sceneIcons: { [scene_id: string]: ComponentType } = {};
 	const sceneRoomMap = {
 		[Rooms.AllRooms]: new Set(),
@@ -25,6 +28,10 @@
 		[Rooms.Office]: new Set()
 	};
 	sceneStore.subscribe(async (newScenes) => {
+		// Since HA has a habit of sending the same data over and over, check if anything has
+		// actually changed before triggering a re-render. Whether or not doing this is actually
+		// a performance improvement over just letting re-renders happen is debatable, but ¯\_(ツ)_/¯
+		if (JSON.stringify(scenes) === JSON.stringify(newScenes)) return;
 		scenes = newScenes;
 		// Load icons for each scene
 		for (const scene of Object.values(scenes)) {
@@ -33,42 +40,40 @@
 				const icon = await getIcon(scene.attributes.icon);
 				sceneIcons[scene.attributes.id] = icon;
 			}
-
-			// Add to room map & parse metadata from name
-			Object.values(Rooms).forEach((roomId) => {
-				if (scene.attributes.friendly_name.includes(roomId)) {
-					sceneRoomMap[roomId].add(scene.attributes.id);
-
-					// Remove room name from scene name, but only if we're not in All Room display
-					if (selectedRoom !== Rooms.AllRooms)
-						scene.attributes.friendly_name = scene.attributes.friendly_name.replace(roomId, '');
-					// Extract color from the scene name
-					const colorMatch = scene.attributes.friendly_name.match(/#([0-9A-F]{3}){1,2}\b/i);
-
-					// If we found a color, remove it from the name and set the color attribute
-					if (colorMatch) {
-						scene.attributes.color = colorMatch[0];
-						scene.attributes.friendly_name = scene.attributes.friendly_name.replace(
-							colorMatch[0],
-							''
-						);
-					}
-				}
-			});
 		}
-
-		// Update again to trigger re-render in case any scene names were updated
-		scenes = scenes;
 	});
 
 	function triggerScene(sceneId: string) {
 		// TODO:
 	}
 
-	$: scenesToShow = Object.values(scenes).filter((scene) => {
-		if (selectedRoom === Rooms.AllRooms) return true;
-		return sceneRoomMap[selectedRoom].has(scene.attributes.id);
-	});
+	type FormattedSceneType = {
+		id: string;
+		name?: string;
+		color?: string;
+	};
+
+	// Scenes filtered and formatted for rendering
+	$: scenesToShow = Object.values(scenes).reduce<FormattedSceneType[]>((acc, scene) => {
+		console.count('scenesToShow');
+		const formattedScene: FormattedSceneType = { id: scene.attributes.id };
+		// First check if the scene is in the selected room
+		if (selectedRoom === Rooms.AllRooms || scene.attributes.friendly_name.includes(selectedRoom)) {
+			// Remove room name from scene name, but only if we're not in All Room display
+			formattedScene.name = scene.attributes.friendly_name.replace(selectedRoom, '');
+			// Extract color from the scene name
+			const colorMatch = formattedScene.name.match(/#([0-9A-F]{3}){1,2}\b/i);
+
+			// If we found a color, remove it from the name and set the color attribute
+			if (colorMatch) {
+				formattedScene.color = colorMatch[0];
+				formattedScene.name = formattedScene.name.replace(colorMatch[0], '');
+			}
+
+			acc.push(formattedScene);
+		}
+		return acc;
+	}, []);
 </script>
 
 <style>
@@ -79,15 +84,16 @@
 
 {#each Object.values(scenesToShow) as scene, i}
 	<Block
-		backgroundColor={scene.attributes.color ?? getDefaultColor(i)}
-		fontColor={scene.attributes.color
-			? shouldDisplayBlackText(hexToRGB(scene.attributes.color))
+		backgroundColor={scene.color ?? getDefaultColor(i)}
+		fontColor={scene.color
+			? shouldDisplayBlackText(hexToRGB(scene.color))
 				? 'black'
 				: 'white'
 			: getDefaultColor(i + 1)}
-		onClick={() => triggerScene(scene.attributes.id)}
+		onClick={() => triggerScene(scene.id)}
+		toggle
 	>
-		<svelte:component this={sceneIcons[scene.attributes.id]} height="5em" width="5em" />
-		<h2 class="sceneName">{scene.attributes.friendly_name}</h2>
+		<svelte:component this={sceneIcons[scene.id]} height="5em" width="5em" />
+		<h2 class="sceneName">{scene.name}</h2>
 	</Block>
 {/each}
