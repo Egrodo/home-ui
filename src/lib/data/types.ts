@@ -15,6 +15,8 @@ interface LightEntityAttributes {
 	color_temp_kelvin?: number; // between `min_color_temp_kelvin` and `max_color_temp_kelvin`
 	brightness?: number; // 0-255
 	rgb_color?: [number, number, number]; // [0-255, 0-255, 0-255]
+	rate_limit_remaining?: number;
+	rate_limit_reset_seconds?: number;
 }
 
 type EntityTypes = 'light' | 'switch' | 'scene' | 'weather';
@@ -40,8 +42,8 @@ interface PrimitiveEntity<EntityAttributes> {
 	entity_id: `${EntityTypes}.${string}`;
 	state: 'off' | 'on' | WeatherStates;
 	attributes: EntityAttributes;
-	last_changed: string; // Date string
-	last_updated: string; // Date string
+	last_changed?: string; // Date string
+	last_updated?: string; // Date string
 }
 
 interface ForecastType {

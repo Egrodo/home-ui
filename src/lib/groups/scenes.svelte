@@ -21,12 +21,6 @@
 	let scenes: SceneStore = {};
 
 	const sceneIcons: { [scene_id: string]: ComponentType } = {};
-	const sceneRoomMap = {
-		[Rooms.AllRooms]: new Set(),
-		[Rooms.Bedroom]: new Set(),
-		[Rooms.LivingRoom]: new Set(),
-		[Rooms.Office]: new Set()
-	};
 	sceneStore.subscribe(async (newScenes) => {
 		// Since HA has a habit of sending the same data over and over, check if anything has
 		// actually changed before triggering a re-render. Whether or not doing this is actually
@@ -55,7 +49,6 @@
 
 	// Scenes filtered and formatted for rendering
 	$: scenesToShow = Object.values(scenes).reduce<FormattedSceneType[]>((acc, scene) => {
-		console.count('scenesToShow');
 		const formattedScene: FormattedSceneType = { id: scene.attributes.id };
 		// First check if the scene is in the selected room
 		if (selectedRoom === Rooms.AllRooms || scene.attributes.friendly_name.includes(selectedRoom)) {

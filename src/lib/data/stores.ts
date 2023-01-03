@@ -15,6 +15,13 @@ function createLightStore() {
 		addOrUpdate: (lightEntities: LightEntity[]) =>
 			update((lightStore: LightStore) => {
 				lightEntities.forEach((light) => {
+					// BULLSHIT HACK I HAVE TO DO TO STOP TV_LIGHTS FROM CONSTANTLY TRIGGERING RE-RENDERS
+					if (light.entity_id === 'light.tv_lights') {
+						delete light.last_changed;
+						delete light.last_updated;
+						delete light.attributes.rate_limit_remaining;
+						delete light.attributes.rate_limit_reset_seconds;
+					}
 					lightStore[light.entity_id] = light;
 				});
 				return lightStore;
