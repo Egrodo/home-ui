@@ -73,6 +73,9 @@ export async function getIcon(iconName: WeatherStates | string): Promise<Compone
 		case 'television':
 			return (await import('svelte-material-icons/Television.svelte'))
 				.default as unknown as ComponentType;
+		case 'mirror-rectangle':
+			return (await import('svelte-material-icons/MirrorRectangle.svelte'))
+				.default as unknown as ComponentType;
 		default:
 			return (await import('svelte-material-icons/HelpRhombusOutline.svelte'))
 				.default as unknown as ComponentType;

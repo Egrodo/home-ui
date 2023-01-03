@@ -32,16 +32,10 @@
 				lightIcons[light.entity_id] = icon;
 			}
 
-			console.log(light);
-
 			// Add to room map
 			Object.values(Rooms).forEach((roomId) => {
 				if (light.attributes.friendly_name.includes(roomId)) {
 					lightRoomMap[roomId].add(light.entity_id);
-
-					// Remove room name from light name, but only if we're not in All Room display
-					if (selectedRoom !== Rooms.AllRooms)
-						light.attributes.friendly_name = light.attributes.friendly_name.replace(roomId, '');
 				}
 			});
 
@@ -59,13 +53,17 @@
 		lights = newLights;
 	});
 
-	$: lightsToShow = Object.values(lights).filter((light) => {
-		if (selectedRoom === Rooms.AllRooms) return true;
+	$: lightsToShow = Object.values(lights)
+		.filter((light) => {
+			if (selectedRoom === Rooms.AllRooms) return true;
 
-		return lightRoomMap[selectedRoom].has(light.entity_id);
-	});
-
-	$: console.log(lightBgColors);
+			return lightRoomMap[selectedRoom].has(light.entity_id);
+		})
+		.sort((a, b) => {
+			// Sort the off lights after the on lights
+			if (a.state === 'on' && b.state === 'off') return -1;
+			return 0;
+		});
 </script>
 
 <style>
@@ -83,6 +81,6 @@
 		}}
 	>
 		<svelte:component this={lightIcons[light.entity_id]} height="5em" width="5em" />
-		<h2 class="lightName">{light.attributes.friendly_name}</h2>
+		<h2 class="lightName">{light.attributes.friendly_name.replace(selectedRoom, '')}</h2>
 	</Block>
 {/each}

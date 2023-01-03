@@ -53,6 +53,8 @@
 		/* Block globals */
 		--block-border-radius: 32px;
 		--block-padding: 38px;
+		--block-default-light-color: #fff7dc;
+		--block-default-dark-color: #1f212e;
 
 		height: var(--page-height);
 		width: var(--page-width);
