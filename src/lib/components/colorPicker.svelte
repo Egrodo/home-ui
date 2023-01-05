@@ -23,9 +23,12 @@
 <style>
 	.colorPickerContainer {
 		position: relative;
+		display: flex;
+		justify-content: center;
 	}
 	.colorPickerSvg {
 		margin-top: 3em;
+		width: 80%;
 	}
 	.colorPreviewBlock {
 		width: 75px;

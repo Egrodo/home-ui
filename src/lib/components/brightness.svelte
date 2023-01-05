@@ -1,5 +1,11 @@
 <script lang="ts">
-	// TODO:
+	import Slider from './slider.svelte';
+
+	let percentage: number = 0;
+	function handleChange(newPercentage: number) {
+		console.log(percentage);
+		percentage = newPercentage;
+	}
 </script>
 
 <style>
@@ -14,26 +20,9 @@
 		margin-top: 0.25em;
 		color: white;
 	}
-	.sliderTrack {
-		width: 100%;
-		height: 50px;
-		background: linear-gradient(to-right, #5d6387, white);
-		position: relative;
-	}
-	.sliderThumb {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 50px;
-		height: 50px;
-		border: 2px solid black;
-		background-color: white;
-	}
 </style>
 
 <div class="container">
 	<h2>Brightness</h2>
-	<div class="sliderTrack">
-		<div class="sliderThumb" />
-	</div>
+	<Slider background="linear-gradient(to right, #5d6387, white)" onChange={handleChange} />
 </div>

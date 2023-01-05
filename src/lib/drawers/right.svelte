@@ -7,6 +7,7 @@
 	import stripRoomNames from '$lib/utils/stripRoomNames';
 	import ColorPicker from '$lib/components/colorPicker.svelte';
 	import Brightness from '$lib/components/brightness.svelte';
+	import TemperaturePicker from '$lib/components/temperaturePicker.svelte';
 	export let lightId: string | null;
 
 	function closeDrawer() {
@@ -58,7 +59,6 @@
 	.contents {
 		height: 100%;
 		width: 100%;
-		padding: 0 1em;
 		overflow: auto;
 		position: relative;
 	}
@@ -85,6 +85,7 @@
 	.colorModeBtnContainer {
 		display: flex;
 		justify-content: center;
+		padding: 0 1em;
 		margin-top: 2em;
 	}
 	.colorModeBtn {
@@ -101,6 +102,11 @@
 
 	.colorModeBtn.active {
 		background-color: #666c94;
+	}
+
+	.pickerContainer {
+		height: 325px;
+		position: relative;
 	}
 </style>
 
@@ -130,11 +136,18 @@
 					}}>Temperature</button
 				>
 			</div>
-			{#if colorMode === 'hs'}
-				<ColorPicker color={light.attributes.rgb_color} />
-			{:else if colorMode === 'color_temp'}
-				<p>Temperature</p>
-			{/if}
+			<section class="pickerContainer">
+				{#if colorMode === 'hs'}
+					<ColorPicker color={light.attributes.rgb_color} />
+				{:else if colorMode === 'color_temp'}
+					<TemperaturePicker
+						range={[
+							+light.attributes.max_color_temp_kelvin,
+							+light.attributes.min_color_temp_kelvin
+						]}
+					/>
+				{/if}
+			</section>
 			<Brightness />
 		</div>
 	{/if}
