@@ -1,10 +1,9 @@
-type ColorMode = 'hs' | 'color_temp';
+export type ColorMode = 'hs' | 'color_temp';
 
 interface LightEntityAttributes {
 	min_color_temp_kelvin: string;
 	max_color_temp_kelvin: string;
 	supported_color_modes: ColorMode[]; // Stored for sanity check (throw err if not contain hs & color_temp)
-	color_mode: ColorMode;
 	friendly_name: string;
 	icon: string; // string in form of `mdi:${kebab-case-material-icon-name}`
 	// ... the data we get from the API might have more properties not included here and I will
@@ -12,6 +11,7 @@ interface LightEntityAttributes {
 	//     properties indicated here.
 
 	// These depend on whether the state is on or not
+	color_mode?: ColorMode;
 	color_temp_kelvin?: number; // between `min_color_temp_kelvin` and `max_color_temp_kelvin`
 	brightness?: number; // 0-255
 	rgb_color?: [number, number, number]; // [0-255, 0-255, 0-255]

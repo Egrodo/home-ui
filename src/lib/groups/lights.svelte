@@ -1,12 +1,21 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
-	import { lightStore, selectedRoomStore, type LightStore } from '$lib/data/stores';
+	import {
+		lightStore,
+		selectedLightIdStore,
+		selectedRoomStore,
+		type LightStore
+	} from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
 	import { getIcon } from '$lib/utils/getIcon';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
 	import type { ComponentType } from 'svelte';
 
 	const OFF_STATE_BG_COLOR: [number, number, number] = [31, 33, 46];
+
+	function openControlPanel(lightId: string) {
+		selectedLightIdStore.set(lightId);
+	}
 
 	let selectedRoom: Rooms = Rooms.AllRooms;
 	selectedRoomStore.subscribe((newSelectedRoom) => {
@@ -18,8 +27,9 @@
 	const lightIcons: { [light_id: string]: ComponentType } = {};
 
 	lightStore.subscribe(async (newLights) => {
-		if (JSON.stringify(lights) === JSON.stringify(newLights)) return;
-		lights = newLights;
+		const stringifiedNew = JSON.stringify(newLights);
+		if (JSON.stringify(lights) === stringifiedNew) return;
+		lights = JSON.parse(stringifiedNew);
 		for (const light of Object.values(newLights)) {
 			if (lightIcons[light.entity_id] == null) {
 				const icon = await getIcon(light.attributes.icon);
@@ -37,7 +47,6 @@
 
 	$: lightsToShow = Object.values(lights)
 		.reduce<FormattedLightType[]>((acc, light) => {
-			console.log('recalculating lightsToShow');
 			const formattedLight: FormattedLightType = {
 				id: light.entity_id,
 				state: light.state as 'on' | 'off',
@@ -81,9 +90,7 @@
 	<Block
 		backgroundColor={`rgb(${light.color.join(', ')})`}
 		fontColor={shouldDisplayBlackText(light.color) ? 'black' : 'white'}
-		onClick={() => {
-			// TODO:
-		}}
+		onClick={() => openControlPanel(light.id)}
 	>
 		<svelte:component this={lightIcons[light.id]} height="5em" width="5em" />
 		<h2 class="lightName">{light.name.replace(selectedRoom, '')}</h2>

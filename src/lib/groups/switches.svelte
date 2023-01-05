@@ -6,6 +6,10 @@
 	import type { ComponentType } from 'svelte';
 	const excludeList = ['switch.wyze_notifications'];
 
+	function toggleSwitch() {
+		// TODO:
+	}
+
 	let selectedRoom: Rooms = Rooms.AllRooms;
 	selectedRoomStore.subscribe((newSelectedRoom) => {
 		selectedRoom = newSelectedRoom;
@@ -59,9 +63,7 @@
 			? 'var(--block-default-light-color)'
 			: 'var(--block-default-dark-color)'}
 		fontColor={switch_.state === 'on' ? '#000' : '#fff'}
-		onClick={() => {
-			// TODO:
-		}}
+		onClick={toggleSwitch}
 		toggle
 	>
 		<svelte:component this={switchIcons[switch_.entity_id]} height="5em" width="5em" />

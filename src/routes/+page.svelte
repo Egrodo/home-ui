@@ -3,6 +3,7 @@
 		connectionStore,
 		lightStore,
 		sceneStore,
+		selectedLightIdStore,
 		switchStore,
 		weatherStore
 	} from '$lib/data/stores';
@@ -13,7 +14,11 @@
 	import { subscribeEntities } from 'home-assistant-js-websocket';
 	import { onMount } from 'svelte';
 
-	let rightDrawerOpen: boolean = false;
+	// If selectedLight is not null, show the right drawer. Otherwise, hide it.
+	let selectedLightId: string | null = null;
+	selectedLightIdStore.subscribe((newSelectedLightId) => {
+		selectedLightId = newSelectedLightId;
+	});
 
 	onMount(async () => {
 		// Initialize connection to websocket. Return callback for unsubscribe on unmount
@@ -21,18 +26,6 @@
 		connectionStore.set(connection);
 		const unsubscribe = subscribeEntities<WsStateMessage>(connection, handleStateMessage);
 		return unsubscribe;
-	});
-
-	lightStore.subscribe(console.log);
-	switchStore.subscribe(console.log);
-	weatherStore.subscribe(console.log);
-	sceneStore.subscribe(console.log);
-
-	onMount(() => {
-		// @ts-ignore
-		window.Debug = {
-			toggleRightDrawer: () => (rightDrawerOpen = !rightDrawerOpen)
-		};
 	});
 </script>
 
@@ -49,6 +42,7 @@
 		--page-background: #0c0d16;
 		--page-height: 768px;
 		--page-width: 1366px;
+		--page-drawer-background: #1f212e;
 
 		/* Block globals */
 		--block-border-radius: 32px;
@@ -72,5 +66,5 @@
 <div class="container">
 	<LeftDrawer />
 	<MainDrawer />
-	<RightDrawer open={rightDrawerOpen} />
+	<RightDrawer lightId={selectedLightId} />
 </div>

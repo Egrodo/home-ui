@@ -5,7 +5,7 @@
 	import { getIcon } from '$lib/utils/getIcon';
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
-	import type { ComponentType, SvelteComponent } from 'svelte';
+	import type { ComponentType } from 'svelte';
 
 	// For blocks whose data doesn't include a color, switch back and forth between
 	// these two colors
@@ -25,8 +25,9 @@
 		// Since HA has a habit of sending the same data over and over, check if anything has
 		// actually changed before triggering a re-render. Whether or not doing this is actually
 		// a performance improvement over just letting re-renders happen is debatable, but ¯\_(ツ)_/¯
-		if (JSON.stringify(scenes) === JSON.stringify(newScenes)) return;
-		scenes = newScenes;
+		const stringifiedNew = JSON.stringify(newScenes);
+		if (JSON.stringify(scenes) === stringifiedNew) return;
+		scenes = JSON.parse(stringifiedNew);
 		// Load icons for each scene
 		for (const scene of Object.values(scenes)) {
 			// Load icons for each scene

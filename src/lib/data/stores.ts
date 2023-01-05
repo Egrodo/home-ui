@@ -3,6 +3,18 @@ import { Rooms } from './types';
 import type { LightEntity, SceneEntity, SwitchEntity, WeatherEntity } from './types';
 import type { Connection } from 'home-assistant-js-websocket';
 
+// Store for the WS connection object so that it can be accessed from anywhere
+function createConnectionStore() {
+	const { subscribe, set } = writable<Connection>();
+
+	return {
+		subscribe,
+		set
+	};
+}
+
+export const connectionStore = createConnectionStore();
+
 export interface LightStore {
 	[key: string]: LightEntity;
 }
@@ -82,18 +94,6 @@ export const switchStore = createSwitchStore();
 export const sceneStore = createSceneStore();
 export const weatherStore = createWeatherStore();
 
-// Store for the WS connection object so that it can be accessed from anywhere
-function createConnectionStore() {
-	const { subscribe, set } = writable<Connection>();
-
-	return {
-		subscribe,
-		set
-	};
-}
-
-export const connectionStore = createConnectionStore();
-
 function createSelectedRoomStore() {
 	const { subscribe, set } = writable<Rooms>(Rooms.AllRooms);
 
@@ -104,3 +104,15 @@ function createSelectedRoomStore() {
 }
 
 export const selectedRoomStore = createSelectedRoomStore();
+
+// Store for the currently selected light, used to populate the light control panel
+function createSelectedLightIdStore() {
+	const { subscribe, set } = writable<string | null>(null);
+
+	return {
+		subscribe,
+		set
+	};
+}
+
+export const selectedLightIdStore = createSelectedLightIdStore();
