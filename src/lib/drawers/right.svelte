@@ -38,7 +38,7 @@
 	$: console.log(lights);
 
 	// UI state stuff
-	$: colorMode = light?.attributes.color_mode;
+	$: colorMode = light?.attributes.color_mode ?? 'hs';
 </script>
 
 <style>
@@ -104,9 +104,31 @@
 		background-color: #666c94;
 	}
 
-	.pickerContainer {
-		height: 325px;
-		position: relative;
+	.disablePicker {
+		pointer-events: none;
+		opacity: 0.5;
+	}
+
+	.powerBtn {
+		position: absolute;
+		width: 100%;
+		bottom: 0;
+		border: none;
+		outline: none;
+		width: 100%;
+		height: 50px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		color: white;
+		font-size: 1.25em;
+		font-weight: 600;
+	}
+	.powerOn {
+		background-color: #fc3838;
+	}
+	.powerOff {
+		background-color: #37d400;
 	}
 </style>
 
@@ -117,7 +139,7 @@
 				><CloseIcon height="3em" width="3em" color="#fff" /></span
 			>
 			<header>
-				<svelte:component this={lightIcon} height="8em" width="8em" color="#fff" />
+				<svelte:component this={lightIcon} height="6.5em" width="6.5em" color="#fff" />
 				<h2>{stripRoomNames(light.attributes.friendly_name)}</h2>
 			</header>
 			<div class="colorModeBtnContainer">
@@ -136,7 +158,7 @@
 					}}>Temperature</button
 				>
 			</div>
-			<section class="pickerContainer">
+			<section class="pickerContainer" class:disablePicker={light.state === 'off'}>
 				{#if colorMode === 'hs'}
 					<ColorPicker color={light.attributes.rgb_color} />
 				{:else if colorMode === 'color_temp'}
@@ -147,8 +169,15 @@
 						]}
 					/>
 				{/if}
+				<Brightness />
 			</section>
-			<Brightness />
+			<button
+				class="powerBtn"
+				class:powerOn={light.state === 'on'}
+				class:powerOff={light.state === 'off'}
+			>
+				{light.state === 'on' ? 'Turn Off' : 'Turn On'}
+			</button>
 		</div>
 	{/if}
 </section>

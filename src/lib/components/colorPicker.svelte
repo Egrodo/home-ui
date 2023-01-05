@@ -1,7 +1,7 @@
 <script lang="ts">
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 
-	export let color: [number, number, number] = [255, 255, 255];
+	export let color: [number, number, number] | undefined;
 
 	$: selectedColor = color;
 	function handleClick(e: MouseEvent) {
