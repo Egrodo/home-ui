@@ -42,6 +42,9 @@ interface PrimitiveEntity<EntityAttributes> {
 	entity_id: `${EntityTypes}.${string}`;
 	state: 'off' | 'on' | WeatherStates;
 	attributes: EntityAttributes;
+	context?: {
+		id: string;
+	};
 	last_changed?: string; // Date string
 	last_updated?: string; // Date string
 }

@@ -1,12 +1,14 @@
 <script lang="ts">
-	export let initialColor: string = '#fff';
+	import hexToRGB from '$lib/utils/HEXtoRGB';
 
-	let selectedColor: string = initialColor;
+	export let color: [number, number, number] = [255, 255, 255];
+
+	$: selectedColor = color;
 	function handleClick(e: MouseEvent) {
 		const eventTarget = e.target as SVGElement;
 		if (eventTarget?.dataset?.fill == null) return;
 		const clickedColor = eventTarget.dataset.fill;
-		selectedColor = clickedColor;
+		selectedColor = hexToRGB(clickedColor);
 	}
 
 	function handleTouchMove(e: TouchEvent) {
@@ -14,8 +16,7 @@
 		const realTarget = document.elementFromPoint(touch.clientX, touch.clientY) as SVGElement;
 		if (realTarget?.dataset?.fill == null) return;
 		const clickedColor = realTarget.dataset.fill;
-		console.log(clickedColor);
-		selectedColor = clickedColor;
+		selectedColor = hexToRGB(clickedColor);
 	}
 </script>
 
@@ -37,7 +38,7 @@
 </style>
 
 <section class="colorPickerContainer">
-	<div class="colorPreviewBlock" style={`background-color: ${selectedColor}`} />
+	<div class="colorPreviewBlock" style={`background-color: rgb(${selectedColor})`} />
 	<svg
 		class="colorPickerSvg"
 		on:click={handleClick}

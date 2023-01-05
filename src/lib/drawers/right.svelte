@@ -6,7 +6,7 @@
 	import type { ComponentType } from 'svelte';
 	import stripRoomNames from '$lib/utils/stripRoomNames';
 	import ColorPicker from '$lib/components/colorPicker.svelte';
-
+	import Brightness from '$lib/components/brightness.svelte';
 	export let lightId: string | null;
 
 	function closeDrawer() {
@@ -15,7 +15,9 @@
 
 	let lights: LightStore = {};
 	lightStore.subscribe((newLights) => {
-		if (lights !== newLights) lights = newLights;
+		const stringifiedNew = JSON.stringify(newLights);
+		if (JSON.stringify(lights) === stringifiedNew) return;
+		lights = JSON.parse(stringifiedNew);
 	});
 
 	$: light = lightId != null ? lights[lightId] : null;
@@ -32,7 +34,7 @@
 		updateLightIcon();
 	}
 
-	$: console.log(light);
+	$: console.log(lights);
 
 	// UI state stuff
 	$: colorMode = light?.attributes.color_mode;
@@ -129,10 +131,11 @@
 				>
 			</div>
 			{#if colorMode === 'hs'}
-				<ColorPicker />
+				<ColorPicker color={light.attributes.rgb_color} />
 			{:else if colorMode === 'color_temp'}
 				<p>Temperature</p>
 			{/if}
+			<Brightness />
 		</div>
 	{/if}
 </section>

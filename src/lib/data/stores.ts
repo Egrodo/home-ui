@@ -33,6 +33,7 @@ function createLightStore() {
 						delete light.last_updated;
 						delete light.attributes.rate_limit_remaining;
 						delete light.attributes.rate_limit_reset_seconds;
+						delete light.context;
 					}
 					lightStore[light.entity_id] = light;
 				});
