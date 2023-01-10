@@ -8,6 +8,7 @@
 	import ColorPicker from '$lib/components/colorPicker.svelte';
 	import Brightness from '$lib/components/brightness.svelte';
 	import TemperaturePicker from '$lib/components/temperaturePicker.svelte';
+	import { toggleLightState } from '$lib/data/ws';
 	export let lightId: string | null;
 
 	function closeDrawer() {
@@ -104,6 +105,11 @@
 		background-color: #666c94;
 	}
 
+	.pickerContainer {
+		height: 325px;
+		position: relative;
+	}
+
 	.disablePicker {
 		pointer-events: none;
 		opacity: 0.5;
@@ -145,7 +151,7 @@
 			<div class="colorModeBtnContainer">
 				<button
 					class="colorModeBtn"
-					class:active={colorMode === 'hs'}
+					class:active={colorMode === 'hs' || colorMode === 'xy' || colorMode === 'rgb'}
 					on:click={() => {
 						colorMode = 'hs';
 					}}>Color</button
@@ -167,14 +173,22 @@
 							+light.attributes.max_color_temp_kelvin,
 							+light.attributes.min_color_temp_kelvin
 						]}
+						initialValue={light.attributes.color_temp_kelvin}
 					/>
 				{/if}
-				<Brightness />
 			</section>
+			<span class:disablePicker={light.state === 'off'}
+				><Brightness value={light.attributes.brightness} /></span
+			>
 			<button
 				class="powerBtn"
 				class:powerOn={light.state === 'on'}
 				class:powerOff={light.state === 'off'}
+				on:click={() => {
+					if (light == null) throw new Error('Light is null');
+					const newState = light.state === 'on' ? 'off' : 'on';
+					toggleLightState(light.entity_id, newState);
+				}}
 			>
 				{light.state === 'on' ? 'Turn Off' : 'Turn On'}
 			</button>

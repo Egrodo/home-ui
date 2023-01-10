@@ -1,78 +1,89 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	export let background: string;
 	export let onChange: (percentage: number) => void;
+	export let initialPercent: number;
+
+	let percentage = initialPercent;
+	$: {
+		percentage = initialPercent;
+	}
+
 	let sliderThumb: HTMLElement;
 	let sliderTrack: HTMLElement;
-
-	let percentage: number = 0;
 	let isDragging: boolean = false;
-	function handleThumbTouchStart() {
-		isDragging = true;
-	}
-	function handleThumbTouchEnd() {
-		isDragging = false;
-	}
+
+	/**
+	 * When the user clicks and drags, I want their mouse to be centered on the thumb. I want the range of slidability
+	 * to be calculated based on trackStart + half thumb and end at trackEnd - trackThumb
+	 */
+
 	function handleThumbTouchMove(event: TouchEvent) {
 		if (isDragging) {
 			// Determine what percentage of the slider track the touch is at
-			const trackStart = sliderTrack.getBoundingClientRect().left;
-			const trackEnd = trackStart + sliderTrack.offsetWidth;
+			const trackStart = sliderTrack.getBoundingClientRect().left + sliderThumb.offsetWidth / 2;
+			const trackEnd = trackStart + sliderTrack.offsetWidth - sliderThumb.offsetWidth;
 			const touchX = event.touches[0].clientX;
-			let overflowingPercentage = (touchX - trackStart) / (trackEnd - trackStart);
+
+			const overflowingPercentage = (touchX - trackStart) / (trackEnd - trackStart);
 
 			// If user slides far to the left or right we want to snap to edges of track
 			if (overflowingPercentage <= 0) {
-				sliderThumb.style.left = `0px`;
-				return;
+				percentage = 0;
 			} else if (overflowingPercentage >= 1) {
-				sliderThumb.style.left = `${trackEnd - trackStart - sliderThumb.offsetWidth}px`;
-				return;
+				percentage = 1;
+			} else {
+				percentage = overflowingPercentage;
 			}
 
-			// If we've verified the percentage is within bounds, set it
-			percentage = overflowingPercentage;
-
-			// Then handle the cases where user drags the thumb close enough to the edges
-			// that the thumb would be partially off the track
-			if (touchX - sliderThumb.offsetWidth / 2 < trackStart) {
-				sliderThumb.style.left = `0px`;
-				return;
-			} else if (touchX + sliderThumb.offsetWidth / 2 > trackEnd) {
-				sliderThumb.style.left = `${trackEnd - trackStart - sliderThumb.offsetWidth}px`;
-				return;
-			}
-
-			// Otherwise, just move the thumb normally
-			sliderThumb.style.left = `${touchX - trackStart - sliderThumb.offsetWidth / 2}px`;
+			onChange(percentage);
 		}
 	}
 	// If user clicks on the track however we want to move the thumb immediately to that position
 	function handleTrackClick(event: MouseEvent) {
-		const trackStart = sliderTrack.getBoundingClientRect().left;
-		const trackEnd = trackStart + sliderTrack.offsetWidth;
+		const trackStart = sliderTrack.getBoundingClientRect().left + sliderThumb.offsetWidth / 2;
+		const trackEnd = trackStart + sliderTrack.offsetWidth - sliderThumb.offsetWidth;
 		const touchX = event.clientX;
-		percentage = (touchX - trackStart) / (trackEnd - trackStart);
 
-		// Then handle the cases where user drags the thumb close enough to the edges
-		// that the thumb would be partially off the track
-		if (touchX - sliderThumb.offsetWidth / 2 < trackStart) {
-			sliderThumb.style.left = `0px`;
-			return;
-		} else if (touchX + sliderThumb.offsetWidth / 2 > trackEnd) {
-			sliderThumb.style.left = `${trackEnd - trackStart - sliderThumb.offsetWidth}px`;
-			return;
+		const overflowingPercentage = (touchX - trackStart) / (trackEnd - trackStart);
+
+		// If user slides far to the left or right we want to snap to edges of track
+		if (overflowingPercentage <= 0) {
+			percentage = 0;
+		} else if (overflowingPercentage >= 1) {
+			percentage = 1;
+		} else {
+			percentage = overflowingPercentage;
 		}
 
-		// Otherwise, just move the thumb normally
-		sliderThumb.style.left = `${touchX - trackStart - sliderThumb.offsetWidth / 2}px`;
+		onChange(percentage);
 	}
 
-	$: onChange(percentage);
+	$: {
+		if (initialPercent === percentage) {
+			if (sliderThumb) sliderThumb.style.transition = 'left 0.2s ease';
+			window.setTimeout(() => {
+				if (sliderThumb) sliderThumb.style.transition = '';
+			}, 200);
+		}
+	}
+
+	$: {
+		if (sliderThumb && sliderTrack) {
+			// I have need to find the percentage point between two values
+			const trackStart = sliderTrack.getBoundingClientRect().left + sliderThumb.offsetWidth / 2;
+			const trackEnd = trackStart + sliderTrack.offsetWidth - sliderThumb.offsetWidth;
+			// Get the position of percentage between trackStart and trackEnd
+			const left = (trackEnd - trackStart) * percentage;
+			sliderThumb.style.left = `${left}px`;
+		}
+	}
 </script>
 
 <style>
 	.sliderTrack {
-		width: 100%;
+		width: 342px; /* BUG: Because of the drawer sliding out animation changing the width of the track I have to hardset it here. This sux bc it's not responsive but wtv none of this is responsive. Maybe fix later */
 		height: 50px;
 		position: relative;
 	}
@@ -96,9 +107,9 @@
 	<div
 		bind:this={sliderThumb}
 		class="sliderThumb"
-		style="left: 0"
-		on:touchstart={handleThumbTouchStart}
+		style="left: 0; transition: left 0.2s ease"
+		on:touchstart={() => (isDragging = true)}
 		on:touchmove={handleThumbTouchMove}
-		on:touchend={handleThumbTouchEnd}
+		on:touchend={() => (isDragging = false)}
 	/>
 </div>

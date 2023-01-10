@@ -1,9 +1,10 @@
 <script lang="ts">
 	import Slider from './slider.svelte';
 
-	let percentage: number = 0;
+	// Currently set brightness value, 0-255.
+	export let value: number | undefined;
+	$: percentage = value ? value / 255 : 0;
 	function handleChange(newPercentage: number) {
-		console.log(percentage);
 		percentage = newPercentage;
 	}
 </script>
@@ -24,5 +25,9 @@
 
 <div class="container">
 	<h2>Brightness</h2>
-	<Slider background="linear-gradient(to right, #5d6387, white)" onChange={handleChange} />
+	<Slider
+		background="linear-gradient(to right, #5d6387, white)"
+		initialPercent={0.99999}
+		onChange={handleChange}
+	/>
 </div>
