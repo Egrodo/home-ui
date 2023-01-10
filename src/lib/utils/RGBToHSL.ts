@@ -1,5 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-
 // https://css-tricks.com/converting-color-spaces-in-javascript/
 export default function RGBToHSL(r, g, b) {
 	// Make r, g, and b fractions of 1

@@ -1,4 +1,4 @@
-export type ColorMode = 'hs' | 'color_temp';
+export type ColorMode = 'hs' | 'xy' | 'rgb' | 'color_temp';
 
 interface LightEntityAttributes {
 	min_color_temp_kelvin: string;

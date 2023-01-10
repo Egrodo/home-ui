@@ -1,17 +1,10 @@
 <script lang="ts">
-	import {
-		connectionStore,
-		lightStore,
-		sceneStore,
-		selectedLightIdStore,
-		switchStore,
-		weatherStore
-	} from '$lib/data/stores';
+	import { connectionStore, selectedLightIdStore } from '$lib/data/stores';
 	import { initWsConnection, handleStateMessage, type WsStateMessage } from '$lib/data/ws';
 	import LeftDrawer from '$lib/drawers/left.svelte';
 	import MainDrawer from '$lib/drawers/main.svelte';
 	import RightDrawer from '$lib/drawers/right.svelte';
-	import { subscribeEntities } from 'home-assistant-js-websocket';
+	import { Connection, subscribeEntities } from 'home-assistant-js-websocket';
 	import { onMount } from 'svelte';
 
 	// If selectedLight is not null, show the right drawer. Otherwise, hide it.
@@ -20,11 +13,20 @@
 		selectedLightId = newSelectedLightId;
 	});
 
+	let connection: Connection;
+
 	onMount(async () => {
 		// Initialize connection to websocket. Return callback for unsubscribe on unmount
-		const connection = await initWsConnection();
+		connection = await initWsConnection();
 		connectionStore.set(connection);
 		const unsubscribe = subscribeEntities<WsStateMessage>(connection, handleStateMessage);
+		window.Debug = {
+			sendMsg: async (msg: object) => {
+				const resp = await connection.sendMessagePromise(msg);
+				console.log(resp);
+			}
+		};
+
 		return unsubscribe;
 	});
 </script>

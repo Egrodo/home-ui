@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
-	import { selectedRoomStore } from '$lib/data/stores';
+	import { lightStore, selectedRoomStore, type LightStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
+	import { toggleAreaState } from '$lib/data/ws';
 	import Lights from '$lib/groups/lights.svelte';
 	import Scenes from '$lib/groups/scenes.svelte';
 	import Switches from '$lib/groups/switches.svelte';
@@ -18,6 +19,19 @@
 			selectedRoom = eventTarget.id as Rooms;
 			selectedRoomStore.set(selectedRoom);
 		}
+	}
+
+	let lights: LightStore = {};
+
+	lightStore.subscribe(async (newLights) => {
+		const stringifiedNew = JSON.stringify(newLights);
+		if (JSON.stringify(lights) === stringifiedNew) return;
+		lights = JSON.parse(stringifiedNew);
+	});
+
+	/* Function to turn all devices in a room on/off */
+	function toggleAllDevices(state: 'on' | 'off') {
+		toggleAreaState(selectedRoom, state);
 	}
 </script>
 
@@ -85,11 +99,21 @@
 		{/each}
 	</ul>
 	<div class="blocksContainer">
-		<Block backgroundColor="var(--block-default-light-color)" fontColor="#000" toggle>
+		<Block
+			backgroundColor="var(--block-default-light-color)"
+			fontColor="#000"
+			toggle
+			onClick={() => toggleAllDevices('on')}
+		>
 			<span class="flipIconDown"><ToggleSwitchOutline height="5em" width="5em" /></span>
 			<h2 class="blockTitle">All Devices On</h2>
 		</Block>
-		<Block backgroundColor="var(--block-default-dark-color)" fontColor="#fff" toggle>
+		<Block
+			backgroundColor="var(--block-default-dark-color)"
+			fontColor="#fff"
+			toggle
+			onClick={() => toggleAllDevices('off')}
+		>
 			<span class="flipIconUp"><ToggleSwitchOutline height="5em" width="5em" /></span>
 			<h2 class="blockTitle">All Devices Off</h2>
 		</Block>

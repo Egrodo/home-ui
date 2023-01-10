@@ -1,12 +1,25 @@
 import { browser } from '$app/environment';
 import { PUBLIC_WS_AUTH_KEY, PUBLIC_CLIENT_ID, PUBLIC_SERVER_URL } from '$env/static/public';
-import { createConnection, Auth } from 'home-assistant-js-websocket';
+import { createConnection, Auth, Connection } from 'home-assistant-js-websocket';
 import { lightStore, sceneStore, switchStore, weatherStore } from './stores';
-import type { Entity, LightEntity, SceneEntity, SwitchEntity, WeatherEntity } from './types';
+import {
+	Rooms,
+	type Entity,
+	type LightEntity,
+	type SceneEntity,
+	type SwitchEntity,
+	type WeatherEntity
+} from './types';
 
 export interface WsStateMessage {
 	[entityId: string]: Entity;
 }
+
+/**
+ * Storing the connection obj in the scope of this file bc honestly it's no different than
+ * anywhere else probz.
+ */
+let connection: Connection;
 
 /**
  * This function handles filtering out data for the:
@@ -68,6 +81,60 @@ export function handleStateMessage(states: WsStateMessage) {
 	}
 }
 
+const getAreaIds = (room: Rooms): string[] => {
+	switch (room) {
+		case Rooms.LivingRoom: {
+			return ['living_room'];
+		}
+		case Rooms.Bedroom: {
+			return ['bedroom'];
+		}
+		case Rooms.Office: {
+			return ['office'];
+		}
+		case Rooms.AllRooms: {
+			return ['living_room', 'bedroom', 'office'];
+		}
+	}
+};
+
+export async function toggleAreaState(room: Rooms, state: 'on' | 'off') {
+	const areaIds = getAreaIds(room);
+	try {
+		for (const areaId of areaIds) {
+			const resp = await connection.sendMessagePromise({
+				type: 'call_service',
+				domain: 'homeassistant',
+				service: `turn_${state}`,
+				target: {
+					area_id: areaId
+				}
+			});
+			console.log(resp);
+		}
+	} catch (err) {
+		console.error(err);
+	}
+}
+
+export async function toggleLightState(entityId: string, state: 'on' | 'off') {
+	try {
+		const resp = await connection.sendMessagePromise({
+			type: 'call_service',
+			domain: 'light',
+			service: `turn_${state}`,
+			target: {
+				entity_id: entityId
+				// area_id: getAreaId(room) !!!
+			}
+		});
+		console.log(resp);
+	} catch (err) {
+		console.error(err);
+		// TODO: Handle error
+	}
+}
+
 export async function initWsConnection() {
 	if (browser) {
 		const auth = new Auth({
@@ -78,7 +145,8 @@ export async function initWsConnection() {
 			refresh_token: '',
 			access_token: PUBLIC_WS_AUTH_KEY
 		});
-		return createConnection({ auth, setupRetry: -1 });
+		connection = await createConnection({ auth, setupRetry: -1 });
+		return connection;
 	} else {
 		throw new Error('Cannot create websocket connection on server');
 	}
