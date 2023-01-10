@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import Block from './block.svelte';
 
@@ -6,8 +6,21 @@
 	const fontColor = '#ffffff'; // white
 
 	let date = new Date();
+	let timeType: '12' | '24' = '12';
 
-	$: hour = date.getHours() > 12 ? date.getHours() - 12 : date.getHours();
+	function getReadableHour(date: Date, innerTimeType: '12' | '24') {
+		const hour = date.getHours();
+		if (innerTimeType === '12') {
+			return hour > 12 ? hour - 12 : hour;
+		}
+		return hour;
+	}
+
+	function toggleTimeType() {
+		timeType = timeType === '12' ? '24' : '12';
+	}
+
+	$: hour = getReadableHour(date, timeType);
 	$: minute = date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes();
 	$: amPm = date.getHours() >= 12 ? 'PM' : 'AM';
 
@@ -33,7 +46,7 @@
 	}
 </style>
 
-<Block {fontColor} {backgroundColor} flexGrow>
+<Block {fontColor} {backgroundColor} flexGrow onClick={toggleTimeType}>
 	<h1>
 		{hour}:{minute}
 	</h1>
