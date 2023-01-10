@@ -12,41 +12,15 @@
 
 	let sliderThumb: HTMLElement;
 	let sliderTrack: HTMLElement;
+
 	let isDragging: boolean = false;
 
-	/**
-	 * When the user clicks and drags, I want their mouse to be centered on the thumb. I want the range of slidability
-	 * to be calculated based on trackStart + half thumb and end at trackEnd - trackThumb
-	 */
-
-	function handleThumbTouchMove(event: TouchEvent) {
-		if (isDragging) {
-			// Determine what percentage of the slider track the touch is at
-			const trackStart = sliderTrack.getBoundingClientRect().left + sliderThumb.offsetWidth / 2;
-			const trackEnd = trackStart + sliderTrack.offsetWidth - sliderThumb.offsetWidth;
-			const touchX = event.touches[0].clientX;
-
-			const overflowingPercentage = (touchX - trackStart) / (trackEnd - trackStart);
-
-			// If user slides far to the left or right we want to snap to edges of track
-			if (overflowingPercentage <= 0) {
-				percentage = 0;
-			} else if (overflowingPercentage >= 1) {
-				percentage = 1;
-			} else {
-				percentage = overflowingPercentage;
-			}
-
-			onChange(percentage);
-		}
-	}
-	// If user clicks on the track however we want to move the thumb immediately to that position
-	function handleTrackClick(event: MouseEvent) {
+	function triggerPercentageChange(touchPos: number) {
+		// Determine what percentage of the slider track the touch is at
 		const trackStart = sliderTrack.getBoundingClientRect().left + sliderThumb.offsetWidth / 2;
 		const trackEnd = trackStart + sliderTrack.offsetWidth - sliderThumb.offsetWidth;
-		const touchX = event.clientX;
 
-		const overflowingPercentage = (touchX - trackStart) / (trackEnd - trackStart);
+		const overflowingPercentage = (touchPos - trackStart) / (trackEnd - trackStart);
 
 		// If user slides far to the left or right we want to snap to edges of track
 		if (overflowingPercentage <= 0) {
@@ -60,18 +34,34 @@
 		onChange(percentage);
 	}
 
+	function animateChange() {
+		// By adding a transition to left we can smoothly animate change in slider position from light update
+		if (sliderThumb) sliderThumb.style.transition = 'left 0.2s ease';
+		window.setTimeout(() => {
+			if (sliderThumb) sliderThumb.style.transition = '';
+		}, 200);
+	}
+
+	function handleThumbTouchMove(event: TouchEvent) {
+		if (isDragging) {
+			triggerPercentageChange(event.touches[0].clientX);
+		}
+	}
+	// If user clicks on the track however we want to move the thumb immediately to that position
+	function handleTrackTouch(event: TouchEvent) {
+		animateChange();
+		triggerPercentageChange(event.touches[0].clientX);
+		isDragging = true;
+	}
+
 	$: {
 		if (initialPercent === percentage) {
-			if (sliderThumb) sliderThumb.style.transition = 'left 0.2s ease';
-			window.setTimeout(() => {
-				if (sliderThumb) sliderThumb.style.transition = '';
-			}, 200);
+			animateChange();
 		}
 	}
 
 	$: {
 		if (sliderThumb && sliderTrack) {
-			// I have need to find the percentage point between two values
 			const trackStart = sliderTrack.getBoundingClientRect().left + sliderThumb.offsetWidth / 2;
 			const trackEnd = trackStart + sliderTrack.offsetWidth - sliderThumb.offsetWidth;
 			// Get the position of percentage between trackStart and trackEnd
@@ -102,7 +92,8 @@
 	class="sliderTrack"
 	style="background: {background}"
 	bind:this={sliderTrack}
-	on:click={handleTrackClick}
+	on:touchstart={handleTrackTouch}
+	on:touchmove={handleThumbTouchMove}
 >
 	<div
 		bind:this={sliderThumb}

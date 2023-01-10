@@ -14,7 +14,7 @@
 
 	// Since kelvin has the high value at the left and the low value on the right, invert the percentage
 	// before passing to Slider.
-	$: initialPercent = 1 - (initialValue - range[1]) / (range[0] - range[1]);
+	$: initialPercent = (initialValue - range[1]) / (range[0] - range[1]);
 </script>
 
 <style>

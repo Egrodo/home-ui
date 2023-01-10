@@ -27,7 +27,7 @@
 	<h2>Brightness</h2>
 	<Slider
 		background="linear-gradient(to right, #5d6387, white)"
-		initialPercent={0.99999}
+		initialPercent={percentage}
 		onChange={handleChange}
 	/>
 </div>
