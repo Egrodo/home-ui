@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
 	export let background: string;
 	export let onChange: (percentage: number) => void;
 	export let initialPercent: number;
@@ -12,8 +10,6 @@
 
 	let sliderThumb: HTMLElement;
 	let sliderTrack: HTMLElement;
-
-	let isDragging: boolean = false;
 
 	function triggerPercentageChange(touchPos: number) {
 		// Determine what percentage of the slider track the touch is at
@@ -43,15 +39,12 @@
 	}
 
 	function handleThumbTouchMove(event: TouchEvent) {
-		if (isDragging) {
-			triggerPercentageChange(event.touches[0].clientX);
-		}
+		triggerPercentageChange(event.touches[0].clientX);
 	}
 	// If user clicks on the track however we want to move the thumb immediately to that position
 	function handleTrackTouch(event: TouchEvent) {
 		animateChange();
 		triggerPercentageChange(event.touches[0].clientX);
-		isDragging = true;
 	}
 
 	$: {
@@ -99,8 +92,6 @@
 		bind:this={sliderThumb}
 		class="sliderThumb"
 		style="left: 0; transition: left 0.2s ease"
-		on:touchstart={() => (isDragging = true)}
 		on:touchmove={handleThumbTouchMove}
-		on:touchend={() => (isDragging = false)}
 	/>
 </div>
