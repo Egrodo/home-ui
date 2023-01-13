@@ -1,6 +1,11 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
-	import { lightStore, selectedRoomStore, type LightStore } from '$lib/data/stores';
+	import {
+		lightStore,
+		selectedRoomStore,
+		type LightStore,
+		type SwitchStore
+	} from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
 	import { toggleAreaState } from '$lib/data/ws';
 	import Lights from '$lib/groups/lights.svelte';
@@ -20,14 +25,6 @@
 			selectedRoomStore.set(selectedRoom);
 		}
 	}
-
-	let lights: LightStore = {};
-
-	lightStore.subscribe(async (newLights) => {
-		const stringifiedNew = JSON.stringify(newLights);
-		if (JSON.stringify(lights) === stringifiedNew) return;
-		lights = JSON.parse(stringifiedNew);
-	});
 
 	/* Function to turn all devices in a room on/off */
 	function toggleAllDevices(state: 'on' | 'off') {
@@ -117,8 +114,8 @@
 			<span class="flipIconUp"><ToggleSwitchOutline height="5em" width="5em" /></span>
 			<h2 class="blockTitle">All Devices Off</h2>
 		</Block>
-		<Scenes />
-		<Switches />
-		<Lights />
+		<Scenes {selectedRoom} />
+		<Switches {selectedRoom} />
+		<Lights {selectedRoom} />
 	</div>
 </section>

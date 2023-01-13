@@ -1,19 +1,16 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
-	import { selectedRoomStore, switchStore, type SwitchStore } from '$lib/data/stores';
+	import { switchStore, type SwitchStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
+	import { toggleSwitchState } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
 	import type { ComponentType } from 'svelte';
-	const excludeList = ['switch.wyze_notifications'];
+	import type { SwitchEntity } from '$lib/data/types';
+	export let selectedRoom: Rooms;
 
-	function toggleSwitch() {
-		// TODO:
+	function toggleSwitch(switch_: SwitchEntity) {
+		toggleSwitchState(switch_.entity_id, switch_.state === 'on' ? 'off' : 'on');
 	}
-
-	let selectedRoom: Rooms = Rooms.AllRooms;
-	selectedRoomStore.subscribe((newSelectedRoom) => {
-		selectedRoom = newSelectedRoom;
-	});
 
 	const switchIcons: { [switch_id: string]: ComponentType } = {};
 	let switches: SwitchStore = {};
@@ -26,7 +23,6 @@
 
 	switchStore.subscribe(async (newSwitches) => {
 		for (const switch_ of Object.values(newSwitches)) {
-			if (excludeList.includes(switch_.entity_id)) continue;
 			if (switchIcons[switch_.entity_id] == null) {
 				const icon = await getIcon(switch_.attributes.icon);
 				switchIcons[switch_.entity_id] = icon;
@@ -45,7 +41,6 @@
 	});
 
 	$: switchesToShow = Object.values(switches).filter((switch_) => {
-		if (excludeList.includes(switch_.entity_id)) return false;
 		if (selectedRoom === Rooms.AllRooms) return true;
 		return switchRoomMap[selectedRoom].has(switch_.entity_id);
 	});
@@ -63,7 +58,7 @@
 			? 'var(--block-default-light-color)'
 			: 'var(--block-default-dark-color)'}
 		fontColor={switch_.state === 'on' ? '#000' : '#fff'}
-		onClick={toggleSwitch}
+		onClick={() => toggleSwitch(switch_)}
 		toggle
 	>
 		<svelte:component this={switchIcons[switch_.entity_id]} height="5em" width="5em" />

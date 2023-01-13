@@ -6,16 +6,12 @@
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
 	import type { ComponentType } from 'svelte';
+	export let selectedRoom: Rooms;
 
 	// For blocks whose data doesn't include a color, switch back and forth between
 	// these two colors
 	const defaultColors = ['#FFF7DC', '#1F212E'];
 	const getDefaultColor = (i: number) => defaultColors[i % defaultColors.length];
-
-	let selectedRoom: Rooms = Rooms.AllRooms;
-	selectedRoomStore.subscribe((newSelectedRoom) => {
-		selectedRoom = newSelectedRoom;
-	});
 
 	// Scene data directly from the WS server, not formatted
 	let scenes: SceneStore = {};

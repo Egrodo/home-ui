@@ -11,16 +11,13 @@
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
 	import type { ComponentType } from 'svelte';
 
+	export let selectedRoom: Rooms;
+
 	const OFF_STATE_BG_COLOR: [number, number, number] = [31, 33, 46];
 
 	function openControlPanel(lightId: string) {
 		selectedLightIdStore.set(lightId);
 	}
-
-	let selectedRoom: Rooms = Rooms.AllRooms;
-	selectedRoomStore.subscribe((newSelectedRoom) => {
-		selectedRoom = newSelectedRoom;
-	});
 
 	let lights: LightStore = {};
 

@@ -3,16 +3,43 @@
 	import CloseIcon from 'svelte-material-icons/Close.svelte';
 	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
 	import { getIcon } from '$lib/utils/getIcon';
-	import type { ComponentType } from 'svelte';
 	import stripRoomNames from '$lib/utils/stripRoomNames';
 	import ColorPicker from '$lib/components/colorPicker.svelte';
 	import Brightness from '$lib/components/brightness.svelte';
 	import TemperaturePicker from '$lib/components/temperaturePicker.svelte';
 	import { toggleLightState } from '$lib/data/ws';
+	import type { ComponentType } from 'svelte';
+
 	export let lightId: string | null;
+	let previousLightId: string | null = lightId;
+
+	// If the user hasn't interacted with the app for some time we want to close the
+	// drawer. To do this we'll store lastInteraction time and have an interval
+	let lastInteraction = Date.now();
+
+	function checkIfNeedClose() {
+		if (Date.now() - lastInteraction > 60 * 1000) {
+			closeDrawer();
+		}
+	}
+
+	let interval: NodeJS.Timer;
+	function noticeInteraction() {
+		lastInteraction = Date.now();
+	}
+
+	// If previous lightId was null but current lightId isn't, that's a remount sorta, restart interval
+	$: {
+		if (lightId != null && previousLightId == null) {
+			interval = setInterval(checkIfNeedClose, 1000);
+		}
+		lastInteraction = Date.now();
+		previousLightId = lightId;
+	}
 
 	function closeDrawer() {
 		selectedLightIdStore.set(null);
+		clearInterval(interval);
 	}
 
 	let lights: LightStore = {};
@@ -36,7 +63,7 @@
 		updateLightIcon();
 	}
 
-	// UI state stuff
+	// Start UI state stuff
 	let colorMode = light?.attributes.color_mode ?? 'hs';
 </script>
 
@@ -136,7 +163,7 @@
 	}
 </style>
 
-<section class="rightDrawer" class:open={lightId}>
+<section class="rightDrawer" class:open={lightId} on:touchstart={noticeInteraction}>
 	{#if light != null}
 		<div class="contents" transition:fly={{ y: 10 }}>
 			<span class="closeIconContainer" role="button" on:click={closeDrawer}

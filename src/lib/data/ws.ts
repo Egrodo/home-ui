@@ -190,6 +190,21 @@ export async function changeLightColor(entityId: string, rgb: [number, number, n
 	}
 }
 
+export async function toggleSwitchState(entityId: string, state: 'on' | 'off') {
+	try {
+		return connection.sendMessagePromise({
+			type: 'call_service',
+			domain: 'switch',
+			service: `turn_${state}`,
+			target: {
+				entity_id: entityId
+			}
+		});
+	} catch (err) {
+		console.error(err);
+	}
+}
+
 export async function initWsConnection() {
 	if (browser) {
 		const auth = new Auth({

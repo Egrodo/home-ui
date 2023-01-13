@@ -6,7 +6,7 @@
 	export let range: [max: number, min: number];
 	export let initialValue: number = range[0];
 	export let entityid: string;
-	$: kelvin = initialValue;
+	$: kelvin = initialValue ?? range[0];
 
 	const debouncedChangeLightTemperature = debounce(500, changeLightTemperature);
 	function handleChange(percentage: number) {
