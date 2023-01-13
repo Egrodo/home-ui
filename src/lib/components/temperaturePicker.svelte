@@ -2,10 +2,9 @@
 	import Slider from './slider.svelte';
 	// Range of temperature supported by selected device in Kelvin
 	export let range: [max: number, min: number];
-	export let initialValue: number = 0;
-	$: kelvin = initialValue ?? 0;
+	export let initialValue: number = range[0];
+	$: kelvin = initialValue;
 	function handleChange(percentage: number) {
-		console.log(`change to ${percentage}`);
 		const [max, min] = range;
 		kelvin = Math.round((min - max) * percentage + max);
 
@@ -14,7 +13,7 @@
 
 	// Since kelvin has the high value at the left and the low value on the right, invert the percentage
 	// before passing to Slider.
-	$: initialPercent = (initialValue - range[1]) / (range[0] - range[1]);
+	$: initialPercent = 1 - (initialValue - range[1]) / (range[0] - range[1]);
 </script>
 
 <style>

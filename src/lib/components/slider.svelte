@@ -41,10 +41,19 @@
 	function handleThumbTouchMove(event: TouchEvent) {
 		triggerPercentageChange(event.touches[0].clientX);
 	}
-	// If user clicks on the track however we want to move the thumb immediately to that position
+
 	function handleTrackTouch(event: TouchEvent) {
-		animateChange();
-		triggerPercentageChange(event.touches[0].clientX);
+		const touchPos = event.touches[0].clientX;
+
+		// We don't want to animate the change if the user is clicking on the
+		// thumb itself
+		const thumbStart = sliderThumb.getBoundingClientRect().left;
+		const thumbEnd = thumbStart + sliderThumb.offsetWidth;
+		if (touchPos < thumbStart || touchPos > thumbEnd) {
+			animateChange();
+		}
+
+		triggerPercentageChange(touchPos);
 	}
 
 	$: {
