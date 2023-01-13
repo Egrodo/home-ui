@@ -148,7 +148,7 @@
 				<svelte:component this={lightIcon} height="6.5em" width="6.5em" color="#fff" />
 				<h2>{stripRoomNames(light.attributes.friendly_name)}</h2>
 			</header>
-			<div class="colorModeBtnContainer">
+			<div class="colorModeBtnContainer" class:disablePicker={light.state === 'off'}>
 				<button
 					class="colorModeBtn"
 					class:active={colorMode === 'hs' || colorMode === 'xy' || colorMode === 'rgb'}
@@ -178,7 +178,7 @@
 				{/if}
 			</section>
 			<span class:disablePicker={light.state === 'off'}
-				><Brightness value={light.attributes.brightness} /></span
+				><Brightness initialValue={light.attributes.brightness} /></span
 			>
 			<button
 				class="powerBtn"

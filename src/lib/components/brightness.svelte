@@ -3,7 +3,7 @@
 
 	// Currently set brightness value, 0-255.
 	export let initialValue: number | undefined;
-	const initialPercent = initialValue ? initialValue / 255 : 0;
+	$: initialPercent = initialValue ? initialValue / 255 : 0;
 	$: percentage = initialPercent;
 	function handleChange(newPercentage: number) {
 		percentage = newPercentage;
