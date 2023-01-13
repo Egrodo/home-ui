@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
-	import { selectedRoomStore, sceneStore, type SceneStore } from '$lib/data/stores';
+	import { sceneStore, type SceneStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
+	import { activateScene } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
@@ -34,11 +35,8 @@
 		}
 	});
 
-	function triggerScene(sceneId: string) {
-		// TODO:
-	}
-
 	type FormattedSceneType = {
+		entity_id: string;
 		id: string;
 		name?: string;
 		color?: string;
@@ -46,7 +44,10 @@
 
 	// Scenes filtered and formatted for rendering
 	$: scenesToShow = Object.values(scenes).reduce<FormattedSceneType[]>((acc, scene) => {
-		const formattedScene: FormattedSceneType = { id: scene.attributes.id };
+		const formattedScene: FormattedSceneType = {
+			entity_id: scene.entity_id,
+			id: scene.attributes.id
+		};
 		// First check if the scene is in the selected room
 		if (selectedRoom === Rooms.AllRooms || scene.attributes.friendly_name.includes(selectedRoom)) {
 			// Remove room name from scene name, but only if we're not in All Room display
@@ -80,7 +81,7 @@
 				? 'black'
 				: 'white'
 			: getDefaultColor(i + 1)}
-		onClick={() => triggerScene(scene.id)}
+		onClick={() => activateScene(scene.entity_id)}
 		toggle
 	>
 		<svelte:component this={sceneIcons[scene.id]} height="5em" width="5em" />

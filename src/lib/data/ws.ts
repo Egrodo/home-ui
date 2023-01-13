@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import { PUBLIC_WS_AUTH_KEY, PUBLIC_CLIENT_ID, PUBLIC_SERVER_URL } from '$env/static/public';
-import { createConnection, Auth, Connection } from 'home-assistant-js-websocket';
+import { createConnection, Auth, Connection, type MessageBase } from 'home-assistant-js-websocket';
 import { lightStore, sceneStore, switchStore, weatherStore } from './stores';
 import {
 	Rooms,
@@ -98,111 +98,109 @@ const getAreaIds = (room: Rooms): string[] => {
 	}
 };
 
+async function sendWsMessage(payload: MessageBase) {
+	if (!connection || connection.connected === false) {
+		console.error(`Websocket connection not established, cannot send message`, payload);
+		return;
+	}
+	console.log(`Sending message to websocket:`, payload);
+	try {
+		return connection.sendMessagePromise(payload);
+	} catch (err) {
+		console.error(`Error sending message to websocket:`, payload);
+		// TODO: Build error displayer
+	}
+}
+
 export async function toggleAreaState(room: Rooms, state: 'on' | 'off') {
 	const areaIds = getAreaIds(room);
-	try {
-		const promises = areaIds.map((areaId) =>
-			connection.sendMessagePromise({
-				type: 'call_service',
-				domain: 'homeassistant',
-				service: `turn_${state}`,
-				target: {
-					area_id: areaId
-				}
-			})
-		);
-		return Promise.all(promises);
-	} catch (err) {
-		// TODO: Build error displayer
-		console.error(err);
-	}
+
+	const promises = areaIds.map((areaId) =>
+		sendWsMessage({
+			type: 'call_service',
+			domain: 'homeassistant',
+			service: `turn_${state}`,
+			target: {
+				area_id: areaId
+			}
+		})
+	);
+	return Promise.all(promises);
 }
 
 export async function toggleLightState(entityId: string, state: 'on' | 'off') {
-	try {
-		return connection.sendMessagePromise({
-			type: 'call_service',
-			domain: 'light',
-			service: `turn_${state}`,
-			target: {
-				entity_id: entityId
-			}
-		});
-	} catch (err) {
-		console.error(err);
-	}
+	return sendWsMessage({
+		type: 'call_service',
+		domain: 'light',
+		service: `turn_${state}`,
+		target: {
+			entity_id: entityId
+		}
+	});
 }
 
 export async function changeLightBrightness(entityId: string, brightness: number) {
-	console.log(`Changing brightness of ${entityId} to ${brightness}`);
-	try {
-		return connection.sendMessagePromise({
-			type: 'call_service',
-			domain: 'light',
-			service: 'turn_on',
-			target: {
-				entity_id: entityId
-			},
-			service_data: {
-				brightness
-			}
-		});
-	} catch (err) {
-		console.error(err);
-	}
+	return sendWsMessage({
+		type: 'call_service',
+		domain: 'light',
+		service: 'turn_on',
+		target: {
+			entity_id: entityId
+		},
+		service_data: {
+			brightness
+		}
+	});
 }
 
 export async function changeLightTemperature(entityId: string, temperature: number) {
-	console.log(`Changing temperature of ${entityId} to ${temperature}`);
-	try {
-		return connection.sendMessagePromise({
-			type: 'call_service',
-			domain: 'light',
-			service: 'turn_on',
-			target: {
-				entity_id: entityId
-			},
-			service_data: {
-				color_temp_kelvin: temperature
-			}
-		});
-	} catch (err) {
-		console.error(err);
-	}
+	return sendWsMessage({
+		type: 'call_service',
+		domain: 'light',
+		service: 'turn_on',
+		target: {
+			entity_id: entityId
+		},
+		service_data: {
+			color_temp_kelvin: temperature
+		}
+	});
 }
 
 export async function changeLightColor(entityId: string, rgb: [number, number, number]) {
-	console.log(`Changing color of ${entityId} to ${rgb}`);
-	try {
-		return connection.sendMessagePromise({
-			type: 'call_service',
-			domain: 'light',
-			service: 'turn_on',
-			target: {
-				entity_id: entityId
-			},
-			service_data: {
-				rgb_color: rgb
-			}
-		});
-	} catch (err) {
-		console.error(err);
-	}
+	return sendWsMessage({
+		type: 'call_service',
+		domain: 'light',
+		service: 'turn_on',
+		target: {
+			entity_id: entityId
+		},
+		service_data: {
+			rgb_color: rgb
+		}
+	});
 }
 
 export async function toggleSwitchState(entityId: string, state: 'on' | 'off') {
-	try {
-		return connection.sendMessagePromise({
-			type: 'call_service',
-			domain: 'switch',
-			service: `turn_${state}`,
-			target: {
-				entity_id: entityId
-			}
-		});
-	} catch (err) {
-		console.error(err);
-	}
+	return sendWsMessage({
+		type: 'call_service',
+		domain: 'switch',
+		service: `turn_${state}`,
+		target: {
+			entity_id: entityId
+		}
+	});
+}
+
+export async function activateScene(sceneId: string) {
+	return sendWsMessage({
+		type: 'call_service',
+		domain: 'scene',
+		service: 'turn_on',
+		target: {
+			entity_id: sceneId
+		}
+	});
 }
 
 export async function initWsConnection() {
