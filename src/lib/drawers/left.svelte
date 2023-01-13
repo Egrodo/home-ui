@@ -33,7 +33,7 @@
 </style>
 
 <section class="leftDrawer">
-	<h2>Noah's Domicile</h2>
+	<h2 on:click={() => location.reload()}>Noah's Domicile</h2>
 	<div class="blockRow">
 		<DateBlock />
 		<TimeBlock />

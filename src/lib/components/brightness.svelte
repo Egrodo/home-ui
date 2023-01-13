@@ -1,12 +1,18 @@
 <script lang="ts">
 	import Slider from './slider.svelte';
-
+	import debounce from '$lib/utils/debounce';
+	import { changeLightBrightness } from '$lib/data/ws';
 	// Currently set brightness value, 0-255.
 	export let initialValue: number | undefined;
+	export let entityid: string;
 	$: initialPercent = initialValue ? initialValue / 255 : 0;
 	$: percentage = initialPercent;
+
+	const debouncedChangeLightBrightness = debounce(500, changeLightBrightness);
+
 	function handleChange(newPercentage: number) {
 		percentage = newPercentage;
+		debouncedChangeLightBrightness(entityid, percentage * 255);
 	}
 </script>
 

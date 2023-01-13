@@ -101,37 +101,92 @@ const getAreaIds = (room: Rooms): string[] => {
 export async function toggleAreaState(room: Rooms, state: 'on' | 'off') {
 	const areaIds = getAreaIds(room);
 	try {
-		for (const areaId of areaIds) {
-			const resp = await connection.sendMessagePromise({
+		const promises = areaIds.map((areaId) =>
+			connection.sendMessagePromise({
 				type: 'call_service',
 				domain: 'homeassistant',
 				service: `turn_${state}`,
 				target: {
 					area_id: areaId
 				}
-			});
-			console.log(resp);
-		}
+			})
+		);
+		return Promise.all(promises);
 	} catch (err) {
+		// TODO: Build error displayer
 		console.error(err);
 	}
 }
 
 export async function toggleLightState(entityId: string, state: 'on' | 'off') {
 	try {
-		const resp = await connection.sendMessagePromise({
+		return connection.sendMessagePromise({
 			type: 'call_service',
 			domain: 'light',
 			service: `turn_${state}`,
 			target: {
 				entity_id: entityId
-				// area_id: getAreaId(room) !!!
 			}
 		});
-		console.log(resp);
 	} catch (err) {
 		console.error(err);
-		// TODO: Handle error
+	}
+}
+
+export async function changeLightBrightness(entityId: string, brightness: number) {
+	console.log(`Changing brightness of ${entityId} to ${brightness}`);
+	try {
+		return connection.sendMessagePromise({
+			type: 'call_service',
+			domain: 'light',
+			service: 'turn_on',
+			target: {
+				entity_id: entityId
+			},
+			service_data: {
+				brightness
+			}
+		});
+	} catch (err) {
+		console.error(err);
+	}
+}
+
+export async function changeLightTemperature(entityId: string, temperature: number) {
+	console.log(`Changing temperature of ${entityId} to ${temperature}`);
+	try {
+		return connection.sendMessagePromise({
+			type: 'call_service',
+			domain: 'light',
+			service: 'turn_on',
+			target: {
+				entity_id: entityId
+			},
+			service_data: {
+				color_temp_kelvin: temperature
+			}
+		});
+	} catch (err) {
+		console.error(err);
+	}
+}
+
+export async function changeLightColor(entityId: string, rgb: [number, number, number]) {
+	console.log(`Changing color of ${entityId} to ${rgb}`);
+	try {
+		return connection.sendMessagePromise({
+			type: 'call_service',
+			domain: 'light',
+			service: 'turn_on',
+			target: {
+				entity_id: entityId
+			},
+			service_data: {
+				rgb_color: rgb
+			}
+		});
+	} catch (err) {
+		console.error(err);
 	}
 }
 

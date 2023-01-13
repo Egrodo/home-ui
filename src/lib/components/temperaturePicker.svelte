@@ -1,14 +1,19 @@
 <script lang="ts">
 	import Slider from './slider.svelte';
+	import debounce from '$lib/utils/debounce';
+	import { changeLightTemperature } from '$lib/data/ws';
 	// Range of temperature supported by selected device in Kelvin
 	export let range: [max: number, min: number];
 	export let initialValue: number = range[0];
+	export let entityid: string;
 	$: kelvin = initialValue;
+
+	const debouncedChangeLightTemperature = debounce(500, changeLightTemperature);
 	function handleChange(percentage: number) {
 		const [max, min] = range;
 		kelvin = Math.round((min - max) * percentage + max);
 
-		// TODO: Debounce send command
+		debouncedChangeLightTemperature(entityid, kelvin);
 	}
 
 	// Since kelvin has the high value at the left and the low value on the right, invert the percentage
@@ -40,7 +45,7 @@
 <div class="container">
 	<Slider
 		{initialPercent}
-		background="linear-gradient(to right, #FFA001, #A6D1FF)"
+		background="linear-gradient(to right, #A6D1FF, #FFA001)"
 		onChange={handleChange}
 	/>
 	<h1>{kelvin}°</h1>

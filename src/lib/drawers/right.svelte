@@ -36,10 +36,8 @@
 		updateLightIcon();
 	}
 
-	$: console.log(lights);
-
 	// UI state stuff
-	$: colorMode = light?.attributes.color_mode ?? 'hs';
+	let colorMode = light?.attributes.color_mode ?? 'hs';
 </script>
 
 <style>
@@ -166,9 +164,10 @@
 			</div>
 			<section class="pickerContainer" class:disablePicker={light.state === 'off'}>
 				{#if colorMode === 'hs'}
-					<ColorPicker color={light.attributes.rgb_color} />
+					<ColorPicker entityid={light.entity_id} initialColor={light.attributes.rgb_color} />
 				{:else if colorMode === 'color_temp'}
 					<TemperaturePicker
+						entityid={light.entity_id}
 						range={[
 							+light.attributes.max_color_temp_kelvin,
 							+light.attributes.min_color_temp_kelvin
@@ -178,7 +177,7 @@
 				{/if}
 			</section>
 			<span class:disablePicker={light.state === 'off'}
-				><Brightness initialValue={light.attributes.brightness} /></span
+				><Brightness entityid={light.entity_id} initialValue={light.attributes.brightness} /></span
 			>
 			<button
 				class="powerBtn"

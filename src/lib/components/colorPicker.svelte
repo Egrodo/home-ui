@@ -1,14 +1,22 @@
 <script lang="ts">
+	import { changeLightColor } from '$lib/data/ws';
+	import debounce from '$lib/utils/debounce';
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 
-	export let color: [number, number, number] | undefined;
+	export let initialColor: [number, number, number] | undefined;
+	export let entityid: string;
 
-	$: selectedColor = color;
+	$: selectedColor = initialColor;
+
+	const debouncedChangeLightColor = debounce(500, changeLightColor);
+
 	function handleClick(e: MouseEvent) {
 		const eventTarget = e.target as SVGElement;
 		if (eventTarget?.dataset?.fill == null) return;
 		const clickedColor = eventTarget.dataset.fill;
 		selectedColor = hexToRGB(clickedColor);
+
+		debouncedChangeLightColor(entityid, selectedColor);
 	}
 
 	function handleTouchMove(e: TouchEvent) {
