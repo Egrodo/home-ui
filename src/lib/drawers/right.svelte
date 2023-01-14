@@ -65,8 +65,6 @@
 
 	// Start UI state stuff
 	let colorMode = light?.attributes.color_mode ?? 'hs';
-
-	$: console.log(light);
 </script>
 
 <style>

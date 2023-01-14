@@ -22,8 +22,7 @@
 		const unsubscribe = subscribeEntities<WsStateMessage>(connection, handleStateMessage);
 		window.Debug = {
 			sendMsg: async (msg: object) => {
-				const resp = await connection.sendMessagePromise(msg);
-				console.log(resp);
+				return connection.sendMessagePromise(msg);
 			}
 		};
 
