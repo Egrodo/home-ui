@@ -2,59 +2,32 @@
 	import Slider from './slider.svelte';
 	import debounce from '$lib/utils/debounce';
 	import { changeLightTemperature } from '$lib/data/ws';
+	import { spring } from 'svelte/motion';
 	// Range of temperature supported by selected device in Kelvin
 	export let range: [max: number, min: number];
 	export let initialValue: number = range[0];
 	export let entityid: string;
 
-	// Kelvin is source of truth, displayedKelvin will tween for large changes
-	$: kelvin = initialValue ?? range[0];
-	let displayedKelvin = initialValue ?? range[0];
+	const kelvin = spring(initialValue ?? range[0], { stiffness: 0.1, damping: 0.5 });
 
 	const debouncedChangeLightTemperature = debounce(500, changeLightTemperature);
-
-	let intervalId: NodeJS.Timer;
-	function tweenToKelvin(newKelvin: number) {
-		const difference = Math.abs(newKelvin - kelvin);
-		const duration = Math.min(500, difference / 2);
-		const start = Date.now();
-		const startingVal = displayedKelvin;
-		const newVal = newKelvin;
-		clearInterval(intervalId);
-		intervalId = setInterval(() => {
-			const elapsed = Date.now() - start;
-			const percent = elapsed / duration;
-			if (percent >= 1) {
-				clearInterval(intervalId);
-				displayedKelvin = newVal;
-			} else {
-				displayedKelvin = Math.round((newVal - startingVal) * percent + startingVal);
-			}
-		}, 10);
-	}
 
 	function handleChange(percentage: number) {
 		const [max, min] = range;
 		const newKelvin = Math.round((min - max) * percentage + max);
-		const difference = Math.abs(newKelvin - kelvin);
-		if (difference > 100) {
-			// If user quickly switches kelvin to a new value more than 500 away,
-			// lets animate the transition (go from startingVal to newVal)
-			tweenToKelvin(newKelvin);
+		const difference = Math.abs(newKelvin - $kelvin);
+		if (difference < 200) {
+			kelvin.set(newKelvin, { hard: true });
 		} else {
-			displayedKelvin = newKelvin;
+			kelvin.set(newKelvin);
 		}
-		kelvin = newKelvin;
 
-		debouncedChangeLightTemperature(entityid, kelvin);
+		debouncedChangeLightTemperature(entityid, newKelvin);
 	}
 
 	// Since kelvin has the high value at the left and the low value on the right, invert the percentage
 	// before passing to Slider.
 	$: initialPercent = 1 - (initialValue - range[1]) / (range[0] - range[1]);
-
-	// If user quickly switches kelvin to a new value more than 500 away,
-	// lets animate the transition (go from startingVal to newVal)
 </script>
 
 <style>
@@ -84,6 +57,6 @@
 		background="linear-gradient(to right, #A6D1FF, #FFA001)"
 		onChange={handleChange}
 	/>
-	<h1>{displayedKelvin}°</h1>
+	<h1>{Math.round($kelvin)}°</h1>
 	<h3>Kelvin</h3>
 </div>
