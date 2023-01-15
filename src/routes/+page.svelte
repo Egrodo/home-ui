@@ -43,7 +43,7 @@
 		/* Page size globals */
 		--page-background: #0c0d16;
 		--page-height: 768px;
-		--page-width: 1366px;
+		--page-width: 1360px;
 		--page-drawer-background: #1f212e;
 
 		/* Block globals */
