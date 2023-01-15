@@ -57,6 +57,10 @@
 		margin: 0;
 	}
 
+	:global(body::-webkit-scrollbar) {
+		display: none;
+	}
+
 	.container {
 		background-color: var(--page-background);
 		height: 100%;
