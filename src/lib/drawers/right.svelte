@@ -80,12 +80,13 @@
 
 	.open {
 		max-width: 25%;
+		overflow: hidden;
 	}
 
 	.contents {
 		height: 100%;
 		width: 100%;
-		overflow: auto;
+		overflow: hidden;
 		position: relative;
 	}
 
