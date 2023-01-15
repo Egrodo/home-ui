@@ -30,6 +30,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@sveltejs/adapter-node": "^1.1.1",
 		"home-assistant-js-websocket": "^8.0.1",
 		"svelte-material-icons": "^2.0.4"
 	}

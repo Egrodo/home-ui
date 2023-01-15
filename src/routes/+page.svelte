@@ -1,4 +1,5 @@
 <script lang="ts">
+	export const prerender = true;
 	import { connectionStore, selectedLightIdStore } from '$lib/data/stores';
 	import { initWsConnection, handleStateMessage, type WsStateMessage } from '$lib/data/ws';
 	import LeftDrawer from '$lib/drawers/left.svelte';
