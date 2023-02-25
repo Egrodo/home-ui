@@ -1,6 +1,6 @@
 <script lang="ts">
 	export const prerender = true;
-	import { connectionStore, selectedLightIdStore } from '$lib/data/stores';
+	import { connectionStore, lightStore, selectedLightIdStore } from '$lib/data/stores';
 	import { initWsConnection, handleStateMessage, type WsStateMessage } from '$lib/data/ws';
 	import LeftDrawer from '$lib/drawers/left.svelte';
 	import MainDrawer from '$lib/drawers/main.svelte';
@@ -25,6 +25,9 @@
 			sendMsg: async (msg: object) => {
 				return connection.sendMessagePromise(msg);
 			}
+			// Stores: {
+			// 	lightStore: lightStore
+			// }
 		};
 
 		return unsubscribe;
@@ -51,6 +54,8 @@
 		--block-padding: 38px;
 		--block-default-light-color: #fff7dc;
 		--block-default-dark-color: #1f212e;
+
+		background-color: var(--page-background);
 
 		height: var(--page-height);
 		width: var(--page-width);

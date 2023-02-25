@@ -5,7 +5,7 @@ interface LightEntityAttributes {
 	max_color_temp_kelvin: string;
 	supported_color_modes: ColorMode[]; // Stored for sanity check (throw err if not contain hs & color_temp)
 	friendly_name: string;
-	icon: string; // string in form of `mdi:${kebab-case-material-icon-name}`
+	icon?: string; // string in form of `mdi:${kebab-case-material-icon-name}`
 	// ... the data we get from the API might have more properties not included here and I will
 	//     still store them in my localStorage & memory, but I will only *access* the
 	//     properties indicated here.
@@ -40,7 +40,7 @@ export type WeatherStates =
 
 interface PrimitiveEntity<EntityAttributes> {
 	entity_id: `${EntityTypes}.${string}`;
-	state: 'off' | 'on' | WeatherStates;
+	state: 'off' | 'on' | 'unavailable' | WeatherStates;
 	attributes: EntityAttributes;
 	context?: {
 		id: string;
@@ -66,7 +66,7 @@ interface WeatherEntityAttributes {
 
 interface SwitchEntityAttributes {
 	friendly_name: string;
-	icon: string;
+	icon?: string;
 }
 
 interface SceneEntityAttributes {

@@ -30,9 +30,7 @@
 
 <style>
 	.colorPickerContainer {
-		position: relative;
-		display: flex;
-		justify-content: center;
+		text-align: center;
 	}
 	.colorPickerSvg {
 		margin-top: 3em;

@@ -24,12 +24,19 @@
 	const lightIcons: { [light_id: string]: ComponentType } = {};
 
 	lightStore.subscribe(async (newLights) => {
+		console.log(newLights);
 		const stringifiedNew = JSON.stringify(newLights);
 		if (JSON.stringify(lights) === stringifiedNew) return;
 		lights = JSON.parse(stringifiedNew);
 		for (const light of Object.values(newLights)) {
 			if (lightIcons[light.entity_id] == null) {
-				const icon = await getIcon(light.attributes.icon);
+				let icon;
+				if (light.attributes.icon) {
+					icon = await getIcon(light.attributes.icon);
+				} else {
+					icon = await getIcon('mdi:lightbulb-variant');
+				}
+
 				lightIcons[light.entity_id] = icon;
 			}
 		}
@@ -59,9 +66,11 @@
 				// Determine background color of the block. If the light is on, we'll use
 				// the current color of the light.
 				if (light.state === 'on') {
-					if (light.attributes.rgb_color == null)
-						throw new Error('Light is on but rgb_color is nullish');
-					formattedLight.color = light.attributes.rgb_color;
+					if (light.attributes.rgb_color == null) {
+						console.error('Light is on but rgb_color is nullish', light);
+					} else {
+						formattedLight.color = light.attributes.rgb_color;
+					}
 				} else {
 					formattedLight.color = OFF_STATE_BG_COLOR;
 				}

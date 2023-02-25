@@ -29,13 +29,13 @@
 	}
 
 	// If previous lightId was null but current lightId isn't, that's a remount sorta, restart interval
-	$: {
-		if (lightId != null && previousLightId == null) {
-			interval = setInterval(checkIfNeedClose, 1000);
-		}
-		lastInteraction = Date.now();
-		previousLightId = lightId;
-	}
+	// $: {
+	// 	if (lightId != null && previousLightId == null) {
+	// 		interval = setInterval(checkIfNeedClose, 1000);
+	// 	}
+	// 	lastInteraction = Date.now();
+	// 	previousLightId = lightId;
+	// }
 
 	function closeDrawer() {
 		selectedLightIdStore.set(null);
@@ -56,7 +56,12 @@
 	$: {
 		const updateLightIcon = async () => {
 			if (light != null) {
-				const icon = await getIcon(light.attributes.icon);
+				let icon;
+				if (light.attributes.icon) {
+					icon = await getIcon(light.attributes.icon);
+				} else {
+					icon = await getIcon('mdi:lightbulb-variant');
+				}
 				lightIcon = icon;
 			}
 		};
@@ -141,6 +146,11 @@
 		opacity: 0.5;
 	}
 
+	.fakeBtn {
+		height: 50px;
+		width: 100%;
+	}
+
 	.powerBtn {
 		position: absolute;
 		width: 100%;
@@ -207,6 +217,7 @@
 			<span class:disablePicker={light.state === 'off'}
 				><Brightness entityid={light.entity_id} initialValue={light.attributes.brightness} /></span
 			>
+			<div class="fakeBtn" />
 			<button
 				class="powerBtn"
 				class:powerOn={light.state === 'on'}

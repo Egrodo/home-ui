@@ -24,7 +24,12 @@
 	switchStore.subscribe(async (newSwitches) => {
 		for (const switch_ of Object.values(newSwitches)) {
 			if (switchIcons[switch_.entity_id] == null) {
-				const icon = await getIcon(switch_.attributes.icon);
+				let icon;
+				if (switch_.attributes.icon) {
+					icon = await getIcon(switch_.attributes.icon);
+				} else {
+					icon = await getIcon('mdi:lightbulb-variant');
+				}
 				switchIcons[switch_.entity_id] = icon;
 			}
 

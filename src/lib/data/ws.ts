@@ -45,6 +45,8 @@ export function handleStateMessage(states: WsStateMessage) {
 		[LightEntity[], SwitchEntity[], SceneEntity[], WeatherEntity | null]
 	>(
 		(acc, [entity_id, entity]: [string, Entity]) => {
+			if (entity.state === 'unavailable') return acc;
+
 			const [lights, switches, scenes, weather] = acc;
 			let newWeather = weather;
 			if (entity_id.startsWith('light.')) {
