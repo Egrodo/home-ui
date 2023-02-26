@@ -25,9 +25,6 @@
 			sendMsg: async (msg: object) => {
 				return connection.sendMessagePromise(msg);
 			}
-			// Stores: {
-			// 	lightStore: lightStore
-			// }
 		};
 
 		return unsubscribe;

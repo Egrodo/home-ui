@@ -54,8 +54,6 @@ function createSwitchStore() {
 		addOrUpdate: (switchEntities: SwitchEntity[]) =>
 			update((switchStore: SwitchStore) => {
 				switchEntities.forEach((switchEntity) => {
-					const excludeList = ['switch.wyze_notifications'];
-					if (excludeList.includes(switchEntity.entity_id)) return;
 					switchStore[switchEntity.entity_id] = switchEntity;
 				});
 				return switchStore;

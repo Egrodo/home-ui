@@ -38,7 +38,7 @@ export type WeatherStates =
 	| 'windy'
 	| 'windy-variant';
 
-interface PrimitiveEntity<EntityAttributes> {
+interface PrimitiveEntity<EntityAttributes = void> {
 	entity_id: `${EntityTypes}.${string}`;
 	state: 'off' | 'on' | 'unavailable' | WeatherStates;
 	attributes: EntityAttributes;

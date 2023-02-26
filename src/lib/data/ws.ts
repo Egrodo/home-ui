@@ -16,6 +16,12 @@ export interface WsStateMessage {
 }
 
 /**
+ * NOTE: If you don't want a device to show up in the UI, add the string "donotshow"
+ * to its name in Home Assistant and it will be ignored here.
+ */
+const DO_NOT_SHOW_STRING = 'donotshow';
+
+/**
  * Storing the connection obj in the scope of this file bc honestly it's no different than
  * anywhere else probz.
  */
@@ -46,6 +52,11 @@ export function handleStateMessage(states: WsStateMessage) {
 	>(
 		(acc, [entity_id, entity]: [string, Entity]) => {
 			if (entity.state === 'unavailable') return acc;
+			if (
+				entity.attributes?.friendly_name == null ||
+				entity.attributes.friendly_name.includes(DO_NOT_SHOW_STRING)
+			)
+				return acc;
 
 			const [lights, switches, scenes, weather] = acc;
 			let newWeather = weather;

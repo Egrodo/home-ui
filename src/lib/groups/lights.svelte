@@ -1,11 +1,6 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
-	import {
-		lightStore,
-		selectedLightIdStore,
-		selectedRoomStore,
-		type LightStore
-	} from '$lib/data/stores';
+	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
 	import { getIcon } from '$lib/utils/getIcon';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
@@ -24,7 +19,6 @@
 	const lightIcons: { [light_id: string]: ComponentType } = {};
 
 	lightStore.subscribe(async (newLights) => {
-		console.log(newLights);
 		const stringifiedNew = JSON.stringify(newLights);
 		if (JSON.stringify(lights) === stringifiedNew) return;
 		lights = JSON.parse(stringifiedNew);
