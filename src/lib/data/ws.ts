@@ -120,8 +120,11 @@ async function sendWsMessage(payload: MessageBase) {
 	try {
 		return connection.sendMessagePromise(payload);
 	} catch (err) {
-		console.error(`Error sending message to websocket:`, payload);
-		// TODO: Build error displayer
+		console.error('Error sending message to websocket: ' + err);
+
+		// If errored, reconnect and try again. If it errors again, fuck it.
+		await initWsConnection();
+		return connection.sendMessagePromise(payload);
 	}
 }
 
