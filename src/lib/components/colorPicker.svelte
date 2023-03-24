@@ -25,6 +25,8 @@
 		if (realTarget?.dataset?.fill == null) return;
 		const clickedColor = realTarget.dataset.fill;
 		selectedColor = hexToRGB(clickedColor);
+
+		debouncedChangeLightColor(entityid, selectedColor);
 	}
 </script>
 
