@@ -14,18 +14,41 @@
 		selectedLightId = newSelectedLightId;
 	});
 
+	let containerRef: HTMLElement;
 	let connection: Connection;
+
+	// Code to eat a touch event after 5 minutes of inactivity
+	let timerRef: NodeJS.Timeout;
+	let hasEatenTouch = false;
+	const eatTouchAndRestart = (e: TouchEvent) => {
+		if (hasEatenTouch === false) {
+			e.preventDefault();
+			e.stopPropagation();
+			hasEatenTouch = true;
+		}
+
+		// Let each touch event restart the timer and kill the last
+		clearTimeout(timerRef);
+		timerRef = setTimeout(startTimerToEatTouchOnce, 5 * 60 * 1000);
+	};
+
+	function startTimerToEatTouchOnce() {
+		hasEatenTouch = false;
+		containerRef.addEventListener('touchstart', eatTouchAndRestart);
+	}
 
 	onMount(async () => {
 		// Initialize connection to websocket. Return callback for unsubscribe on unmount
 		connection = await initWsConnection();
 		connectionStore.set(connection);
 		const unsubscribe = subscribeEntities<WsStateMessage>(connection, handleStateMessage);
-		window.Debug = {
-			sendMsg: async (msg: object) => {
-				return connection.sendMessagePromise(msg);
-			}
-		};
+
+		/**
+		 * The device goes to sleep after some time, and the user has to touch the
+		 * screen to wake it up. Therefore we should eat that touch event
+		 * so it doesn't accidentally open a menu or something.
+		 */
+		startTimerToEatTouchOnce();
 
 		return unsubscribe;
 	});
@@ -71,7 +94,7 @@
 	}
 </style>
 
-<div class="container">
+<div class="container" bind:this={containerRef}>
 	<LeftDrawer />
 	<MainDrawer />
 	<RightDrawer lightId={selectedLightId} />

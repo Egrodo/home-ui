@@ -1,4 +1,5 @@
 <script>
+	import { PUBLIC_HOME_NAME } from '$env/static/public';
 	import DateBlock from '$lib/blocks/date.svelte';
 	import TimeBlock from '$lib/blocks/time.svelte';
 	import Weather from '$lib/blocks/weather.svelte';
@@ -33,7 +34,7 @@
 </style>
 
 <section class="leftDrawer">
-	<h2 on:click={() => location.reload()}>Noah's Domicile</h2>
+	<h2 on:click={() => location.reload()}>{PUBLIC_HOME_NAME}</h2>
 	<div class="blockRow">
 		<DateBlock />
 		<TimeBlock />
