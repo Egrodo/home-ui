@@ -60,6 +60,7 @@
 	:global(*) {
 		font-family: 'Open Sans', sans-serif;
 		box-sizing: border-box;
+		user-select: none;
 	}
 
 	:global(body) {

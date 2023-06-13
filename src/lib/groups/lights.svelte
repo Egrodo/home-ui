@@ -2,11 +2,14 @@
 	import Block from '$lib/blocks/block.svelte';
 	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
+	import { toggleLightState } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
 	import type { ComponentType } from 'svelte';
 
 	export let selectedRoom: Rooms;
+
+	let lights: LightStore = {};
 
 	const OFF_STATE_BG_COLOR: [number, number, number] = [31, 33, 46];
 
@@ -14,7 +17,10 @@
 		selectedLightIdStore.set(lightId);
 	}
 
-	let lights: LightStore = {};
+	function toggleLight(lightId: string) {
+		const newState = lights[lightId].state === 'on' ? 'off' : 'on';
+		toggleLightState(lightId, newState);
+	}
 
 	const lightIcons: { [light_id: string]: ComponentType } = {};
 
@@ -91,6 +97,7 @@
 		backgroundColor={`rgb(${light.color.join(', ')})`}
 		fontColor={shouldDisplayBlackText(light.color) ? 'black' : 'white'}
 		onClick={() => openControlPanel(light.id)}
+		onHold={() => toggleLight(light.id)}
 	>
 		<svelte:component this={lightIcons[light.id]} height="5em" width="5em" />
 		<h2 class="lightName">{light.name.replace(selectedRoom, '')}</h2>

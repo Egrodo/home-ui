@@ -3,8 +3,23 @@
 	export let fontColor: string;
 	export let flexGrow: boolean = false;
 	export let onClick: (() => void) | null = null;
+	export let onHold: (() => void) | null = null;
 	export let toggle: boolean = false; // Whether to style this block as a toggle switch
 	import PowerStandbyIcon from 'svelte-material-icons/PowerStandby.svelte';
+
+	let holdTimeout: NodeJS.Timeout | null = null;
+	function startHold() {
+		if (onHold) {
+			holdTimeout = setTimeout(onHold, 1000);
+		}
+	}
+
+	function endHold() {
+		if (holdTimeout) {
+			clearTimeout(holdTimeout);
+			holdTimeout = null;
+		}
+	}
 </script>
 
 <style>
@@ -37,6 +52,8 @@
 	style="--background-color:{backgroundColor}; --fontColor: {fontColor};"
 	role={onClick ? 'button' : 'none'}
 	on:click={onClick}
+	on:touchstart={startHold}
+	on:touchend={endHold}
 >
 	{#if toggle}
 		<div class="toggleIconContainer"><PowerStandbyIcon height="2em" width="2em" /></div>
