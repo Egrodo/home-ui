@@ -51,7 +51,7 @@
 		// First check if the scene is in the selected room
 		if (selectedRoom === Rooms.AllRooms || scene.attributes.friendly_name.includes(selectedRoom)) {
 			// Remove room name from scene name, but only if we're not in All Room display
-			formattedScene.name = scene.attributes.friendly_name.replace(selectedRoom, '');
+			formattedScene.name = scene.attributes.friendly_name.replace(`${selectedRoom} `, '');
 			// Extract color from the scene name
 			const colorMatch = formattedScene.name.match(/#([0-9A-F]{3}){1,2}\b/i);
 

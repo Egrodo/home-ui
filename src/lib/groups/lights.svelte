@@ -62,7 +62,7 @@
 				light.attributes.friendly_name.includes(selectedRoom)
 			) {
 				// Remove room name from light name
-				formattedLight.name = light.attributes.friendly_name.replace(selectedRoom, '');
+				formattedLight.name = light.attributes.friendly_name.replace(`${selectedRoom} `, '');
 				// Determine background color of the block. If the light is on, we'll use
 				// the current color of the light.
 				if (light.state === 'on') {
@@ -92,7 +92,7 @@
 	}
 </style>
 
-{#each Object.values(lightsToShow) as light, i}
+{#each Object.values(lightsToShow) as light}
 	<Block
 		backgroundColor={`rgb(${light.color.join(', ')})`}
 		fontColor={shouldDisplayBlackText(light.color) ? 'black' : 'white'}

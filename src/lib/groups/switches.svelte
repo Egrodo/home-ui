@@ -8,8 +8,14 @@
 	import type { SwitchEntity } from '$lib/data/types';
 	export let selectedRoom: Rooms;
 
-	function toggleSwitch(switch_: SwitchEntity) {
-		toggleSwitchState(switch_.entity_id, switch_.state === 'on' ? 'off' : 'on');
+	type FormattedSwitchType = {
+		id: string;
+		state: 'on' | 'off';
+		name: string;
+	};
+
+	function toggleSwitch(switch_: FormattedSwitchType) {
+		toggleSwitchState(switch_.id, switch_.state === 'on' ? 'off' : 'on');
 	}
 
 	const switchIcons: { [switch_id: string]: ComponentType } = {};
@@ -37,7 +43,11 @@
 				if (switch_.attributes.friendly_name.includes(roomId)) {
 					switchRoomMap[roomId].add(switch_.entity_id);
 
-					switch_.attributes.friendly_name = switch_.attributes.friendly_name.replace(roomId, '');
+					// TODO: BUG: This might be causing room reduction not to work
+					// switch_.attributes.friendly_name = switch_.attributes.friendly_name.replace(
+					// 	`${roomId} `,
+					// 	''
+					// );
 				}
 			});
 		}
@@ -45,10 +55,23 @@
 		switches = newSwitches;
 	});
 
-	$: switchesToShow = Object.values(switches).filter((switch_) => {
-		if (selectedRoom === Rooms.AllRooms) return true;
-		return switchRoomMap[selectedRoom].has(switch_.entity_id);
-	});
+	$: switchesToShow = Object.values(switches).reduce<FormattedSwitchType[]>((acc, switch_) => {
+		const formattedSwitch: FormattedSwitchType = {
+			id: switch_.entity_id,
+			state: switch_.state as 'on' | 'off',
+			name: switch_.attributes.friendly_name
+		};
+
+		if (
+			selectedRoom === Rooms.AllRooms ||
+			switch_.attributes.friendly_name.includes(selectedRoom)
+		) {
+			// Remove room name from switch name
+			formattedSwitch.name = switch_.attributes.friendly_name.replace(`${selectedRoom} `, '');
+			acc.push(formattedSwitch);
+		}
+		return acc;
+	}, []);
 </script>
 
 <style>
@@ -66,7 +89,7 @@
 		onClick={() => toggleSwitch(switch_)}
 		toggle
 	>
-		<svelte:component this={switchIcons[switch_.entity_id]} height="5em" width="5em" />
-		<h2 class="switchName">{switch_.attributes.friendly_name}</h2>
+		<svelte:component this={switchIcons[switch_.id]} height="5em" width="5em" />
+		<h2 class="switchName">{switch_.name}</h2>
 	</Block>
 {/each}
