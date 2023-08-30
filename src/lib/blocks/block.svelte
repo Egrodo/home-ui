@@ -1,10 +1,14 @@
 <script lang="ts">
+	import type { ComponentType } from 'svelte';
+
 	export let backgroundColor: string;
 	export let fontColor: string;
 	export let flexGrow: boolean = false;
 	export let onClick: (() => void) | null = null;
 	export let onHold: (() => void) | null = null;
 	export let toggle: boolean = false; // Whether to style this block as a toggle switch
+	export let icon: ComponentType | null = null; // TODO Main icon for this block
+
 	import PowerStandbyIcon from 'svelte-material-icons/PowerStandby.svelte';
 
 	let holdTimeout: NodeJS.Timeout | null = null;

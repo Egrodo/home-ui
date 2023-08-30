@@ -17,7 +17,8 @@ export interface WsStateMessage {
 
 /**
  * NOTE: If you don't want a device to show up in the UI, add the string "donotshow"
- * to its name in Home Assistant and it will be ignored here.
+ * to its name in Home Assistant and it will be ignored here. Unfortunately there is no
+ * other way to pass metadata about a device in HA that I know of.
  */
 const DO_NOT_SHOW_STRING = 'donotshow';
 
@@ -39,9 +40,7 @@ let connection: Connection;
  * and processing it into the appropriate stores.
  */
 export function handleStateMessage(states: WsStateMessage) {
-	// Here I am creating arrays for the updates of each state entity type, but only
-	// if they happened between now and the last time that entity state was updated.
-	// This is to avoid unnecessary re-renders.
+	// Here I am creating arrays for the updates of each state entity type
 	const [lightEntities, switchEntities, sceneEntities, weatherEntity]: [
 		LightEntity[],
 		SwitchEntity[],
@@ -118,9 +117,10 @@ async function sendWsMessage(payload: MessageBase) {
 	}
 	console.log(`Sending message to websocket:`, payload);
 	try {
-		return connection.sendMessagePromise(payload);
+		const response = await connection.sendMessagePromise(payload);
+		return response;
 	} catch (err) {
-		console.error('Error sending message to websocket: ' + err);
+		console.error('Error sending message to websocket: ', err);
 
 		// If errored, reconnect and try again. If it errors again, fuck it.
 		await initWsConnection();
