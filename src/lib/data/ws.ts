@@ -1,6 +1,12 @@
 import { browser } from '$app/environment';
-import { PUBLIC_WS_AUTH_KEY, PUBLIC_CLIENT_ID, PUBLIC_SERVER_URL } from '$env/static/public';
-import { createConnection, Auth, Connection, type MessageBase } from 'home-assistant-js-websocket';
+import { PUBLIC_WS_AUTH_KEY, PUBLIC_CLIENT_URL, PUBLIC_SERVER_URL } from '$env/static/public';
+import {
+	createConnection,
+	Auth,
+	Connection,
+	type MessageBase,
+	createLongLivedTokenAuth
+} from 'home-assistant-js-websocket';
 import { lightStore, sceneStore, switchStore, weatherStore } from './stores';
 import {
 	Rooms,
@@ -221,14 +227,7 @@ export async function activateScene(sceneId: string) {
 
 export async function initWsConnection() {
 	if (browser) {
-		const auth = new Auth({
-			hassUrl: PUBLIC_SERVER_URL,
-			clientId: PUBLIC_CLIENT_ID,
-			expires: Date.now() + 1e11,
-			expires_in: 1e11,
-			refresh_token: '',
-			access_token: PUBLIC_WS_AUTH_KEY
-		});
+		const auth = createLongLivedTokenAuth(PUBLIC_SERVER_URL, PUBLIC_WS_AUTH_KEY);
 		connection = await createConnection({ auth, setupRetry: -1 });
 		return connection;
 	} else {
