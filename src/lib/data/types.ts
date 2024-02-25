@@ -3,7 +3,8 @@ export type ColorMode = 'hs' | 'xy' | 'rgb' | 'color_temp';
 interface LightEntityAttributes {
 	min_color_temp_kelvin: string;
 	max_color_temp_kelvin: string;
-	supported_color_modes: ColorMode[]; // Stored for sanity check (throw err if not contain hs & color_temp)
+	supported_color_modes: ColorMode[]; // Stored for sanity check
+	effect_list: string[];
 	friendly_name: string;
 	icon?: string; // string in form of `mdi:${kebab-case-material-icon-name}`
 	// ... the data we get from the API might have more properties not included here and I will
@@ -80,8 +81,6 @@ export type LightEntity = PrimitiveEntity<LightEntityAttributes>;
 export type WeatherEntity = PrimitiveEntity<WeatherEntityAttributes>;
 export type SwitchEntity = PrimitiveEntity<SwitchEntityAttributes>;
 export type SceneEntity = PrimitiveEntity<SceneEntityAttributes>;
-
-export type Entity = LightEntity | WeatherEntity | WeatherEntity | SceneEntity | SwitchEntity;
 
 export enum Rooms {
 	AllRooms = 'All Rooms',

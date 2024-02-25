@@ -11,35 +11,9 @@
 	import type { ComponentType } from 'svelte';
 
 	export let lightId: string | null;
-	let previousLightId: string | null = lightId;
-
-	// If the user hasn't interacted with the app for some time we want to close the
-	// drawer. To do this we'll store lastInteraction time and have an interval
-	let lastInteraction = Date.now();
-
-	function checkIfNeedClose() {
-		if (Date.now() - lastInteraction > 60 * 1000) {
-			closeDrawer();
-		}
-	}
-
-	let interval: NodeJS.Timer;
-	function noticeInteraction() {
-		lastInteraction = Date.now();
-	}
-
-	// If previous lightId was null but current lightId isn't, that's a remount sorta, restart interval
-	// $: {
-	// 	if (lightId != null && previousLightId == null) {
-	// 		interval = setInterval(checkIfNeedClose, 1000);
-	// 	}
-	// 	lastInteraction = Date.now();
-	// 	previousLightId = lightId;
-	// }
 
 	function closeDrawer() {
 		selectedLightIdStore.set(null);
-		clearInterval(interval);
 	}
 
 	let lights: LightStore = {};
@@ -69,7 +43,19 @@
 	}
 
 	// Start UI state stuff
-	let colorMode = light?.attributes.color_mode ?? 'hs';
+	let colorMode = light?.attributes.color_mode;
+	if (!colorMode) {
+		if (light?.attributes?.color_temp_kelvin != null) {
+			colorMode = 'color_temp';
+		} else {
+			colorMode = 'hs';
+		}
+	}
+
+	$: console.log(light);
+
+	$: supportsTemperature = light?.attributes.supported_color_modes.includes('color_temp');
+	$: supportsEffects = Boolean(light?.attributes?.effect_list?.length);
 </script>
 
 <style>
@@ -174,7 +160,7 @@
 	}
 </style>
 
-<section class="rightDrawer" class:open={lightId} on:touchstart={noticeInteraction}>
+<section class="rightDrawer" class:open={lightId}>
 	{#if light != null}
 		<div class="contents" transition:fly={{ y: 10 }}>
 			<span class="closeIconContainer" role="button" on:click={closeDrawer}
@@ -192,13 +178,20 @@
 						colorMode = 'hs';
 					}}>Color</button
 				>
-				<button
-					class="colorModeBtn"
-					class:active={colorMode === 'color_temp'}
-					on:click={() => {
-						colorMode = 'color_temp';
-					}}>Temperature</button
-				>
+				{#if supportsTemperature}
+					<button
+						class="colorModeBtn"
+						class:active={colorMode === 'color_temp'}
+						on:click={() => {
+							colorMode = 'color_temp';
+						}}>Temp</button
+					>
+				{/if}
+				<!-- {#if supportsEffects}
+					<button class="colorModeBtn" class:active={supportsEffects} on:click={() => {}}
+						>Effects</button
+					>
+				{/if} -->
 			</div>
 			<section class="pickerContainer" class:disablePicker={light.state === 'off'}>
 				{#if colorMode === 'hs'}

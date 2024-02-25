@@ -1,25 +1,21 @@
 import { browser } from '$app/environment';
-import { PUBLIC_WS_AUTH_KEY, PUBLIC_CLIENT_URL, PUBLIC_SERVER_URL } from '$env/static/public';
+import { PUBLIC_WS_AUTH_KEY, PUBLIC_SERVER_URL } from '$env/static/public';
 import {
 	createConnection,
-	Auth,
 	Connection,
 	type MessageBase,
-	createLongLivedTokenAuth
+	createLongLivedTokenAuth,
+	type HassEntities,
+	type HassEntity
 } from 'home-assistant-js-websocket';
 import { lightStore, sceneStore, switchStore, weatherStore } from './stores';
 import {
 	Rooms,
-	type Entity,
 	type LightEntity,
 	type SceneEntity,
 	type SwitchEntity,
 	type WeatherEntity
 } from './types';
-
-export interface WsStateMessage {
-	[entityId: string]: Entity;
-}
 
 /**
  * NOTE: If you don't want a device to show up in the UI, add the string "donotshow"
@@ -45,17 +41,18 @@ let connection: Connection;
  *
  * and processing it into the appropriate stores.
  */
-export function handleStateMessage(states: WsStateMessage) {
+export function handleStateMessage(states: HassEntities) {
+	// console.info(states);
 	// Here I am creating arrays for the updates of each state entity type
 	const [lightEntities, switchEntities, sceneEntities, weatherEntity]: [
 		LightEntity[],
 		SwitchEntity[],
 		SceneEntity[],
 		WeatherEntity | null
-	] = Object.entries<Entity>(states).reduce<
+	] = Object.entries<HassEntity>(states).reduce<
 		[LightEntity[], SwitchEntity[], SceneEntity[], WeatherEntity | null]
 	>(
-		(acc, [entity_id, entity]: [string, Entity]) => {
+		(acc, [entity_id, entity]: [string, HassEntity]) => {
 			if (entity.state === 'unavailable') return acc;
 			if (
 				entity.attributes?.friendly_name == null ||
@@ -66,16 +63,19 @@ export function handleStateMessage(states: WsStateMessage) {
 			const [lights, switches, scenes, weather] = acc;
 			let newWeather = weather;
 			if (entity_id.startsWith('light.')) {
+				// @ts-expect-error Refining type
 				const lightEntity = entity as LightEntity;
 				lights.push(lightEntity);
 			} else if (entity_id.startsWith('switch.')) {
 				const switchEntity = entity as SwitchEntity;
 				switches.push(switchEntity);
 			} else if (entity_id.startsWith('scene.')) {
+				// @ts-expect-error Refining type
 				const sceneEntity = entity as SceneEntity;
 				scenes.push(sceneEntity);
 			} else if (entity_id === 'weather.home') {
 				// Unlike the other entity types, we only care about one specific weather entity
+				// @ts-expect-error Refining type
 				const weatherEntity = entity as WeatherEntity;
 				newWeather = weatherEntity;
 			}

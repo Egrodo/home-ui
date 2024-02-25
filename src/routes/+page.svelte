@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { connectionStore, selectedLightIdStore } from '$lib/data/stores';
-	import { initWsConnection, handleStateMessage, type WsStateMessage } from '$lib/data/ws';
+	import { initWsConnection, handleStateMessage } from '$lib/data/ws';
 	import LeftDrawer from '$lib/drawers/left.svelte';
 	import MainDrawer from '$lib/drawers/main.svelte';
 	import RightDrawer from '$lib/drawers/right.svelte';
@@ -17,7 +17,7 @@
 	let connection: Connection;
 
 	// Code to eat a touch event after 5 minutes of inactivity
-	let timerRef: NodeJS.Timeout;
+	let timerRef: number | undefined;
 	let hasEatenTouch = false;
 	const eatTouchAndRestart = (e: TouchEvent) => {
 		if (hasEatenTouch === false) {
@@ -40,7 +40,7 @@
 		// Initialize connection to websocket. Return callback for unsubscribe on unmount
 		connection = await initWsConnection();
 		connectionStore.set(connection);
-		const unsubscribe = subscribeEntities<WsStateMessage>(connection, handleStateMessage);
+		const unsubscribe = subscribeEntities(connection, handleStateMessage);
 
 		/**
 		 * The device goes to sleep after some time, and the user has to touch the

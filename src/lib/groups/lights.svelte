@@ -28,6 +28,7 @@
 		const stringifiedNew = JSON.stringify(newLights);
 		if (JSON.stringify(lights) === stringifiedNew) return;
 		lights = JSON.parse(stringifiedNew);
+		console.log(lights);
 		for (const light of Object.values(newLights)) {
 			if (lightIcons[light.entity_id] == null) {
 				let icon;
@@ -96,8 +97,8 @@
 	<Block
 		backgroundColor={`rgb(${light.color.join(', ')})`}
 		fontColor={shouldDisplayBlackText(light.color) ? 'black' : 'white'}
-		onClick={() => openControlPanel(light.id)}
-		onHold={() => toggleLight(light.id)}
+		onClick={() => toggleLight(light.id)}
+		onHold={() => openControlPanel(light.id)}
 	>
 		<svelte:component this={lightIcons[light.id]} height="5em" width="5em" />
 		<h2 class="lightName">{light.name.replace(selectedRoom, '')}</h2>

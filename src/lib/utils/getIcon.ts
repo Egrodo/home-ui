@@ -85,6 +85,9 @@ export async function getIcon(iconName: WeatherStates | string): Promise<Compone
 		case 'led-strip-variant':
 			return (await import('svelte-material-icons/LedStripVariant.svelte'))
 				.default as unknown as ComponentType;
+		case 'sun-wireless':
+			return (await import('svelte-material-icons/SunWireless.svelte'))
+				.default as unknown as ComponentType;
 		default:
 			return (await import('svelte-material-icons/HelpRhombusOutline.svelte'))
 				.default as unknown as ComponentType;

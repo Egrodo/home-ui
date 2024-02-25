@@ -5,7 +5,7 @@
 	import { spring } from 'svelte/motion';
 	// Range of temperature supported by selected device in Kelvin
 	export let range: [max: number, min: number];
-	export let initialValue: number = range[0];
+	export let initialValue: number | undefined = range[0];
 	export let entityid: string;
 
 	const kelvin = spring(initialValue ?? range[0], { stiffness: 0.1, damping: 0.5 });
@@ -27,7 +27,7 @@
 
 	// Since kelvin has the high value at the left and the low value on the right, invert the percentage
 	// before passing to Slider.
-	$: initialPercent = 1 - (initialValue - range[1]) / (range[0] - range[1]);
+	$: initialPercent = 1 - ((initialValue ?? range[0]) - range[1]) / (range[0] - range[1]);
 </script>
 
 <style>

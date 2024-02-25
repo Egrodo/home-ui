@@ -16,7 +16,7 @@ function createConnectionStore() {
 export const connectionStore = createConnectionStore();
 
 export interface LightStore {
-	[key: string]: LightEntity;
+	[lightId: string]: LightEntity;
 }
 function createLightStore() {
 	const { subscribe, update } = writable<LightStore>({});

@@ -7,3 +7,8 @@ In my apartment I have a lot of smart lights that support different colors and c
 ## ![](https://i.imgur.com/bWPSrbf.png)
 
 ![](https://i.imgur.com/FsVm4Ms.png)
+
+TODOS:
+
+- Visually differentiate the scene buttons
+- Make sort consistent / not move when toggled on/off?
