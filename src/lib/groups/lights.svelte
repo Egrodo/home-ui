@@ -50,41 +50,32 @@
 		color: [number, number, number];
 	};
 
-	$: lightsToShow = Object.values(lights)
-		.reduce<FormattedLightType[]>((acc, light) => {
-			const formattedLight: FormattedLightType = {
-				id: light.entity_id,
-				state: light.state as 'on' | 'off',
-				name: light.attributes.friendly_name,
-				color: OFF_STATE_BG_COLOR
-			};
-			if (
-				selectedRoom === Rooms.AllRooms ||
-				light.attributes.friendly_name.includes(selectedRoom)
-			) {
-				// Remove room name from light name
-				formattedLight.name = light.attributes.friendly_name.replace(`${selectedRoom} `, '');
-				// Determine background color of the block. If the light is on, we'll use
-				// the current color of the light.
-				if (light.state === 'on') {
-					if (light.attributes.rgb_color == null) {
-						console.error('Light is on but rgb_color is nullish', light);
-					} else {
-						formattedLight.color = light.attributes.rgb_color;
-					}
+	$: lightsToShow = Object.values(lights).reduce<FormattedLightType[]>((acc, light) => {
+		const formattedLight: FormattedLightType = {
+			id: light.entity_id,
+			state: light.state as 'on' | 'off',
+			name: light.attributes.friendly_name,
+			color: OFF_STATE_BG_COLOR
+		};
+		if (selectedRoom === Rooms.AllRooms || light.attributes.friendly_name.includes(selectedRoom)) {
+			// Remove room name from light name
+			formattedLight.name = light.attributes.friendly_name.replace(`${selectedRoom} `, '');
+			// Determine background color of the block. If the light is on, we'll use
+			// the current color of the light.
+			if (light.state === 'on') {
+				if (light.attributes.rgb_color == null) {
+					console.error('Light is on but rgb_color is nullish', light);
 				} else {
-					formattedLight.color = OFF_STATE_BG_COLOR;
+					formattedLight.color = light.attributes.rgb_color;
 				}
-
-				acc.push(formattedLight);
+			} else {
+				formattedLight.color = OFF_STATE_BG_COLOR;
 			}
-			return acc;
-		}, [])
-		.sort((a, b) => {
-			// Sort the off lights after the on lights
-			if (a.state === 'on' && b.state === 'off') return -1;
-			return 0;
-		});
+
+			acc.push(formattedLight);
+		}
+		return acc;
+	}, []);
 </script>
 
 <style>

@@ -76,6 +76,7 @@
 {#each Object.values(scenesToShow) as scene, i}
 	<Block
 		backgroundColor={scene.color ?? getDefaultColor(i)}
+		borderColor="white"
 		fontColor={scene.color
 			? shouldDisplayBlackText(hexToRGB(scene.color))
 				? 'black'

@@ -98,6 +98,7 @@
 	<div class="blocksContainer">
 		<Block
 			backgroundColor="var(--block-default-light-color)"
+			borderColor="white"
 			fontColor="#000"
 			toggle
 			onClick={() => toggleAllDevices('on')}
@@ -107,6 +108,7 @@
 		</Block>
 		<Block
 			backgroundColor="var(--block-default-dark-color)"
+			borderColor="white"
 			fontColor="#fff"
 			toggle
 			onClick={() => toggleAllDevices('off')}

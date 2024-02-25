@@ -1,13 +1,11 @@
 <script lang="ts">
-	import type { ComponentType } from 'svelte';
-
 	export let backgroundColor: string;
+	export let borderColor: string = 'transparent';
 	export let fontColor: string;
 	export let flexGrow: boolean = false;
 	export let onClick: (() => void) | null = null;
 	export let onHold: (() => void) | null = null;
 	export let toggle: boolean = false; // Whether to style this block as a toggle switch
-	export let icon: ComponentType | null = null; // TODO Main icon for this block
 
 	import PowerStandbyIcon from 'svelte-material-icons/PowerStandby.svelte';
 
@@ -28,6 +26,7 @@
 
 <style>
 	.block {
+		border: 3px solid var(--block-border-color);
 		border-radius: var(--block-border-radius);
 		background: var(--background-color);
 		color: var(--fontColor);
@@ -53,7 +52,7 @@
 <div
 	class={`block ${$$props.class || ''}`}
 	class:flexGrow
-	style="--background-color:{backgroundColor}; --fontColor: {fontColor};"
+	style="--background-color: {backgroundColor}; --block-border-color: {borderColor}; --fontColor: {fontColor};"
 	role={onClick ? 'button' : 'none'}
 	on:click={onClick}
 	on:touchstart={startHold}
