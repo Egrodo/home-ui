@@ -198,7 +198,22 @@ export async function changeLightColor(entityId: string, rgb: [number, number, n
 			entity_id: entityId
 		},
 		service_data: {
-			rgb_color: rgb
+			rgb_color: rgb,
+			effect: 'solid'
+		}
+	});
+}
+
+export async function changeLightEffect(entityId: string, effect: string) {
+	return sendWsMessage({
+		type: 'call_service',
+		domain: 'light',
+		service: 'turn_on',
+		target: {
+			entity_id: entityId
+		},
+		service_data: {
+			effect
 		}
 	});
 }

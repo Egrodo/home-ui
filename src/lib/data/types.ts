@@ -5,6 +5,7 @@ interface LightEntityAttributes {
 	max_color_temp_kelvin: string;
 	supported_color_modes: ColorMode[]; // Stored for sanity check
 	effect_list: string[];
+	effect: string;
 	friendly_name: string;
 	icon?: string; // string in form of `mdi:${kebab-case-material-icon-name}`
 	// ... the data we get from the API might have more properties not included here and I will

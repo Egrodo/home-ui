@@ -6,7 +6,7 @@
 	export let initialColor: [number, number, number] | undefined;
 	export let entityid: string;
 
-	$: selectedColor = initialColor;
+	$: selectedColor = initialColor ?? [0, 0, 0];
 
 	const debouncedChangeLightColor = debounce(500, changeLightColor);
 

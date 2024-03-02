@@ -9,6 +9,7 @@
 	import TemperaturePicker from '$lib/components/temperaturePicker.svelte';
 	import { toggleLightState } from '$lib/data/ws';
 	import type { ComponentType } from 'svelte';
+	import EffectPicker from '$lib/components/effectPicker.svelte';
 
 	export let lightId: string | null;
 
@@ -42,20 +43,29 @@
 		updateLightIcon();
 	}
 
-	// Start UI state stuff
-	let colorMode = light?.attributes.color_mode;
-	if (!colorMode) {
-		if (light?.attributes?.color_temp_kelvin != null) {
-			colorMode = 'color_temp';
-		} else {
-			colorMode = 'hs';
-		}
+	let activeDisplayMode: 'color' | 'temp' | 'effect' = 'color';
+
+	let colorMode: string | void = light?.attributes.color_mode;
+	let effect = light?.attributes.effect;
+
+	// Determine which display mode is active
+	if (effect) {
+		activeDisplayMode = 'effect';
+	} else if (colorMode === 'color_temp') {
+		activeDisplayMode = 'temp';
+	} else if (light?.attributes?.color_temp_kelvin != null) {
+		activeDisplayMode = 'temp';
+	} else {
+		activeDisplayMode = 'color';
 	}
 
-	$: console.log(light);
-
+	$: supportsColor = light?.attributes.supported_color_modes.some(
+		(mode) => mode === 'hs' || mode === 'xy' || mode === 'rgb'
+	);
 	$: supportsTemperature = light?.attributes.supported_color_modes.includes('color_temp');
 	$: supportsEffects = Boolean(light?.attributes?.effect_list?.length);
+
+	$: nonSolidEffectEnabled = light?.attributes?.effect && light?.attributes?.effect !== 'Solid';
 </script>
 
 <style>
@@ -65,31 +75,26 @@
 		max-width: 0%;
 		transition: max-width 0.75s cubic-bezier(0.19, 0.86, 0.47, 1);
 		overflow: hidden;
-
 		background-color: var(--page-drawer-background);
 	}
-
 	.open {
 		max-width: 25%;
 		overflow: hidden;
 	}
-
 	.contents {
 		height: 100%;
 		width: 100%;
 		overflow: hidden;
 		position: relative;
 	}
-
 	.closeIconContainer {
 		position: absolute;
 		top: 1em;
 		right: 1em;
 	}
-
 	header {
 		width: 100%;
-		margin-top: 2em;
+		margin-top: 1em;
 		text-align: center;
 	}
 	header > h2 {
@@ -97,18 +102,19 @@
 		text-align: center;
 		font-weight: 600;
 		margin-top: 0.25em;
+		margin-bottom: 0.25em;
 		color: white;
 	}
-
 	.colorModeBtnContainer {
 		display: flex;
 		justify-content: center;
 		padding: 0 1em;
-		margin-top: 2em;
+		margin-top: 1em;
 	}
 	.colorModeBtn {
 		background-color: transparent;
 		border: 2px solid white;
+		border-radius: 3px;
 		color: white;
 		font-size: 1.25em;
 		text-align: center;
@@ -117,7 +123,6 @@
 		margin: 0;
 		width: 50%;
 	}
-
 	.colorModeBtn.active {
 		background-color: #666c94;
 	}
@@ -126,17 +131,16 @@
 		height: 325px;
 		position: relative;
 	}
-
 	.disablePicker {
 		pointer-events: none;
 		opacity: 0.5;
 	}
-
-	.fakeBtn {
-		height: 50px;
+	.brightnessSlider {
+		position: absolute;
 		width: 100%;
+		bottom: 50px;
+		padding-bottom: 10px;
 	}
-
 	.powerBtn {
 		position: absolute;
 		width: 100%;
@@ -158,6 +162,14 @@
 	.powerOff {
 		background-color: #37d400;
 	}
+	.activeEffect {
+		height: 1em;
+		text-align: center;
+		color: white;
+		font-size: 1.2em;
+		font-weight: 600;
+		margin: 0;
+	}
 </style>
 
 <section class="rightDrawer" class:open={lightId}>
@@ -169,34 +181,47 @@
 			<header>
 				<svelte:component this={lightIcon} height="6.5em" width="6.5em" color="#fff" />
 				<h2>{stripRoomNames(light.attributes.friendly_name)}</h2>
+				<p class="activeEffect">
+					{#if nonSolidEffectEnabled}
+						Active effect: {light.attributes.effect}
+					{/if}
+				</p>
 			</header>
 			<div class="colorModeBtnContainer" class:disablePicker={light.state === 'off'}>
-				<button
-					class="colorModeBtn"
-					class:active={colorMode === 'hs' || colorMode === 'xy' || colorMode === 'rgb'}
-					on:click={() => {
-						colorMode = 'hs';
-					}}>Color</button
-				>
+				{#if supportsColor}<button
+						class="colorModeBtn"
+						class:active={activeDisplayMode === 'color'}
+						on:click={() => {
+							colorMode = 'hs';
+							activeDisplayMode = 'color';
+						}}>Color</button
+					>
+				{/if}
 				{#if supportsTemperature}
 					<button
 						class="colorModeBtn"
-						class:active={colorMode === 'color_temp'}
+						class:active={activeDisplayMode === 'temp'}
 						on:click={() => {
 							colorMode = 'color_temp';
+							activeDisplayMode = 'temp';
 						}}>Temp</button
 					>
 				{/if}
-				<!-- {#if supportsEffects}
-					<button class="colorModeBtn" class:active={supportsEffects} on:click={() => {}}
-						>Effects</button
+				{#if supportsEffects}
+					<button
+						class="colorModeBtn"
+						class:active={activeDisplayMode === 'effect'}
+						on:click={() => {
+							colorMode = undefined;
+							activeDisplayMode = 'effect';
+						}}>Effects</button
 					>
-				{/if} -->
+				{/if}
 			</div>
 			<section class="pickerContainer" class:disablePicker={light.state === 'off'}>
-				{#if colorMode === 'hs'}
+				{#if activeDisplayMode === 'color'}
 					<ColorPicker entityid={light.entity_id} initialColor={light.attributes.rgb_color} />
-				{:else if colorMode === 'color_temp'}
+				{:else if activeDisplayMode === 'temp'}
 					<TemperaturePicker
 						entityid={light.entity_id}
 						range={[
@@ -205,12 +230,17 @@
 						]}
 						initialValue={light.attributes.color_temp_kelvin}
 					/>
+				{:else if activeDisplayMode === 'effect'}
+					<EffectPicker
+						effectList={light?.attributes.effect_list}
+						activeEffect={light?.attributes.effect}
+						entityid={light.entity_id}
+					/>
 				{/if}
 			</section>
-			<span class:disablePicker={light.state === 'off'}
+			<span class="brightnessSlider" class:disablePicker={light.state === 'off'}
 				><Brightness entityid={light.entity_id} initialValue={light.attributes.brightness} /></span
 			>
-			<div class="fakeBtn" />
 			<button
 				class="powerBtn"
 				class:powerOn={light.state === 'on'}
