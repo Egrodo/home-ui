@@ -3,7 +3,6 @@
 	import LeftDrawer from '$lib/drawers/left.svelte';
 	import MainDrawer from '$lib/drawers/main.svelte';
 	import RightDrawer from '$lib/drawers/right.svelte';
-	import { Connection, subscribeEntities } from 'home-assistant-js-websocket';
 
 	// If selectedLight is not null, show the right drawer. Otherwise, hide it.
 	let selectedLightId: string | null = null;
