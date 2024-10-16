@@ -1,6 +1,7 @@
 <script>
 	import { PUBLIC_HOME_NAME } from '$env/static/public';
 	import DateBlock from '$lib/blocks/date.svelte';
+	import Pong from '$lib/blocks/pong.svelte';
 	import TimeBlock from '$lib/blocks/time.svelte';
 	import Weather from '$lib/blocks/weather.svelte';
 	import Wifi from '$lib/blocks/wifi.svelte';
@@ -41,4 +42,5 @@
 	</div>
 	<Weather />
 	<Wifi />
+	<Pong />
 </section>

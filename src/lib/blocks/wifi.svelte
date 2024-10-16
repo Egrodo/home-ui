@@ -1,9 +1,8 @@
 <script>
 	import WifiQrSrc from '$lib/assets/wifi_qr.png';
 	import Block from './block.svelte';
-	const backgroundColor = '#fff'; // warm-yellow
+	const backgroundColor = '#fff'; // white
 	const fontColor = '#000'; // black
-	const height = '10em';
 </script>
 
 <style>
@@ -17,6 +16,6 @@
 	}
 </style>
 
-<Block {fontColor} {backgroundColor} {height} class="wifiBlock">
+<Block {fontColor} {backgroundColor} class="wifiBlock">
 	<img src={WifiQrSrc} class="image" alt="WiFi QR Code" />
 </Block>

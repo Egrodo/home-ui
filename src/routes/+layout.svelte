@@ -1,18 +1,35 @@
 <script lang="ts">
-	import { connectionStore } from '$lib/data/stores';
-	import { handleStateMessage, initWsConnection } from '$lib/data/ws';
+	import { connectionStore, deviceRegistryStore } from '$lib/data/stores';
+	import { fetchDeviceRegistry, handleStateMessage, initWsConnection } from '$lib/data/ws';
 	import { subscribeEntities } from 'home-assistant-js-websocket';
 	import { onMount } from 'svelte';
+	import type { DeviceInfoLookupTable } from '$lib/data/types';
 
-	// TODO: Is it best to re-connect this on every page mount? Could a better system do this
-	// once per app; do I need any changes in my Svelte configuration to make this a SPA?
-	onMount(async () => {
+	async function initAppConnections() {
 		// Initialize connection to websocket. Return callback for unsubscribe on unmount
 		const connection = await initWsConnection();
 		connectionStore.set(connection);
-		const unsubscribe = subscribeEntities(connection, handleStateMessage);
+		const unsubscribeStateMsg = subscribeEntities(connection, handleStateMessage);
 
-		return unsubscribe;
+		const deviceRegistry = await fetchDeviceRegistry();
+
+		if (deviceRegistry) {
+			const deviceLookupTable = deviceRegistry.reduce<DeviceInfoLookupTable>((acc, info) => {
+				acc[info.id] = info;
+				return acc;
+			}, {});
+			deviceRegistryStore.set(deviceLookupTable);
+		} else {
+			console.error('Device registry nullish?');
+		}
+
+		return unsubscribeStateMsg;
+	}
+
+	// TODO: Is it best to re-connect this on every page mount? Could a better system do this
+	// once per app; do I need any changes in my Svelte configuration to make this a SPA?
+	onMount(() => {
+		void initAppConnections();
 	});
 </script>
 

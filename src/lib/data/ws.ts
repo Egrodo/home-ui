@@ -17,6 +17,10 @@ import {
 	type WeatherEntity
 } from './types';
 
+import type {
+	DeviceInfo,
+} from './types';
+
 /**
  * NOTE: If you don't want a device to show up in the UI, add the string "donotshow"
  * to its name in Home Assistant and it will be ignored here. Unfortunately there is no
@@ -247,5 +251,19 @@ export async function initWsConnection() {
 		return connection;
 	} else {
 		throw new Error('Cannot create websocket connection on server');
+	}
+}
+
+export async function fetchDeviceRegistry(): Promise<DeviceInfo[] | null> {
+	if (connection == null || connection.connected === false) throw new Error("Cannot fetch device registry without connection setup");
+
+	const registryPromise = connection.sendMessagePromise<DeviceInfo[]>({ type: 'config/device_registry/list' });
+	try {
+		const deviceRegistry = await registryPromise;
+
+		if (deviceRegistry == null || deviceRegistry.length === 0) throw new Error('Device registry empty');
+		return deviceRegistry;
+	} catch (err: any) {
+		throw new Error('Failed to fetch device registry', err);
 	}
 }

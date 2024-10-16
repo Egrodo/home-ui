@@ -89,3 +89,14 @@ export enum Rooms {
 	Bedroom = 'Bedroom',
 	Office = 'Office'
 }
+
+export interface DeviceInfo {
+	area_id: string | null;
+	id: string;
+	name: string;
+	name_by_user: string;
+	model: string | null;
+	manufacturer: string | null;
+}
+
+export type DeviceInfoLookupTable = Record<string, DeviceInfo>
