@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
 	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
+	import type { AppConnections } from '$lib/data/types';
 	import { Rooms } from '$lib/data/types';
 	import { toggleLightState } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
@@ -8,6 +9,7 @@
 	import type { ComponentType } from 'svelte';
 
 	export let selectedRoom: Rooms;
+	export let data: AppConnections;
 
 	let lights: LightStore = {};
 
@@ -19,7 +21,7 @@
 
 	function toggleLight(lightId: string) {
 		const newState = lights[lightId].state === 'on' ? 'off' : 'on';
-		toggleLightState(lightId, newState);
+		toggleLightState(data.wsConnection, lightId, newState);
 	}
 
 	const lightIcons: { [light_id: string]: ComponentType } = {};

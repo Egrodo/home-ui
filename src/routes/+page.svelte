@@ -1,8 +1,12 @@
 <script lang="ts">
+	import type { AppConnections } from '$lib/data/types';
+
 	import { selectedLightIdStore } from '$lib/data/stores';
 	import LeftDrawer from '$lib/drawers/left.svelte';
 	import MainDrawer from '$lib/drawers/main.svelte';
 	import RightDrawer from '$lib/drawers/right.svelte';
+
+	export let data: AppConnections;
 
 	// If selectedLight is not null, show the right drawer. Otherwise, hide it.
 	let selectedLightId: string | null = null;
@@ -10,23 +14,7 @@
 		selectedLightId = newSelectedLightId;
 	});
 
-	let containerRef: HTMLElement;
-
-	// Code to eat a touch event after 5 minutes of inactivity
-	let timerRef: number | undefined;
-	let hasEatenTouch = false;
-	const eatTouchAndRestart = (e: TouchEvent) => {
-		if (hasEatenTouch === false) {
-			e.preventDefault();
-			e.stopPropagation();
-			hasEatenTouch = true;
-		}
-
-		// Let each touch event restart the timer and kill the last
-		clearTimeout(timerRef);
-		timerRef = setTimeout(startTimerToEatTouchOnce, 5 * 60 * 1000);
-	};
-
+	let _containerRef: HTMLElement;
 	/**
 	 * The device goes to sleep after some time, and the user has to touch the
 	 * screen to wake it up. Therefore we should eat that touch event
@@ -34,10 +22,23 @@
 	 *
 	 * 10/10/24: The device doesn't go to sleep rn so no need for this
 	 */
-	function startTimerToEatTouchOnce() {
-		hasEatenTouch = false;
-		containerRef.addEventListener('touchstart', eatTouchAndRestart);
-	}
+	// let timerRef: number | undefined;
+	// let hasEatenTouch = false;
+	// const eatTouchAndRestart = (e: TouchEvent) => {
+	// 	if (hasEatenTouch === false) {
+	// 		e.preventDefault();
+	// 		e.stopPropagation();
+	// 		hasEatenTouch = true;
+	// 	}
+
+	// 	// Let each touch event restart the timer and kill the last
+	// 	clearTimeout(timerRef);
+	// 	timerRef = setTimeout(_startTimerToEatTouchOnce, 5 * 60 * 1000);
+	// };
+	// function _startTimerToEatTouchOnce() {
+	// 	hasEatenTouch = false;
+	// 	containerRef.addEventListener('touchstart', eatTouchAndRestart);
+	// }
 </script>
 
 <style>
@@ -49,8 +50,8 @@
 	}
 </style>
 
-<div class="container" bind:this={containerRef}>
+<div class="container" bind:this={_containerRef}>
 	<LeftDrawer />
-	<MainDrawer />
-	<RightDrawer lightId={selectedLightId} />
+	<MainDrawer {data} />
+	<RightDrawer {data} lightId={selectedLightId} />
 </div>

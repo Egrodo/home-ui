@@ -1,4 +1,7 @@
 <script lang="ts">
+	import type { AppConnections } from '$lib/data/types';
+	import type { ComponentType } from 'svelte';
+
 	import Block from '$lib/blocks/block.svelte';
 	import { sceneStore, type SceneStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
@@ -6,8 +9,9 @@
 	import { getIcon } from '$lib/utils/getIcon';
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
-	import type { ComponentType } from 'svelte';
+
 	export let selectedRoom: Rooms;
+	export let data: AppConnections;
 
 	// For blocks whose data doesn't include a color, switch back and forth between
 	// these two colors
@@ -82,7 +86,7 @@
 				? 'black'
 				: 'white'
 			: getDefaultColor(i + 1)}
-		onClick={() => activateScene(scene.entity_id)}
+		onClick={() => activateScene(data.wsConnection, scene.entity_id)}
 		toggle
 	>
 		<svelte:component this={sceneIcons[scene.id]} height="5em" width="5em" />

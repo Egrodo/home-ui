@@ -1,14 +1,13 @@
 <script lang="ts">
 	import type { HassEvent } from 'home-assistant-js-websocket/dist/types';
-	import { connectionStore } from '$lib/data/stores';
-	import { Connection } from 'home-assistant-js-websocket';
+	import type { AppConnections } from '$lib/data/types';
+
 	import { onMount } from 'svelte';
 	import Setup from './setup.svelte';
 	import Playing from './playing.svelte';
 	import Endgame from './endgame.svelte';
 
-	// WS STUFF
-	let connection: Connection;
+	export let data: AppConnections;
 
 	const EVENT_NAME = 'zha_event';
 
@@ -43,16 +42,18 @@
 
 		console.log(gameState);
 	}
+
+	// $: console.log('ws', data);
 	onMount(async () => {
-		let unsubscribe;
-		// Subscribe to the connection store, get connection, use it to subscribe to ZHA events,
-		// unregister this listener on unmount of the page.
-		connectionStore.subscribe((c) => {
-			if (!c) return;
-			connection = c;
-			connection.subscribeEvents<HassEvent>(handleEvent, EVENT_NAME).then((u) => (unsubscribe = u));
-		});
-		return unsubscribe;
+		console.log(data);
+		// if (wsConnection === null || wsConnection?.connected === false) {
+
+		// }
+		// const unsubscribe = await wsConnection
+		// 	.subscribeEvents<HassEvent>(handleEvent, EVENT_NAME)
+		// 	.then((u) => (unsubscribe = u));
+
+		// return unsubscribe;
 	});
 
 	// GAME STUFF

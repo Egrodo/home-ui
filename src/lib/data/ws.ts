@@ -6,7 +6,8 @@ import {
 	type MessageBase,
 	createLongLivedTokenAuth,
 	type HassEntities,
-	type HassEntity
+	type HassEntity,
+	type HassEvent
 } from 'home-assistant-js-websocket';
 import { lightStore, sceneStore, switchStore, weatherStore } from './stores';
 import {
@@ -17,9 +18,7 @@ import {
 	type WeatherEntity
 } from './types';
 
-import type {
-	DeviceInfo,
-} from './types';
+import type { DeviceInfo } from './types';
 
 /**
  * NOTE: If you don't want a device to show up in the UI, add the string "donotshow"
@@ -27,12 +26,6 @@ import type {
  * other way to pass metadata about a device in HA that I know of.
  */
 const DO_NOT_SHOW_STRING = 'donotshow';
-
-/**
- * Storing the connection obj in the scope of this file bc honestly it's no different than
- * anywhere else probz.
- */
-let connection: Connection;
 
 /**
  * This function handles filtering out data for the:
@@ -120,7 +113,7 @@ const getAreaIds = (room: Rooms): string[] => {
 	}
 };
 
-async function sendWsMessage(payload: MessageBase) {
+async function sendWsMessage(connection: Connection, payload: MessageBase) {
 	if (!connection || connection.connected === false) {
 		console.error(`Websocket connection not established, cannot send message`, payload);
 		return;
@@ -138,11 +131,11 @@ async function sendWsMessage(payload: MessageBase) {
 	}
 }
 
-export async function toggleAreaState(room: Rooms, state: 'on' | 'off') {
+export async function toggleAreaState(connection: Connection, room: Rooms, state: 'on' | 'off') {
 	const areaIds = getAreaIds(room);
 
 	const promises = areaIds.map((areaId) =>
-		sendWsMessage({
+		sendWsMessage(connection, {
 			type: 'call_service',
 			domain: 'homeassistant',
 			service: `turn_${state}`,
@@ -154,8 +147,12 @@ export async function toggleAreaState(room: Rooms, state: 'on' | 'off') {
 	return Promise.all(promises);
 }
 
-export async function toggleLightState(entityId: string, state: 'on' | 'off') {
-	return sendWsMessage({
+export async function toggleLightState(
+	connection: Connection,
+	entityId: string,
+	state: 'on' | 'off'
+) {
+	return sendWsMessage(connection, {
 		type: 'call_service',
 		domain: 'light',
 		service: `turn_${state}`,
@@ -165,8 +162,12 @@ export async function toggleLightState(entityId: string, state: 'on' | 'off') {
 	});
 }
 
-export async function changeLightBrightness(entityId: string, brightness: number) {
-	return sendWsMessage({
+export async function changeLightBrightness(
+	connection: Connection,
+	entityId: string,
+	brightness: number
+) {
+	return sendWsMessage(connection, {
 		type: 'call_service',
 		domain: 'light',
 		service: 'turn_on',
@@ -179,8 +180,12 @@ export async function changeLightBrightness(entityId: string, brightness: number
 	});
 }
 
-export async function changeLightTemperature(entityId: string, temperature: number) {
-	return sendWsMessage({
+export async function changeLightTemperature(
+	connection: Connection,
+	entityId: string,
+	temperature: number
+) {
+	return sendWsMessage(connection, {
 		type: 'call_service',
 		domain: 'light',
 		service: 'turn_on',
@@ -193,8 +198,12 @@ export async function changeLightTemperature(entityId: string, temperature: numb
 	});
 }
 
-export async function changeLightColor(entityId: string, rgb: [number, number, number]) {
-	return sendWsMessage({
+export async function changeLightColor(
+	connection: Connection,
+	entityId: string,
+	rgb: [number, number, number]
+) {
+	return sendWsMessage(connection, {
 		type: 'call_service',
 		domain: 'light',
 		service: 'turn_on',
@@ -208,8 +217,8 @@ export async function changeLightColor(entityId: string, rgb: [number, number, n
 	});
 }
 
-export async function changeLightEffect(entityId: string, effect: string) {
-	return sendWsMessage({
+export async function changeLightEffect(connection: Connection, entityId: string, effect: string) {
+	return sendWsMessage(connection, {
 		type: 'call_service',
 		domain: 'light',
 		service: 'turn_on',
@@ -222,8 +231,12 @@ export async function changeLightEffect(entityId: string, effect: string) {
 	});
 }
 
-export async function toggleSwitchState(entityId: string, state: 'on' | 'off') {
-	return sendWsMessage({
+export async function toggleSwitchState(
+	connection: Connection,
+	entityId: string,
+	state: 'on' | 'off'
+) {
+	return sendWsMessage(connection, {
 		type: 'call_service',
 		domain: 'switch',
 		service: `turn_${state}`,
@@ -233,8 +246,8 @@ export async function toggleSwitchState(entityId: string, state: 'on' | 'off') {
 	});
 }
 
-export async function activateScene(sceneId: string) {
-	return sendWsMessage({
+export async function activateScene(connection: Connection, sceneId: string) {
+	return sendWsMessage(connection, {
 		type: 'call_service',
 		domain: 'scene',
 		service: 'turn_on',
@@ -247,23 +260,43 @@ export async function activateScene(sceneId: string) {
 export async function initWsConnection() {
 	if (browser) {
 		const auth = createLongLivedTokenAuth(PUBLIC_SERVER_URL, PUBLIC_WS_AUTH_KEY);
-		connection = await createConnection({ auth, setupRetry: -1 });
+		const connection = await createConnection({ auth, setupRetry: -1 });
 		return connection;
 	} else {
 		throw new Error('Cannot create websocket connection on server');
 	}
 }
 
-export async function fetchDeviceRegistry(): Promise<DeviceInfo[] | null> {
-	if (connection == null || connection.connected === false) throw new Error("Cannot fetch device registry without connection setup");
+export async function fetchDeviceRegistry(connection: Connection): Promise<DeviceInfo[] | null> {
+	if (connection == null || connection.connected === false)
+		throw new Error('Cannot fetch device registry without connection setup');
 
-	const registryPromise = connection.sendMessagePromise<DeviceInfo[]>({ type: 'config/device_registry/list' });
+	const registryPromise = connection.sendMessagePromise<DeviceInfo[]>({
+		type: 'config/device_registry/list'
+	});
 	try {
 		const deviceRegistry = await registryPromise;
 
-		if (deviceRegistry == null || deviceRegistry.length === 0) throw new Error('Device registry empty');
+		if (deviceRegistry == null || deviceRegistry.length === 0)
+			throw new Error('Device registry empty');
 		return deviceRegistry;
 	} catch (err: any) {
 		throw new Error('Failed to fetch device registry', err);
 	}
+}
+
+export function subscribeToEvent(
+	connection: Connection,
+	eventName: string,
+	handler: (eventInfo: HassEvent) => void
+): () => void {
+	const unsubscriberPromise = connection.subscribeEvents<HassEvent>(handler, eventName);
+
+	return () => {
+		Promise.resolve(unsubscriberPromise)
+			.then((unsub) => unsub())
+			.catch((err: any) => {
+				throw new Error(`Failed to subscribe to event ${eventName}`, err);
+			});
+	};
 }

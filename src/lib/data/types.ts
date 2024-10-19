@@ -1,3 +1,5 @@
+import type { Connection, UnsubscribeFunc } from 'home-assistant-js-websocket';
+
 export type ColorMode = 'hs' | 'xy' | 'rgb' | 'color_temp';
 
 interface LightEntityAttributes {
@@ -99,4 +101,10 @@ export interface DeviceInfo {
 	manufacturer: string | null;
 }
 
-export type DeviceInfoLookupTable = Record<string, DeviceInfo>
+export type DeviceInfoLookupTable = Record<string, DeviceInfo>;
+
+export interface AppConnections {
+	wsConnection: Connection;
+	deviceLookupTable: DeviceInfoLookupTable;
+	wsUnsubscribe: UnsubscribeFunc;
+}

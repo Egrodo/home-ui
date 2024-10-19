@@ -32,7 +32,7 @@
 		shownUnit = shownUnit === '°C' ? '°F' : '°C';
 	};
 
-	const updateWeatherIcon = async (weatherState: WeatherStates | 'off' | 'on') => {
+	const updateWeatherIcon = async (weatherState: WeatherStates | 'off' | 'on' | 'unavailable') => {
 		WeatherIcon = await getIcon(weatherState);
 	};
 

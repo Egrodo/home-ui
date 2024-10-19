@@ -1,12 +1,15 @@
 <script lang="ts">
+	import type { AppConnections } from '$lib/data/types';
+	import type { ComponentType } from 'svelte';
+
 	import Block from '$lib/blocks/block.svelte';
 	import { switchStore, type SwitchStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
 	import { toggleSwitchState } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
-	import type { ComponentType } from 'svelte';
-	import type { SwitchEntity } from '$lib/data/types';
+
 	export let selectedRoom: Rooms;
+	export let data: AppConnections;
 
 	type FormattedSwitchType = {
 		id: string;
@@ -15,7 +18,7 @@
 	};
 
 	function toggleSwitch(switch_: FormattedSwitchType) {
-		toggleSwitchState(switch_.id, switch_.state === 'on' ? 'off' : 'on');
+		toggleSwitchState(data.wsConnection, switch_.id, switch_.state === 'on' ? 'off' : 'on');
 	}
 
 	const switchIcons: { [switch_id: string]: ComponentType } = {};

@@ -1,4 +1,7 @@
 <script lang="ts">
+	import type { ComponentType } from 'svelte';
+	import type { AppConnections } from '$lib/data/types';
+
 	import { fly } from 'svelte/transition';
 	import CloseIcon from 'svelte-material-icons/Close.svelte';
 	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
@@ -8,10 +11,10 @@
 	import Brightness from '$lib/components/brightness.svelte';
 	import TemperaturePicker from '$lib/components/temperaturePicker.svelte';
 	import { toggleLightState } from '$lib/data/ws';
-	import type { ComponentType } from 'svelte';
 	import EffectPicker from '$lib/components/effectPicker.svelte';
 
 	export let lightId: string | null;
+	export let data: AppConnections;
 
 	function closeDrawer() {
 		selectedLightIdStore.set(null);
@@ -248,7 +251,7 @@
 				on:click={() => {
 					if (light == null) throw new Error('Light is null');
 					const newState = light.state === 'on' ? 'off' : 'on';
-					toggleLightState(light.entity_id, newState);
+					toggleLightState(data.wsConnection, light.entity_id, newState);
 				}}
 			>
 				{light.state === 'on' ? 'Turn Off' : 'Turn On'}
