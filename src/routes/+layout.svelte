@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { AppConnections } from '$lib/data/types';
+	import LoadingIcon from 'svelte-material-icons/Loading.svelte';
 
 	export let data: AppConnections;
 
-	const hasLoaded = data.wsConnection !== null && data.wsConnection?.connected === true;
+	$: hasLoaded = data.wsConnection !== null && data.wsConnection?.connected === true;
 </script>
 
 <style>
@@ -16,8 +17,9 @@
 	}
 
 	:global(body) {
-		/* Page size globals */
+		/* Page globals */
 		--page-background: #0c0d16;
+		--page-light-font-color: #f3f4f5;
 		--page-height: 768px;
 		--page-width: 1360px;
 		--page-drawer-background: #1f212e;
@@ -36,10 +38,38 @@
 	:global(body::-webkit-scrollbar) {
 		display: none;
 	}
+
+	.loading {
+		height: 100%;
+		width: 100%;
+		background-color: var(--page-background);
+		color: var(--page-light-font-color);
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	@keyframes loading-animation {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.loader {
+		animation: ease-in-out loading-animation 1s infinite;
+	}
 </style>
 
 {#if hasLoaded === true}
 	<slot />
 {:else}
-	<div class="loading">Loading...</div>
+	<section class="loading">
+		<span class="loader">
+			<LoadingIcon height={150} width={150} />
+		</span>
+	</section>
 {/if}

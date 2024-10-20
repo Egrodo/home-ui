@@ -41,6 +41,6 @@
 		<TimeBlock />
 	</div>
 	<Weather />
-	<Wifi />
 	<Pong />
+	<Wifi />
 </section>
