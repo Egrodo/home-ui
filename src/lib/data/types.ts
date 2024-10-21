@@ -108,3 +108,8 @@ export interface AppConnections {
 	deviceLookupTable: DeviceInfoLookupTable;
 	wsUnsubscribe: UnsubscribeFunc;
 }
+
+export type PongEvent = {
+	deviceName: string;
+	timestamp: string;
+};

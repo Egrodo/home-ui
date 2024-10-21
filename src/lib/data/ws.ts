@@ -284,19 +284,3 @@ export async function fetchDeviceRegistry(connection: Connection): Promise<Devic
 		throw new Error('Failed to fetch device registry', err);
 	}
 }
-
-export function subscribeToEvent(
-	connection: Connection,
-	eventName: string,
-	handler: (eventInfo: HassEvent) => void
-): () => void {
-	const unsubscriberPromise = connection.subscribeEvents<HassEvent>(handler, eventName);
-
-	return () => {
-		Promise.resolve(unsubscriberPromise)
-			.then((unsub) => unsub())
-			.catch((err: any) => {
-				throw new Error(`Failed to subscribe to event ${eventName}`, err);
-			});
-	};
-}

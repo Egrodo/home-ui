@@ -1,7 +1,13 @@
 import { writable } from 'svelte/store';
 import { Rooms } from './types';
-import type { DeviceInfoLookupTable, LightEntity, SceneEntity, SwitchEntity, WeatherEntity } from './types';
-import type { Connection } from 'home-assistant-js-websocket';
+import type {
+	DeviceInfoLookupTable,
+	LightEntity,
+	SceneEntity,
+	SwitchEntity,
+	WeatherEntity
+} from './types';
+import type { Connection, HassEvent } from 'home-assistant-js-websocket';
 
 // Store for the WS connection object so that it can be accessed from anywhere
 function createConnectionStore() {
@@ -20,8 +26,9 @@ function createDeviceRegistryStore() {
 	const { subscribe, set } = writable<DeviceInfoLookupTable>();
 
 	return {
-		subscribe, set
-	}
+		subscribe,
+		set
+	};
 }
 
 export const deviceRegistryStore = createDeviceRegistryStore();

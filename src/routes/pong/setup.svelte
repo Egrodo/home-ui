@@ -1,7 +1,9 @@
 <script lang="ts">
-	import ReturnIcon from 'svelte-material-icons/KeyboardReturn.svelte';
+	import BackBtn from '$lib/components/backBtn.svelte';
 	import MinusIcon from 'svelte-material-icons/MinusThick.svelte';
 	import PlusIcon from 'svelte-material-icons/Plus.svelte';
+	import ReturnIcon from 'svelte-material-icons/KeyboardReturn.svelte';
+	import NextBtn from '$lib/components/nextBtn.svelte';
 
 	export let players: [string, string];
 	export let onBack: () => void;
@@ -33,23 +35,7 @@
 		height: 100%;
 		width: 100%;
 	}
-	.backBtn {
-		position: absolute;
-		top: 0;
-		left: 0;
-		height: 8em;
-		width: 8em;
-		padding-top: 1em;
-	}
-	.nextBtn {
-		position: absolute;
-		bottom: 0;
-		right: 0;
-		height: 8em;
-		width: 8em;
-		padding-top: 1em;
-		transform: scaleX(-1);
-	}
+
 	.leftContainer {
 		flex-basis: 60%;
 
@@ -90,9 +76,7 @@
 </style>
 
 <section class="setup">
-	<button class="backBtn" on:click={onBack}>
-		<ReturnIcon height={64} width={64} />
-	</button>
+	<BackBtn {onBack} />
 	<div class="leftContainer">
 		<span />
 		<h1>Play to:</h1>
@@ -112,7 +96,5 @@
 		</div>
 		<h1 on:click={toggleWhoFirst}>{players[whoFirst]}</h1>
 	</div>
-	<button class="nextBtn" on:click={handleSubmit}>
-		<ReturnIcon height={64} width={64} />
-	</button>
+	<NextBtn onNext={handleSubmit} />
 </section>
