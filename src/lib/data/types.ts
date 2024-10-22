@@ -113,3 +113,21 @@ export type PongEvent = {
 	deviceName: string;
 	timestamp: string;
 };
+
+export interface GameConfig {
+	blueBtnName: string;
+	redBtnName: string;
+	maxScore: number;
+	serveCount: number;
+	firstPlayer: 'blue' | 'red';
+}
+
+export interface PlayerData {
+	score: number; // Total score for this player
+	pointTs: string[]; // Timestamps for each point that's scored
+	whichColor: 'blue' | 'red';
+}
+
+export type GameState = {
+	[deviceName: string]: PlayerData;
+};

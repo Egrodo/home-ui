@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { AppConnections } from '$lib/data/types';
-	import LoadingIcon from 'svelte-material-icons/Loading.svelte';
+	import Loader from '$lib/components/Loader.svelte';
 
 	export let data: AppConnections;
 
@@ -38,38 +38,10 @@
 	:global(body::-webkit-scrollbar) {
 		display: none;
 	}
-
-	.loading {
-		height: 100%;
-		width: 100%;
-		background-color: var(--page-background);
-		color: var(--page-light-font-color);
-
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	@keyframes loading-animation {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.loader {
-		animation: ease-in-out loading-animation 1s infinite;
-	}
 </style>
 
 {#if hasLoaded === true}
 	<slot />
 {:else}
-	<section class="loading">
-		<span class="loader">
-			<LoadingIcon height={150} width={150} />
-		</span>
-	</section>
+	<Loader />
 {/if}

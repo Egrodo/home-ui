@@ -1,28 +1,61 @@
 <script lang="ts">
 	import BackBtn from '$lib/components/backBtn.svelte';
+	import NextBtn from '$lib/components/nextBtn.svelte';
 	import MinusIcon from 'svelte-material-icons/MinusThick.svelte';
 	import PlusIcon from 'svelte-material-icons/Plus.svelte';
-	import ReturnIcon from 'svelte-material-icons/KeyboardReturn.svelte';
-	import NextBtn from '$lib/components/nextBtn.svelte';
+	import type { GameConfig } from '$lib/data/types';
 
-	export let players: [string, string];
 	export let onBack: () => void;
-	export let onSubmit: (maxScore: number, serveCount: number, whoFirst: 0 | 1) => void;
+	export let onSubmit: (maxScore: number, serveCount: number, whoFirst: 'blue' | 'red') => void;
+	export let gameConfig: GameConfig;
 
-	let maxScore = 5;
-	let serveCount = 1;
-	// TODO: Refac & figure out a profile system
-	let whoFirst: 0 | 1 = 0;
+	let maxScore = gameConfig.maxScore;
+	let serveCount = gameConfig.serveCount;
+	let whoFirst = gameConfig.firstPlayer;
 
 	const handleSubmit = () => {
 		onSubmit(maxScore, serveCount, whoFirst);
 	};
 	// TODO: Increment / decrement by presets; 5 point game -> 11 points -> 21 points -> ?
-	const incrementMaxScore = () => maxScore++;
-	const decrementMaxScore = () => (maxScore > 1 ? (maxScore -= 1) : 1);
-	const incrementServeCont = () => (serveCount += 1);
-	const decrementServeCont = () => (serveCount > 1 ? (serveCount -= 1) : 1);
-	const toggleWhoFirst = () => (whoFirst = whoFirst ? 0 : 1);
+	const incrementMaxScore = () => {
+		if (maxScore === 5) {
+			maxScore = 8;
+		} else if (maxScore === 8) {
+			maxScore = 11;
+		} else if (maxScore === 11) {
+			maxScore = 21;
+		} else maxScore++;
+	};
+	const decrementMaxScore = () => {
+		if (maxScore === 8) {
+			maxScore = 5;
+		} else if (maxScore === 11) {
+			maxScore = 8;
+		} else if (maxScore === 21) {
+			maxScore = 11;
+		} else {
+			maxScore > 1 ? maxScore-- : 1;
+		}
+
+		// If decrewmenting max score puts serveCount higher, reduce that too
+		if (serveCount > maxScore) {
+			serveCount = maxScore;
+		}
+	};
+	const incrementServeCont = () => {
+		if (serveCount >= maxScore) {
+			return;
+		}
+		serveCount++;
+	};
+	const decrementServeCont = () => {
+		if (serveCount === 1) {
+			return;
+		}
+
+		serveCount--;
+	};
+	const toggleWhoFirst = () => (whoFirst = whoFirst === 'blue' ? 'red' : 'blue');
 </script>
 
 <style>
@@ -73,6 +106,15 @@
 		display: inline-block;
 		margin: 0 0.3em;
 	}
+	.whoFirst {
+		text-transform: capitalize;
+	}
+	.whoFirst.blue {
+		color: var(--pong-blue);
+	}
+	.whoFirst.red {
+		color: var(--pong-red);
+	}
 </style>
 
 <section class="setup">
@@ -94,7 +136,14 @@
 			<h1>{serveCount}</h1>
 			<button on:click={incrementServeCont}><PlusIcon width={48} height={48} /></button>
 		</div>
-		<h1 on:click={toggleWhoFirst}>{players[whoFirst]}</h1>
+		<h1
+			on:click={toggleWhoFirst}
+			class="whoFirst"
+			class:blue={whoFirst === 'blue'}
+			class:red={whoFirst === 'red'}
+		>
+			{whoFirst}
+		</h1>
 	</div>
 	<NextBtn onNext={handleSubmit} />
 </section>

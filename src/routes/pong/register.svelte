@@ -1,31 +1,49 @@
 <script lang="ts">
 	import type { HassEvent } from 'home-assistant-js-websocket';
 	import type { Writable } from 'svelte/store';
-	import type { PongEvent } from '$lib/data/types';
+	import type { GameConfig, PongEvent } from '$lib/data/types';
 
 	import BackBtn from '$lib/components/backBtn.svelte';
 	import NextBtn from '$lib/components/nextBtn.svelte';
 	import { onMount } from 'svelte';
 
 	export let onBack: () => void;
-	export let onSubmit: () => void;
-	export let pongEventStore: Writable<HassEvent[]>;
-
+	export let onSubmit: ({
+		blueBtnName,
+		redBtnName
+	}: {
+		blueBtnName: string;
+		redBtnName: string;
+	}) => void;
+	export let pongEventStore: Writable<PongEvent[]>;
+	export let gameConfig: GameConfig | null;
 	// Blue registers first always
-	let blueBtnId: string | null = null;
-	let redBtnId: string | null = null;
+	let blueBtnName: string | null = gameConfig?.blueBtnName ?? null;
+	let redBtnName: string | null = gameConfig?.redBtnName ?? null;
 
-	function handlePongEventBus(pongEventBus: PongEvent[]) {
-		// const lastEvent = eventBus[eventBus.length - 1];
-		// if (!blueBtnId && !redBtnId) {
-		// 	blueBtnId = lastEvent.data.device_id
-		// } else if (blueBtnId && !redBtnId) {
-		// 	redBtnId = lastEvent.data.device_id
+	function handleEvent(pongEventBus: PongEvent[]) {
+		const lastEvent = pongEventBus[pongEventBus.length - 1];
+		if (!lastEvent) return;
+
+		const { deviceName } = lastEvent;
+		if (!blueBtnName && !redBtnName) {
+			blueBtnName = deviceName;
+		} else if (blueBtnName && !redBtnName && deviceName != blueBtnName) {
+			redBtnName = deviceName;
+		}
+		// If already set up, button presses shouldn't do anything.
+		// User needs to press next or (if they want to restart) previous
+	}
+
+	function handleSubmit() {
+		if (blueBtnName && redBtnName) {
+			onSubmit({ blueBtnName, redBtnName });
+		}
 	}
 
 	onMount(() => {
-		// const unsub = eventBusStore.subscribe(handleEvent);
-		// return unsub;
+		const unsub = pongEventStore.subscribe(handleEvent);
+		return unsub;
 	});
 </script>
 
@@ -45,7 +63,8 @@
 		width: 100%;
 		height: 100%;
 
-		background-color: #242424;
+		--background-black: #242424;
+		background-color: var(--background-black);
 	}
 	.team {
 		flex-grow: 1;
@@ -55,39 +74,41 @@
 		justify-content: center;
 		align-items: center;
 		border: 2em solid var(--team-color);
+		flex-direction: column;
 	}
 	.blue {
-		--team-color: #7fd0ff;
+		--team-color: var(--pong-blue);
 	}
 	.red {
-		--team-color: #f54b61;
+		--team-color: var(--pong-red);
 	}
 	.registered {
 		background-color: var(--team-color);
+		border-color: var(--background-black);
 	}
 </style>
 
 <section class="register">
 	<BackBtn {onBack} />
 	<main class="teamContainer">
-		<aside class="blue team" class:registered={blueBtnId}>
-			{#if blueBtnId}
-				<h2>Blue successfully registered</h2>
+		<aside class="blue team" class:registered={blueBtnName}>
+			{#if blueBtnName}
+				<h2>Blue ready</h2>
+				<h3>Using {blueBtnName}</h3>
 			{:else}
-				<h2>First click button to register blue</h2>
+				<h2>Blue player tap in!</h2>
 			{/if}
 		</aside>
-		<aside class="red team" class:registered={redBtnId}>
-			{#if !blueBtnId && !redBtnId}
-				<h2 />
-			{:else if blueBtnId && !redBtnId}
-				<h2>Next click button to register red</h2>
-			{:else}
-				<h2>Red successfully registered</h2>
+		<aside class="red team" class:registered={redBtnName}>
+			{#if blueBtnName && !redBtnName}
+				<h2>Red player tap in!</h2>
+			{:else if redBtnName && blueBtnName}
+				<h2>Red ready</h2>
+				<h3>Using {redBtnName}</h3>
 			{/if}
 		</aside>
-		{#if blueBtnId && redBtnId}
-			<NextBtn onNext={onSubmit} />
+		{#if blueBtnName && redBtnName}
+			<NextBtn onNext={handleSubmit} />
 		{/if}
 	</main>
 </section>

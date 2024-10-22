@@ -7,6 +7,7 @@
 <style>
 	.backBtn {
 		position: absolute;
+		z-index: 100;
 		top: 0;
 		left: 0;
 		height: 8em;

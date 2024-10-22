@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { HassEvent } from 'home-assistant-js-websocket/dist/types';
-	import type { AppConnections, PongEvent } from '$lib/data/types';
+	import type { AppConnections, GameConfig, GameState, PongEvent } from '$lib/data/types';
 	import type { Writable } from 'svelte/store';
 
 	import { onMount } from 'svelte';
@@ -9,43 +8,19 @@
 	import Endgame from './endgame.svelte';
 	import Register from './register.svelte';
 	import { subscribeToPongEvents } from '$lib/data/pongEventBus';
+	import Loader from '$lib/components/Loader.svelte';
 
 	export let data: AppConnections;
+
+	const INITIAL_MAX_SCORE = 11;
+	const INITIAL_SERVE_COUNT = 3;
 
 	// Local store for raw feed of ZHA events. Rather than creating this as an app-wide
 	// store in stores.ts, we can keep it local so it will be destroyed if user navs away.
 	let pongEventStore: Writable<PongEvent[]> | null;
 
-	/* Listen to ZHA events as those are the buttons I'm using */
-	const EVENT_NAME = 'zha_event';
-
-	interface PlayerData {
-		score: number; // Total score for this player
-		pointTs: string[]; // Timestamps for each point that's scored
-	}
-
-	// There can only be two devices playing; I don't know a good way to set up which
-	// device is which, probably will have to be a setup screen (press device 1, now press device 2).
-	const gameState = new Map<string, PlayerData>();
-
-	function handleEvent(event: HassEvent) {
-		// // TODO: This needs to do different things for each different game stage
-		// try {
-		// 	const deviceId = event.data['device_id'];
-		// 	const deviceData = data.deviceLookupTable[deviceId];
-		// 	console.log(deviceData);
-		// 	// return;
-		// 	const currentPlayerState = gameState.get(deviceId) ?? {
-		// 		score: 0,
-		// 		pointTs: []
-		// 	};
-		// 	currentPlayerState.score += 1;
-		// 	currentPlayerState.pointTs.push(event.time_fired);
-		// 	gameState.set(deviceId, currentPlayerState);
-		// } catch (err) {
-		// 	console.error('Failed to handle ZHA event', err);
-		// }
-	}
+	let gameConfig: GameConfig | null; // Defined after register step to default values
+	let endGameState: GameState | null = null; // Defined after game is over for display in ENDGAME
 
 	onMount(() => {
 		// No need to validate connection bc layout should have done it before rendering this page
@@ -61,7 +36,6 @@
 		return () => Promise.resolve(unsub).then((u) => u());
 	});
 
-	// GAME STUFF
 	enum GAME_STAGE {
 		REGISTER,
 		SETUP,
@@ -73,34 +47,61 @@
 
 	const onBack = () => {
 		if (currentStage === GAME_STAGE.REGISTER) {
+			window.location.replace('/');
 			return;
 		} else if (currentStage === GAME_STAGE.SETUP) {
 			currentStage = GAME_STAGE.REGISTER;
 		} else if (currentStage === GAME_STAGE.PLAYING) {
-			currentStage = GAME_STAGE.ENDGAME;
-		} else if (currentStage === GAME_STAGE.ENDGAME) {
 			currentStage = GAME_STAGE.SETUP;
+		} else if (currentStage === GAME_STAGE.ENDGAME) {
+			currentStage = GAME_STAGE.PLAYING;
 		} else throw new Error('In an invalid game state somehow?');
 	};
 
-	function handleRegisterSubmit() {
-		console.log('register submit');
+	const onNewGame = () => {
+		gameConfig = null;
+		endGameState = null;
+		pongEventStore?.set([]);
+		currentStage = GAME_STAGE.REGISTER;
+	};
+
+	function handleRegisterSubmit(opts: { blueBtnName: string; redBtnName: string }) {
+		gameConfig = {
+			blueBtnName: opts.blueBtnName,
+			redBtnName: opts.redBtnName,
+			maxScore: INITIAL_MAX_SCORE,
+			serveCount: INITIAL_SERVE_COUNT,
+			firstPlayer: 'blue'
+		};
+		currentStage = GAME_STAGE.SETUP;
 	}
 
-	const onSetupSubmit = (maxScore: number, serveCount: number, whoFirst: 0 | 1): void => {
-		console.log(
-			`Starting game with: maxScore: ${maxScore}, serveCount: ${serveCount}, whoFirst: ${players[whoFirst]}`
-		);
-		// TODO: store this
+	const onSetupSubmit = (maxScore: number, serveCount: number, whoFirst: 'blue' | 'red'): void => {
+		gameConfig = {
+			blueBtnName: gameConfig?.blueBtnName ?? '', // This nullish coalesor should never hit bc register comes before setup, just type safety
+			redBtnName: gameConfig?.redBtnName ?? '',
+			maxScore,
+			serveCount,
+			firstPlayer: whoFirst === 'blue' ? 'blue' : 'red'
+		};
+
+		// Patch bug where PLAYING is init'd with existing pong events by resetting pongEventBus here
+		pongEventStore?.set([]);
 		currentStage = GAME_STAGE.PLAYING;
 	};
-	// TODO: systemetize
-	const players: [string, string] = ['Noah', 'Jordan'];
+
+	const onGameEnd = (gameState: GameState): void => {
+		endGameState = gameState;
+		currentStage = GAME_STAGE.ENDGAME;
+	};
 </script>
 
 <style>
 	:global(body) {
 		--pong-background: #ffedd8;
+
+		--pong-blue: #7fd0ff;
+		--pong-red: #f54b61;
 	}
 
 	.Pong {
@@ -112,13 +113,15 @@
 </style>
 
 <section class="Pong">
-	{#if currentStage === GAME_STAGE.REGISTER}
-		<Register {onBack} onSubmit={handleRegisterSubmit} {pongEventStore} />
-	{:else if currentStage === GAME_STAGE.SETUP}
-		<Setup {onBack} onSubmit={onSetupSubmit} {players} />
-	{:else if currentStage === GAME_STAGE.PLAYING}
-		<Playing />
-	{:else if currentStage === GAME_STAGE.ENDGAME}
-		<Endgame />
+	{#if pongEventStore == null}
+		<Loader />
+	{:else if currentStage === GAME_STAGE.REGISTER}
+		<Register {onBack} {pongEventStore} {gameConfig} onSubmit={handleRegisterSubmit} />
+	{:else if gameConfig && currentStage === GAME_STAGE.SETUP}
+		<Setup {onBack} {gameConfig} onSubmit={onSetupSubmit} />
+	{:else if gameConfig && currentStage === GAME_STAGE.PLAYING}
+		<Playing {gameConfig} {onBack} {pongEventStore} {onGameEnd} />
+	{:else if endGameState && currentStage === GAME_STAGE.ENDGAME}
+		<Endgame {onNewGame} {endGameState} />
 	{/if}
 </section>

@@ -16,6 +16,6 @@
 	}
 </style>
 
-2<button class="nextBtn" on:click={onNext}>
+<button class="nextBtn" on:click={onNext}>
 	<ReturnIcon height={64} width={64} />
 </button>
