@@ -12,6 +12,7 @@
 
 	export let data: AppConnections;
 
+	const MAX_SCORE_OPTIONS = [3, 5, 8, 11, 13, 21];
 	const INITIAL_MAX_SCORE = 11;
 	const INITIAL_SERVE_COUNT = 3;
 
@@ -59,10 +60,11 @@
 	};
 
 	const onNewGame = () => {
-		gameConfig = null;
+		// If restart game can go straight into another assuming same settings;
+		// if user wants to change settings they can just use back btn
 		endGameState = null;
 		pongEventStore?.set([]);
-		currentStage = GAME_STAGE.REGISTER;
+		currentStage = GAME_STAGE.PLAYING;
 	};
 
 	function handleRegisterSubmit(opts: { blueBtnName: string; redBtnName: string }) {
@@ -70,6 +72,7 @@
 			blueBtnName: opts.blueBtnName,
 			redBtnName: opts.redBtnName,
 			maxScore: INITIAL_MAX_SCORE,
+			maxScoreOptions: MAX_SCORE_OPTIONS,
 			serveCount: INITIAL_SERVE_COUNT,
 			firstPlayer: 'blue'
 		};
@@ -81,6 +84,7 @@
 			blueBtnName: gameConfig?.blueBtnName ?? '', // This nullish coalesor should never hit bc register comes before setup, just type safety
 			redBtnName: gameConfig?.redBtnName ?? '',
 			maxScore,
+			maxScoreOptions: MAX_SCORE_OPTIONS,
 			serveCount,
 			firstPlayer: whoFirst === 'blue' ? 'blue' : 'red'
 		};

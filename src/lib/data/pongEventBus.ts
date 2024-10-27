@@ -13,7 +13,8 @@ import { writable, type Writable } from 'svelte/store';
 
 const EVENT_NAME = 'zha_event';
 const PONG_PREFIX = 'pongBtn';
-const DEBOUNCE_TIMEOUT = 4 * 1000;
+// const DEBOUNCE_TIMEOUT = 4 * 1000;
+const DEBOUNCE_TIMEOUT = 0;
 
 // This should only be called once, on page mount, and its unsub fn should be called onDestroy.
 // Handles all the logic for filtering and processing pong events inline. A lot lives inside

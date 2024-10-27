@@ -1,6 +1,6 @@
 <script lang="ts">
 	import NextBtn from '$lib/components/nextBtn.svelte';
-	import type { GameState, PlayerData } from '$lib/data/types';
+	import type { GameState } from '$lib/data/types';
 
 	export let onNewGame: () => void;
 	export let endGameState: GameState;

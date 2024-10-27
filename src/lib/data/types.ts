@@ -118,6 +118,7 @@ export interface GameConfig {
 	blueBtnName: string;
 	redBtnName: string;
 	maxScore: number;
+	maxScoreOptions: number[];
 	serveCount: number;
 	firstPlayer: 'blue' | 'red';
 }

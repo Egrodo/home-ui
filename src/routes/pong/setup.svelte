@@ -9,6 +9,7 @@
 	export let onSubmit: (maxScore: number, serveCount: number, whoFirst: 'blue' | 'red') => void;
 	export let gameConfig: GameConfig;
 
+	const { maxScoreOptions } = gameConfig;
 	let maxScore = gameConfig.maxScore;
 	let serveCount = gameConfig.serveCount;
 	let whoFirst = gameConfig.firstPlayer;
@@ -16,26 +17,19 @@
 	const handleSubmit = () => {
 		onSubmit(maxScore, serveCount, whoFirst);
 	};
-	// TODO: Increment / decrement by presets; 5 point game -> 11 points -> 21 points -> ?
+
 	const incrementMaxScore = () => {
-		if (maxScore === 5) {
-			maxScore = 8;
-		} else if (maxScore === 8) {
-			maxScore = 11;
-		} else if (maxScore === 11) {
-			maxScore = 21;
-		} else maxScore++;
+		const currentMaxScoreIndex = maxScoreOptions.indexOf(maxScore);
+		const nextMaxScoreIndex =
+			currentMaxScoreIndex === maxScoreOptions.length - 1 ? 0 : currentMaxScoreIndex + 1;
+		maxScore = maxScoreOptions[nextMaxScoreIndex];
 	};
+
 	const decrementMaxScore = () => {
-		if (maxScore === 8) {
-			maxScore = 5;
-		} else if (maxScore === 11) {
-			maxScore = 8;
-		} else if (maxScore === 21) {
-			maxScore = 11;
-		} else {
-			maxScore > 1 ? maxScore-- : 1;
-		}
+		const currentMaxScoreIndex = maxScoreOptions.indexOf(maxScore);
+		const nextMaxScoreIndex =
+			currentMaxScoreIndex === 0 ? maxScoreOptions.length - 1 : currentMaxScoreIndex - 1; // maxScore = nextMaxScoreIndex === -1 ? maxScoreOptions.length -1 :
+		maxScore = maxScoreOptions[nextMaxScoreIndex];
 
 		// If decrewmenting max score puts serveCount higher, reduce that too
 		if (serveCount > maxScore) {
