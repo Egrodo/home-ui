@@ -1,10 +1,13 @@
 <script lang="ts">
+	import type { AppConnections } from '$lib/data/types';
 	import { changeLightColor } from '$lib/data/ws';
 	import debounce from '$lib/utils/debounce';
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 
 	export let initialColor: [number, number, number] | undefined;
 	export let entityid: string;
+
+	export let data: AppConnections;
 
 	$: selectedColor = initialColor ?? [0, 0, 0];
 
@@ -16,7 +19,7 @@
 		const clickedColor = eventTarget.dataset.fill;
 		selectedColor = hexToRGB(clickedColor);
 
-		debouncedChangeLightColor(entityid, selectedColor);
+		debouncedChangeLightColor(data.wsConnection, entityid, selectedColor);
 	}
 
 	function handleTouchMove(e: TouchEvent) {
@@ -26,7 +29,7 @@
 		const clickedColor = realTarget.dataset.fill;
 		selectedColor = hexToRGB(clickedColor);
 
-		debouncedChangeLightColor(entityid, selectedColor);
+		debouncedChangeLightColor(data.wsConnection, entityid, selectedColor);
 	}
 </script>
 

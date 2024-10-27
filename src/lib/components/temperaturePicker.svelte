@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { AppConnections } from '$lib/data/types';
+
 	import Slider from './slider.svelte';
 	import debounce from '$lib/utils/debounce';
 	import { changeLightTemperature } from '$lib/data/ws';
@@ -7,6 +9,7 @@
 	export let range: [max: number, min: number];
 	export let initialValue: number | undefined = range[0];
 	export let entityid: string;
+	export let data: AppConnections;
 
 	const kelvin = spring(initialValue ?? range[0], { stiffness: 0.1, damping: 0.5 });
 
@@ -22,7 +25,7 @@
 			kelvin.set(newKelvin);
 		}
 
-		debouncedChangeLightTemperature(entityid, newKelvin);
+		debouncedChangeLightTemperature(data.wsConnection, entityid, newKelvin);
 	}
 
 	// Since kelvin has the high value at the left and the low value on the right, invert the percentage

@@ -1,10 +1,14 @@
 <script lang="ts">
+	import type { AppConnections } from '$lib/data/types';
+
 	import Slider from './slider.svelte';
 	import debounce from '$lib/utils/debounce';
 	import { changeLightBrightness } from '$lib/data/ws';
 	// Currently set brightness value, 0-255.
 	export let initialValue: number | undefined;
 	export let entityid: string;
+	export let data: AppConnections;
+
 	$: initialPercent = initialValue ? initialValue / 255 : 0;
 	$: percentage = initialPercent;
 
@@ -12,7 +16,7 @@
 
 	function handleChange(newPercentage: number) {
 		percentage = newPercentage;
-		debouncedChangeLightBrightness(entityid, percentage * 255);
+		debouncedChangeLightBrightness(data.wsConnection, entityid, percentage * 255);
 	}
 </script>
 

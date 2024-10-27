@@ -223,9 +223,14 @@
 			</div>
 			<section class="pickerContainer" class:disablePicker={light.state === 'off'}>
 				{#if activeDisplayMode === 'color'}
-					<ColorPicker entityid={light.entity_id} initialColor={light.attributes.rgb_color} />
+					<ColorPicker
+						{data}
+						entityid={light.entity_id}
+						initialColor={light.attributes.rgb_color}
+					/>
 				{:else if activeDisplayMode === 'temp'}
 					<TemperaturePicker
+						{data}
 						entityid={light.entity_id}
 						range={[
 							+light.attributes.max_color_temp_kelvin,
@@ -242,7 +247,11 @@
 				{/if}
 			</section>
 			<span class="brightnessSlider" class:disablePicker={light.state === 'off'}
-				><Brightness entityid={light.entity_id} initialValue={light.attributes.brightness} /></span
+				><Brightness
+					{data}
+					entityid={light.entity_id}
+					initialValue={light.attributes.brightness}
+				/></span
 			>
 			<button
 				class="powerBtn"
