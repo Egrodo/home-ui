@@ -124,7 +124,7 @@
 	{:else if gameConfig && currentStage === GAME_STAGE.SETUP}
 		<Setup {onBack} {gameConfig} onSubmit={onSetupSubmit} />
 	{:else if gameConfig && currentStage === GAME_STAGE.PLAYING}
-		<Playing {gameConfig} {onBack} {pongEventStore} {onGameEnd} />
+		<Playing {gameConfig} {onBack} {pongEventStore} {onGameEnd} {data} />
 	{:else if endGameState && currentStage === GAME_STAGE.ENDGAME}
 		<Endgame {onNewGame} {endGameState} />
 	{/if}

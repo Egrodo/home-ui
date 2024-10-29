@@ -1,14 +1,18 @@
 <script lang="ts">
-	import type { GameConfig, GameState, PongEvent } from '$lib/data/types';
+	import type { AppConnections, GameConfig, GameState, PongEvent } from '$lib/data/types';
 	import type { Writable } from 'svelte/store';
 	import { onMount } from 'svelte';
 	import BackBtn from '$lib/components/backBtn.svelte';
 	import TennisIcon from 'svelte-material-icons/Tennis.svelte';
+	import { changeLightColor } from '$lib/data/ws';
+
+	const ENTITY_NAME_FOR_WHO_SERVING_LIGHT = 'light.sconce_2';
 
 	export let onBack: () => void;
 	export let onGameEnd: (gameState: GameState) => void;
 	export let gameConfig: GameConfig;
 	export let pongEventStore: Writable<PongEvent[]>;
+	export let data: AppConnections;
 
 	const { blueBtnName, redBtnName, maxScore, serveCount, firstPlayer } = gameConfig;
 
@@ -73,12 +77,19 @@
 		console.log({ playerIsNearWinning, otherPlayerIsNearWinning });
 		if (playerIsNearWinning) {
 			whoServing = helperInvertColor(currentPlayerData.whichColor);
+
+			// TODO: Set the color of the light to `whoServing`
+			const rgbValue: [number, number, number] = whoServing === 'blue' ? [0, 0, 255] : [255, 0, 0];
+			changeLightColor(data.wsConnection, ENTITY_NAME_FOR_WHO_SERVING_LIGHT, rgbValue);
 		} else if (
 			otherPlayerIsNearWinning === false &&
 			totalScore > 0 &&
 			totalScore % serveCount === 0
 		) {
 			whoServing = helperInvertColor(whoServing);
+			// TODO: Set the color of the light to `whoServing`l\
+			const rgbValue: [number, number, number] = whoServing === 'blue' ? [0, 0, 255] : [255, 0, 0];
+			changeLightColor(data.wsConnection, ENTITY_NAME_FOR_WHO_SERVING_LIGHT, rgbValue);
 		}
 
 		// For Svelte reactivity reasons, we need to re-set the value of gameState each time
@@ -86,7 +97,13 @@
 	}
 
 	onMount(() => {
+		// Set initial color of the ENTITY LIGHT to
+
+		const rgbValue: [number, number, number] = whoServing === 'blue' ? [0, 0, 255] : [255, 0, 0];
+		changeLightColor(data.wsConnection, ENTITY_NAME_FOR_WHO_SERVING_LIGHT, rgbValue);
+
 		const unsub = pongEventStore.subscribe(handleEvent);
+
 		return unsub;
 	});
 
