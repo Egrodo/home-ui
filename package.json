@@ -14,6 +14,7 @@
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "next",
 		"@sveltejs/kit": "next",
+		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
 		"deep-object-diff": "^1.1.9",
@@ -26,11 +27,11 @@
 		"svelte-check": "^3.4.3",
 		"tslib": "^2.4.1",
 		"typescript": "^5.0.0",
-		"vite": "^4.0.0"
+		"vite": "^5.0.0"
 	},
 	"type": "module",
 	"dependencies": {
-		"@sveltejs/adapter-node": "^1.1.1",
+		"@sveltejs/adapter-node": "^2.0.0",
 		"home-assistant-js-websocket": "^8.0.1",
 		"svelte-material-icons": "^2.0.4"
 	}
