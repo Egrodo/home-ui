@@ -177,7 +177,7 @@
 
 <section class="rightDrawer" class:open={lightId}>
 	{#if light != null}
-		<div class="contents" transition:fly={{ y: 10 }}>
+		<div class="contents" transition:fly|global={{ y: 10 }}>
 			<span class="closeIconContainer" role="button" on:click={closeDrawer}
 				><CloseIcon height="3em" width="3em" color="#fff" /></span
 			>
