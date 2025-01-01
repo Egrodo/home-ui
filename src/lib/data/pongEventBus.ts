@@ -10,11 +10,12 @@
 import type { Connection, HassEvent } from 'home-assistant-js-websocket';
 import type { DeviceInfoLookupTable, PongEvent } from './types';
 import { writable, type Writable } from 'svelte/store';
+import { dev } from '$app/environment';
 
 const EVENT_NAME = 'zha_event';
 const PONG_PREFIX = 'pongBtn';
-// const DEBOUNCE_TIMEOUT = 4 * 1000;
-const DEBOUNCE_TIMEOUT = 0;
+
+const DEBOUNCE_TIMEOUT = dev ? 0 : 4 * 1000;
 
 // This should only be called once, on page mount, and its unsub fn should be called onDestroy.
 // Handles all the logic for filtering and processing pong events inline. A lot lives inside
@@ -64,7 +65,6 @@ export function subscribeToPongEvents(
 		pongEventStore.update((events) => [...events, newPongEvent]);
 	}
 
-	// const unsub = subscribeToEvent(wsConnection, EVENT_NAME, pongEventProcessor);
 	const unsub = wsConnection.subscribeEvents(pongEventProcessor, EVENT_NAME);
 	return [pongEventStore, unsub];
 }

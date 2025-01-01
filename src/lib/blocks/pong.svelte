@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { AppConnections } from '$lib/data/types';
 	import TennisIcon from 'svelte-material-icons/Tennis.svelte';
 	import Block from './block.svelte';
 	const backgroundColor = '#FFEDD8';

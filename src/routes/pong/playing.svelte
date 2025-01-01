@@ -78,7 +78,6 @@
 		if (playerIsNearWinning) {
 			whoServing = helperInvertColor(currentPlayerData.whichColor);
 
-			// TODO: Set the color of the light to `whoServing`
 			const rgbValue: [number, number, number] = whoServing === 'blue' ? [0, 0, 255] : [255, 0, 0];
 			changeLightColor(data.wsConnection, ENTITY_NAME_FOR_WHO_SERVING_LIGHT, rgbValue);
 		} else if (
@@ -87,7 +86,7 @@
 			totalScore % serveCount === 0
 		) {
 			whoServing = helperInvertColor(whoServing);
-			// TODO: Set the color of the light to `whoServing`l\
+
 			const rgbValue: [number, number, number] = whoServing === 'blue' ? [0, 0, 255] : [255, 0, 0];
 			changeLightColor(data.wsConnection, ENTITY_NAME_FOR_WHO_SERVING_LIGHT, rgbValue);
 		}

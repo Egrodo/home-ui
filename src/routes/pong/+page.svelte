@@ -12,9 +12,9 @@
 
 	export let data: AppConnections;
 
-	const MAX_SCORE_OPTIONS = [3, 5, 8, 11, 13, 21];
+	const MAX_SCORE_OPTIONS = [3, 5, 8, 11, 15, 21];
 	const INITIAL_MAX_SCORE = 11;
-	const INITIAL_SERVE_COUNT = 3;
+	const INITIAL_SERVE_COUNT = 2;
 
 	// Local store for raw feed of ZHA events. Rather than creating this as an app-wide
 	// store in stores.ts, we can keep it local so it will be destroyed if user navs away.
