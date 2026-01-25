@@ -41,7 +41,7 @@
 				}
 				switchIcons[switch_.entity_id] = icon;
 			}
-
+			// TODO: Find a better way to get the rooms
 			Object.values(Rooms).forEach((roomId) => {
 				if (switch_.attributes.friendly_name.includes(roomId)) {
 					switchRoomMap[roomId].add(switch_.entity_id);

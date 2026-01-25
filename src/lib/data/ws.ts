@@ -1,13 +1,16 @@
 import { browser } from '$app/environment';
-import { PUBLIC_WS_AUTH_KEY, PUBLIC_SERVER_URL } from '$env/static/public';
+import {
+	PUBLIC_WS_AUTH_KEY,
+	PUBLIC_SERVER_URL,
+	PUBLIC_WEATHER_ENTITY_ID
+} from '$env/static/public';
 import {
 	createConnection,
 	Connection,
 	type MessageBase,
 	createLongLivedTokenAuth,
 	type HassEntities,
-	type HassEntity,
-	type HassEvent
+	type HassEntity
 } from 'home-assistant-js-websocket';
 import { lightStore, sceneStore, switchStore, weatherStore } from './stores';
 import {
@@ -70,7 +73,7 @@ export function handleStateMessage(states: HassEntities) {
 				// @ts-expect-error Refining type
 				const sceneEntity = entity as SceneEntity;
 				scenes.push(sceneEntity);
-			} else if (entity_id === 'weather.home') {
+			} else if (entity_id === PUBLIC_WEATHER_ENTITY_ID) {
 				// Unlike the other entity types, we only care about one specific weather entity
 				// @ts-expect-error Refining type
 				const weatherEntity = entity as WeatherEntity;

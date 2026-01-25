@@ -89,7 +89,8 @@ export enum Rooms {
 	AllRooms = 'All Rooms',
 	LivingRoom = 'Living Room',
 	Bedroom = 'Bedroom',
-	Office = 'Office'
+	Office = 'Den',
+	Hallway = 'Hallway'
 }
 
 export interface DeviceInfo {

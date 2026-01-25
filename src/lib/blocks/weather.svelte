@@ -42,6 +42,7 @@
 		humidity = weatherState.attributes.humidity;
 		givenUnit = weatherState.attributes.temperature_unit;
 		givenTemperature = weatherState.attributes.temperature;
+		console.log(weatherState);
 		updateWeatherIcon(weatherState.state);
 	});
 </script>

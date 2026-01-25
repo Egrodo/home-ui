@@ -30,7 +30,6 @@
 		const stringifiedNew = JSON.stringify(newLights);
 		if (JSON.stringify(lights) === stringifiedNew) return;
 		lights = JSON.parse(stringifiedNew);
-		console.log(lights);
 		for (const light of Object.values(newLights)) {
 			if (lightIcons[light.entity_id] == null) {
 				let icon;
