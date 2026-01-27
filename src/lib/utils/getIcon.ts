@@ -91,8 +91,24 @@ export async function getIcon(iconName: WeatherStates | string): Promise<Compone
 		case 'loading':
 			return (await import('svelte-material-icons/Loading.svelte'))
 				.default as unknown as ComponentType;
-		default:
+		case 'movie-star':
+			return (await import('svelte-material-icons/MovieStar.svelte'))
+				.default as unknown as ComponentType;
+		case 'circle-outline':
+			return (await import('svelte-material-icons/CircleOutline.svelte'))
+				.default as unknown as ComponentType;
+		case 'microphone-off':
+			return (await import('svelte-material-icons/MicrophoneOff.svelte'))
+				.default as unknown as ComponentType;
+		case 'bullhorn':
+			return (await import('svelte-material-icons/Bullhorn.svelte'))
+				.default as unknown as ComponentType;
+		case 'lightbulb-group':
+			return (await import('svelte-material-icons/LightbulbGroup.svelte'))
+				.default as unknown as ComponentType;
+		default: {
 			return (await import('svelte-material-icons/HelpRhombusOutline.svelte'))
 				.default as unknown as ComponentType;
+		}
 	}
 }
