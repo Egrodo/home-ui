@@ -5,7 +5,7 @@
 	import Block from '$lib/blocks/block.svelte';
 	import { sceneStore, type SceneStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
-	import { activateScene } from '$lib/data/ws';
+	import { activateScene, ROOM_AREA_IDS } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
@@ -48,25 +48,25 @@
 
 	// Scenes filtered and formatted for rendering
 	$: scenesToShow = Object.values(scenes).reduce<FormattedSceneType[]>((acc, scene) => {
+		const entityArea = data.entityAreaMap[scene.entity_id];
+		const areaIds = ROOM_AREA_IDS[selectedRoom];
+		const inRoom = selectedRoom === Rooms.AllRooms || (entityArea != null && areaIds?.includes(entityArea));
+		if (!inRoom) return acc;
+
 		const formattedScene: FormattedSceneType = {
 			entity_id: scene.entity_id,
-			id: scene.attributes.id
+			id: scene.attributes.id,
+			name: scene.attributes.friendly_name
 		};
-		// First check if the scene is in the selected room
-		if (selectedRoom === Rooms.AllRooms || scene.attributes.friendly_name.includes(selectedRoom)) {
-			// Remove room name from scene name, but only if we're not in All Room display
-			formattedScene.name = scene.attributes.friendly_name.replace(`${selectedRoom} `, '');
-			// Extract color from the scene name
-			const colorMatch = formattedScene.name.match(/#([0-9A-F]{3}){1,2}\b/i);
 
-			// If we found a color, remove it from the name and set the color attribute
-			if (colorMatch) {
-				formattedScene.color = colorMatch[0];
-				formattedScene.name = formattedScene.name.replace(colorMatch[0], '');
-			}
-
-			acc.push(formattedScene);
+		// Extract hex color from the scene name (e.g. "Cozy #FF5500" → color + stripped name)
+		const colorMatch = formattedScene.name?.match(/#([0-9A-F]{3}){1,2}\b/i);
+		if (colorMatch) {
+			formattedScene.color = colorMatch[0];
+			formattedScene.name = formattedScene.name!.replace(colorMatch[0], '').trim();
 		}
+
+		acc.push(formattedScene);
 		return acc;
 	}, []);
 </script>

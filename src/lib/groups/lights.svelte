@@ -3,7 +3,7 @@
 	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
 	import type { AppConnections } from '$lib/data/types';
 	import { Rooms } from '$lib/data/types';
-	import { toggleLightState } from '$lib/data/ws';
+	import { toggleLightState, ROOM_AREA_IDS } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
 	import type { ComponentType } from 'svelte';
@@ -52,29 +52,27 @@
 	};
 
 	$: lightsToShow = Object.values(lights).reduce<FormattedLightType[]>((acc, light) => {
+		const entityArea = data.entityAreaMap[light.entity_id];
+		const areaIds = ROOM_AREA_IDS[selectedRoom];
+		const inRoom = selectedRoom === Rooms.AllRooms || (entityArea != null && areaIds?.includes(entityArea));
+		if (!inRoom) return acc;
+
 		const formattedLight: FormattedLightType = {
 			id: light.entity_id,
 			state: light.state as 'on' | 'off',
 			name: light.attributes.friendly_name,
 			color: OFF_STATE_BG_COLOR
 		};
-		if (selectedRoom === Rooms.AllRooms || light.attributes.friendly_name.includes(selectedRoom)) {
-			// Remove room name from light name
-			formattedLight.name = light.attributes.friendly_name.replace(`${selectedRoom} `, '');
-			// Determine background color of the block. If the light is on, we'll use
-			// the current color of the light.
-			if (light.state === 'on') {
-				if (light.attributes.rgb_color == null) {
-					console.error('Light is on but rgb_color is nullish', light);
-				} else {
-					formattedLight.color = light.attributes.rgb_color;
-				}
-			} else {
-				formattedLight.color = OFF_STATE_BG_COLOR;
-			}
 
-			acc.push(formattedLight);
+		if (light.state === 'on') {
+			if (light.attributes.rgb_color == null) {
+				console.error('Light is on but rgb_color is nullish', light);
+			} else {
+				formattedLight.color = light.attributes.rgb_color;
+			}
 		}
+
+		acc.push(formattedLight);
 		return acc;
 	}, []);
 </script>
@@ -93,6 +91,6 @@
 		onHold={() => openControlPanel(light.id)}
 	>
 		<svelte:component this={lightIcons[light.id]} height="5em" width="5em" />
-		<h2 class="lightName">{light.name.replace(selectedRoom, '')}</h2>
+		<h2 class="lightName">{light.name}</h2>
 	</Block>
 {/each}

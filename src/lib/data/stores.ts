@@ -1,12 +1,6 @@
 import { writable } from 'svelte/store';
 import { Rooms } from './types';
-import type {
-	DeviceInfoLookupTable,
-	LightEntity,
-	SceneEntity,
-	SwitchEntity,
-	WeatherEntity
-} from './types';
+import type { LightEntity, SceneEntity, SwitchEntity, WeatherEntity } from './types';
 import type { Connection, HassEvent } from 'home-assistant-js-websocket';
 
 // Store for the WS connection object so that it can be accessed from anywhere
@@ -21,17 +15,6 @@ function createConnectionStore() {
 
 export const connectionStore = createConnectionStore();
 
-// Store for device registry info so we can map device IDs to friendly names
-function createDeviceRegistryStore() {
-	const { subscribe, set } = writable<DeviceInfoLookupTable>();
-
-	return {
-		subscribe,
-		set
-	};
-}
-
-export const deviceRegistryStore = createDeviceRegistryStore();
 
 export interface LightStore {
 	[lightId: string]: LightEntity;
@@ -45,14 +28,6 @@ function createLightStore() {
 		addOrUpdate: (lightEntities: LightEntity[]) =>
 			update((lightStore: LightStore) => {
 				lightEntities.forEach((light) => {
-					// BULLSHIT HACK I HAVE TO DO TO STOP TV_LIGHTS FROM CONSTANTLY TRIGGERING RE-RENDERS
-					if (light.entity_id === 'light.tv_lights') {
-						delete light.last_changed;
-						delete light.last_updated;
-						delete light.attributes.rate_limit_remaining;
-						delete light.attributes.rate_limit_reset_seconds;
-						delete light.context;
-					}
 					lightStore[light.entity_id] = light;
 				});
 				return lightStore;

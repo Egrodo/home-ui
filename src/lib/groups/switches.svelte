@@ -5,7 +5,7 @@
 	import Block from '$lib/blocks/block.svelte';
 	import { switchStore, type SwitchStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
-	import { toggleSwitchState } from '$lib/data/ws';
+	import { toggleSwitchState, ROOM_AREA_IDS } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
 
 	export let selectedRoom: Rooms;
@@ -23,56 +23,30 @@
 
 	const switchIcons: { [switch_id: string]: ComponentType } = {};
 	let switches: SwitchStore = {};
-	const switchRoomMap = {
-		[Rooms.AllRooms]: new Set(),
-		[Rooms.Bedroom]: new Set(),
-		[Rooms.LivingRoom]: new Set(),
-		[Rooms.Office]: new Set()
-	};
 
 	switchStore.subscribe(async (newSwitches) => {
 		for (const switch_ of Object.values(newSwitches)) {
 			if (switchIcons[switch_.entity_id] == null) {
-				let icon;
-				if (switch_.attributes.icon) {
-					icon = await getIcon(switch_.attributes.icon);
-				} else {
-					icon = await getIcon('mdi:lightbulb-variant');
-				}
+				const icon = switch_.attributes.icon
+					? await getIcon(switch_.attributes.icon)
+					: await getIcon('mdi:lightbulb-variant');
 				switchIcons[switch_.entity_id] = icon;
 			}
-			// TODO: Find a better way to get the rooms
-			Object.values(Rooms).forEach((roomId) => {
-				if (switch_.attributes.friendly_name.includes(roomId)) {
-					switchRoomMap[roomId].add(switch_.entity_id);
-
-					// TODO: BUG: This might be causing room reduction not to work
-					// switch_.attributes.friendly_name = switch_.attributes.friendly_name.replace(
-					// 	`${roomId} `,
-					// 	''
-					// );
-				}
-			});
 		}
-
 		switches = newSwitches;
 	});
 
 	$: switchesToShow = Object.values(switches).reduce<FormattedSwitchType[]>((acc, switch_) => {
-		const formattedSwitch: FormattedSwitchType = {
+		const entityArea = data.entityAreaMap[switch_.entity_id];
+		const areaIds = ROOM_AREA_IDS[selectedRoom];
+		const inRoom = selectedRoom === Rooms.AllRooms || (entityArea != null && areaIds?.includes(entityArea));
+		if (!inRoom) return acc;
+
+		acc.push({
 			id: switch_.entity_id,
 			state: switch_.state as 'on' | 'off',
 			name: switch_.attributes.friendly_name
-		};
-
-		if (
-			selectedRoom === Rooms.AllRooms ||
-			switch_.attributes.friendly_name.includes(selectedRoom)
-		) {
-			// Remove room name from switch name
-			formattedSwitch.name = switch_.attributes.friendly_name.replace(`${selectedRoom} `, '');
-			acc.push(formattedSwitch);
-		}
+		});
 		return acc;
 	}, []);
 </script>

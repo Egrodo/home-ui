@@ -104,9 +104,22 @@ export interface DeviceInfo {
 
 export type DeviceInfoLookupTable = Record<string, DeviceInfo>;
 
+export interface EntityRegistryEntry {
+	entity_id: string;
+	device_id: string | null;
+	area_id: string | null;
+	hidden_by: string | null;
+	disabled_by: string | null;
+	entity_category: string | null;
+}
+
+/** Maps entity_id → effective area_id (entity-level override, falling back to device area) */
+export type EntityAreaMap = Record<string, string | null>;
+
 export interface AppConnections {
 	wsConnection: Connection;
 	deviceLookupTable: DeviceInfoLookupTable;
+	entityAreaMap: EntityAreaMap;
 	wsUnsubscribe: UnsubscribeFunc;
 }
 

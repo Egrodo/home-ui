@@ -1,15 +1,22 @@
-import { fetchDeviceRegistry, handleStateMessage, initWsConnection } from '$lib/data/ws';
+import {
+	fetchDeviceRegistry,
+	fetchEntityRegistry,
+	handleStateMessage,
+	initWsConnection,
+	setHiddenEntityIds
+} from '$lib/data/ws';
 import { subscribeEntities } from 'home-assistant-js-websocket';
-import type { AppConnections, DeviceInfoLookupTable } from '$lib/data/types';
+import type { AppConnections, DeviceInfoLookupTable, EntityAreaMap } from '$lib/data/types';
 import { browser } from '$app/environment';
 
 async function initAppConnections(): Promise<AppConnections> {
-	// Initialize connection to websocket. Return callback for unsubscribe on unmount
 	const wsConnection = await initWsConnection();
-	const wsUnsubscribe = subscribeEntities(wsConnection, handleStateMessage);
 
-	// TODO: This doesn't ever update other than on first load
-	const deviceRegistry = await fetchDeviceRegistry(wsConnection);
+	const [deviceRegistry, entityRegistry] = await Promise.all([
+		fetchDeviceRegistry(wsConnection),
+		fetchEntityRegistry(wsConnection)
+	]);
+
 	let deviceLookupTable: DeviceInfoLookupTable = {};
 	if (deviceRegistry) {
 		deviceLookupTable = deviceRegistry.reduce<DeviceInfoLookupTable>((acc, info) => {
@@ -20,10 +27,24 @@ async function initAppConnections(): Promise<AppConnections> {
 		console.error('Device registry nullish?');
 	}
 
+	setHiddenEntityIds(entityRegistry);
+
+	// Subscribe AFTER hidden set is populated so the first state message is filtered correctly
+	const wsUnsubscribe = subscribeEntities(wsConnection, handleStateMessage);
+
+	// Build entity_id → area_id map. Entity-level area_id takes precedence over device area_id.
+	const entityAreaMap = entityRegistry.reduce<EntityAreaMap>((acc, entry) => {
+		acc[entry.entity_id] =
+			entry.area_id ??
+			(entry.device_id ? (deviceLookupTable[entry.device_id]?.area_id ?? null) : null);
+		return acc;
+	}, {});
+
 	return {
 		wsConnection,
 		wsUnsubscribe,
-		deviceLookupTable
+		deviceLookupTable,
+		entityAreaMap
 	};
 }
 

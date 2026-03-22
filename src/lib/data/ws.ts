@@ -21,14 +21,24 @@ import {
 	type WeatherEntity
 } from './types';
 
-import type { DeviceInfo } from './types';
+import type { DeviceInfo, EntityRegistryEntry } from './types';
 
-/**
- * NOTE: If you don't want a device to show up in the UI, add the string "donotshow"
- * to its name in Home Assistant and it will be ignored here. Unfortunately there is no
- * other way to pass metadata about a device in HA that I know of.
- */
-const DO_NOT_SHOW_STRING = 'donotshow';
+/** Set of entity IDs that are hidden/disabled in HA and should not appear in the UI */
+let hiddenEntityIds: Set<string> = new Set();
+
+export function setHiddenEntityIds(entityRegistry: EntityRegistryEntry[]) {
+	hiddenEntityIds = new Set(
+		entityRegistry
+			.filter(
+				(entry) =>
+					entry.hidden_by != null ||
+					entry.disabled_by != null ||
+					entry.entity_category != null
+			)
+			.map((entry) => entry.entity_id)
+	);
+
+}
 
 /**
  * This function handles filtering out data for the:
@@ -42,7 +52,7 @@ const DO_NOT_SHOW_STRING = 'donotshow';
  * and processing it into the appropriate stores.
  */
 export function handleStateMessage(states: HassEntities) {
-	// console.info(states);
+	console.info(states);
 	// Here I am creating arrays for the updates of each state entity type
 	const [lightEntities, switchEntities, sceneEntities, weatherEntity]: [
 		LightEntity[],
@@ -54,11 +64,8 @@ export function handleStateMessage(states: HassEntities) {
 	>(
 		(acc, [entity_id, entity]: [string, HassEntity]) => {
 			if (entity.state === 'unavailable') return acc;
-			if (
-				entity.attributes?.friendly_name == null ||
-				entity.attributes.friendly_name.includes(DO_NOT_SHOW_STRING)
-			)
-				return acc;
+			if (entity.attributes?.friendly_name == null) return acc;
+			if (hiddenEntityIds.has(entity_id)) return acc;
 
 			const [lights, switches, scenes, weather] = acc;
 			let newWeather = weather;
@@ -99,21 +106,16 @@ export function handleStateMessage(states: HassEntities) {
 	}
 }
 
+export const ROOM_AREA_IDS: Partial<Record<Rooms, string[]>> = {
+	[Rooms.LivingRoom]: ['living_room'],
+	[Rooms.Bedroom]: ['bedroom'],
+	[Rooms.Office]: ['den'],
+	[Rooms.Hallway]: ['hallway']
+};
+
 const getAreaIds = (room: Rooms): string[] => {
-	switch (room) {
-		case Rooms.LivingRoom: {
-			return ['living_room'];
-		}
-		case Rooms.Bedroom: {
-			return ['bedroom'];
-		}
-		case Rooms.Office: {
-			return ['office'];
-		}
-		case Rooms.AllRooms: {
-			return ['living_room', 'bedroom', 'office'];
-		}
-	}
+	if (room === Rooms.AllRooms) return Object.values(ROOM_AREA_IDS).flat();
+	return ROOM_AREA_IDS[room] ?? [];
 };
 
 async function sendWsMessage(connection: Connection, payload: MessageBase) {
@@ -274,16 +276,28 @@ export async function fetchDeviceRegistry(connection: Connection): Promise<Devic
 	if (connection == null || connection.connected === false)
 		throw new Error('Cannot fetch device registry without connection setup');
 
-	const registryPromise = connection.sendMessagePromise<DeviceInfo[]>({
-		type: 'config/device_registry/list'
-	});
 	try {
-		const deviceRegistry = await registryPromise;
-
+		const deviceRegistry = await connection.sendMessagePromise<DeviceInfo[]>({
+			type: 'config/device_registry/list'
+		});
 		if (deviceRegistry == null || deviceRegistry.length === 0)
 			throw new Error('Device registry empty');
 		return deviceRegistry;
 	} catch (err: any) {
 		throw new Error('Failed to fetch device registry', err);
+	}
+}
+
+export async function fetchEntityRegistry(connection: Connection): Promise<EntityRegistryEntry[]> {
+	if (connection == null || connection.connected === false)
+		throw new Error('Cannot fetch entity registry without connection setup');
+
+	try {
+		const entries = await connection.sendMessagePromise<EntityRegistryEntry[]>({
+			type: 'config/entity_registry/list'
+		});
+		return entries ?? [];
+	} catch (err: any) {
+		throw new Error('Failed to fetch entity registry', err);
 	}
 }
