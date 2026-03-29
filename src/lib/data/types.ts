@@ -1,5 +1,3 @@
-import type { Connection, UnsubscribeFunc } from 'home-assistant-js-websocket';
-
 export type ColorMode = 'hs' | 'xy' | 'rgb' | 'color_temp';
 
 interface LightEntityAttributes {
@@ -115,34 +113,3 @@ export interface EntityRegistryEntry {
 
 /** Maps entity_id → effective area_id (entity-level override, falling back to device area) */
 export type EntityAreaMap = Record<string, string | null>;
-
-export interface AppConnections {
-	wsConnection: Connection;
-	deviceLookupTable: DeviceInfoLookupTable;
-	entityAreaMap: EntityAreaMap;
-	wsUnsubscribe: UnsubscribeFunc;
-}
-
-export type PongEvent = {
-	deviceName: string;
-	timestamp: string;
-};
-
-export interface GameConfig {
-	blueBtnName: string;
-	redBtnName: string;
-	maxScore: number;
-	maxScoreOptions: number[];
-	serveCount: number;
-	firstPlayer: 'blue' | 'red';
-}
-
-export interface PlayerData {
-	score: number; // Total score for this player
-	pointTs: string[]; // Timestamps for each point that's scored
-	whichColor: 'blue' | 'red';
-}
-
-export type GameState = {
-	[deviceName: string]: PlayerData;
-};

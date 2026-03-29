@@ -12,7 +12,7 @@ import {
 	type HassEntities,
 	type HassEntity
 } from 'home-assistant-js-websocket';
-import { lightStore, sceneStore, switchStore, weatherStore } from './stores';
+import { lightStore, sceneStore, switchStore, weatherStore } from './backendStores';
 import {
 	Rooms,
 	type LightEntity,
@@ -37,7 +37,6 @@ export function setHiddenEntityIds(entityRegistry: EntityRegistryEntry[]) {
 			)
 			.map((entry) => entry.entity_id)
 	);
-
 }
 
 /**
@@ -52,7 +51,6 @@ export function setHiddenEntityIds(entityRegistry: EntityRegistryEntry[]) {
  * and processing it into the appropriate stores.
  */
 export function handleStateMessage(states: HassEntities) {
-	console.info(states);
 	// Here I am creating arrays for the updates of each state entity type
 	const [lightEntities, switchEntities, sceneEntities, weatherEntity]: [
 		LightEntity[],
