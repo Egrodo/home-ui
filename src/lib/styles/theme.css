@@ -1,0 +1,21 @@
+[data-theme='dark'] {
+	--page-background: #0c0d16;
+	--page-light-font-color: #f3f4f5;
+	--page-drawer-background: #1f212e;
+
+	--block-default-light-color: #fff7dc;
+	--block-default-dark-color: #1f212e;
+	--block-border-radius: 32px;
+	--block-padding: 38px;
+}
+
+[data-theme='light'] {
+	--page-background: #f0f1f7;
+	--page-light-font-color: #111111;
+	--page-drawer-background: #e0e2ee;
+
+	--block-default-light-color: #fff7dc;
+	--block-default-dark-color: #d0d2de;
+	--block-border-radius: 32px;
+	--block-padding: 38px;
+}

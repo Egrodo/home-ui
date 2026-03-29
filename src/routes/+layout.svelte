@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { isConnectedStore } from '$lib/data/backend';
-	import Loader from '$lib/components/Loader.svelte';
+	import '$lib/styles/theme.css';
+	import { themeStore } from '$lib/data/theme';
 
-	let hasLoaded = false;
-	isConnectedStore.subscribe((connected) => {
-		hasLoaded = connected;
-	});
+	// Sync the stored theme to the DOM on first render
+	themeStore.set($themeStore);
 </script>
 
 <style>
@@ -18,21 +16,6 @@
 	}
 
 	:global(body) {
-		/* Page globals */
-		--page-background: #0c0d16;
-		--page-light-font-color: #f3f4f5;
-		--page-height: 768px;
-		--page-width: 1360px;
-		--page-drawer-background: #1f212e;
-
-		/* Block globals */
-		--block-border-radius: 32px;
-		--block-padding: 38px;
-		--block-default-light-color: #fff7dc;
-		--block-default-dark-color: #1f212e;
-
-		height: var(--page-height);
-		width: var(--page-width);
 		margin: 0;
 	}
 
@@ -41,8 +24,4 @@
 	}
 </style>
 
-{#if hasLoaded === true}
-	<slot />
-{:else}
-	<Loader />
-{/if}
+<slot />
