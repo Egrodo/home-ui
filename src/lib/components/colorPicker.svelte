@@ -1,17 +1,14 @@
 <script lang="ts">
-	import type { AppConnections } from '$lib/data/types';
-	import { changeLightColor } from '$lib/data/ws';
+	import { changeColor } from '$lib/data/backend';
 	import debounce from '$lib/utils/debounce';
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 
 	export let initialColor: [number, number, number] | undefined;
 	export let entityid: string;
 
-	export let data: AppConnections;
-
 	$: selectedColor = initialColor ?? [0, 0, 0];
 
-	const debouncedChangeLightColor = debounce(500, changeLightColor);
+	const debouncedChangeColor = debounce(500, changeColor);
 
 	function handleClick(e: MouseEvent) {
 		const eventTarget = e.target as SVGElement;
@@ -19,7 +16,7 @@
 		const clickedColor = eventTarget.dataset.fill;
 		selectedColor = hexToRGB(clickedColor);
 
-		debouncedChangeLightColor(data.wsConnection, entityid, selectedColor);
+		debouncedChangeColor(entityid, selectedColor as [number, number, number]);
 	}
 
 	function handleTouchMove(e: TouchEvent) {
@@ -29,7 +26,7 @@
 		const clickedColor = realTarget.dataset.fill;
 		selectedColor = hexToRGB(clickedColor);
 
-		debouncedChangeLightColor(data.wsConnection, entityid, selectedColor);
+		debouncedChangeColor(entityid, selectedColor as [number, number, number]);
 	}
 </script>
 

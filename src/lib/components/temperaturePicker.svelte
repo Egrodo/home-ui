@@ -1,19 +1,16 @@
 <script lang="ts">
-	import type { AppConnections } from '$lib/data/types';
-
 	import Slider from './slider.svelte';
 	import debounce from '$lib/utils/debounce';
-	import { changeLightTemperature } from '$lib/data/ws';
+	import { changeTemperature } from '$lib/data/backend';
 	import { spring } from 'svelte/motion';
 	// Range of temperature supported by selected device in Kelvin
 	export let range: [max: number, min: number];
 	export let initialValue: number | undefined = range[0];
 	export let entityid: string;
-	export let data: AppConnections;
 
 	const kelvin = spring(initialValue ?? range[0], { stiffness: 0.1, damping: 0.5 });
 
-	const debouncedChangeLightTemperature = debounce(500, changeLightTemperature);
+	const debouncedChangeTemperature = debounce(500, changeTemperature);
 
 	function handleChange(percentage: number) {
 		const [max, min] = range;
@@ -25,7 +22,7 @@
 			kelvin.set(newKelvin);
 		}
 
-		debouncedChangeLightTemperature(data.wsConnection, entityid, newKelvin);
+		debouncedChangeTemperature(entityid, newKelvin);
 	}
 
 	// Since kelvin has the high value at the left and the low value on the right, invert the percentage

@@ -1,15 +1,14 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
 	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
-	import type { AppConnections } from '$lib/data/types';
 	import { Rooms } from '$lib/data/types';
-	import { toggleLightState, ROOM_AREA_IDS } from '$lib/data/ws';
+	import { toggleLight, entityAreaMapStore } from '$lib/data/backend';
+	import { ROOM_AREA_IDS } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
 	import type { ComponentType } from 'svelte';
 
 	export let selectedRoom: Rooms;
-	export let data: AppConnections;
 
 	let lights: LightStore = {};
 
@@ -19,9 +18,12 @@
 		selectedLightIdStore.set(lightId);
 	}
 
-	function toggleLight(lightId: string) {
+	let entityAreaMap: Record<string, string | null> = {};
+	entityAreaMapStore.subscribe((m) => (entityAreaMap = m));
+
+	function handleToggleLight(lightId: string) {
 		const newState = lights[lightId].state === 'on' ? 'off' : 'on';
-		toggleLightState(data.wsConnection, lightId, newState);
+		toggleLight(lightId, newState);
 	}
 
 	const lightIcons: { [light_id: string]: ComponentType } = {};
@@ -52,7 +54,7 @@
 	};
 
 	$: lightsToShow = Object.values(lights).reduce<FormattedLightType[]>((acc, light) => {
-		const entityArea = data.entityAreaMap[light.entity_id];
+		const entityArea = entityAreaMap[light.entity_id];
 		const areaIds = ROOM_AREA_IDS[selectedRoom];
 		const inRoom = selectedRoom === Rooms.AllRooms || (entityArea != null && areaIds?.includes(entityArea));
 		if (!inRoom) return acc;
@@ -87,7 +89,7 @@
 	<Block
 		backgroundColor={`rgb(${light.color.join(', ')})`}
 		fontColor={shouldDisplayBlackText(light.color) ? 'black' : 'white'}
-		onClick={() => toggleLight(light.id)}
+		onClick={() => handleToggleLight(light.id)}
 		onHold={() => openControlPanel(light.id)}
 	>
 		<svelte:component this={lightIcons[light.id]} height="5em" width="5em" />

@@ -1,22 +1,24 @@
 <script lang="ts">
-	import type { AppConnections } from '$lib/data/types';
 	import type { ComponentType } from 'svelte';
 
 	import Block from '$lib/blocks/block.svelte';
 	import { sceneStore, type SceneStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
-	import { activateScene, ROOM_AREA_IDS } from '$lib/data/ws';
+	import { activateScene, entityAreaMapStore } from '$lib/data/backend';
+	import { ROOM_AREA_IDS } from '$lib/data/ws';
 	import { getIcon } from '$lib/utils/getIcon';
 	import hexToRGB from '$lib/utils/HEXtoRGB';
 	import shouldDisplayBlackText from '$lib/utils/shouldDisplayBlackText';
 
 	export let selectedRoom: Rooms;
-	export let data: AppConnections;
 
 	// For blocks whose data doesn't include a color, switch back and forth between
 	// these two colors
 	const defaultColors = ['#FFF7DC', '#1F212E'];
 	const getDefaultColor = (i: number) => defaultColors[i % defaultColors.length];
+
+	let entityAreaMap: Record<string, string | null> = {};
+	entityAreaMapStore.subscribe((m) => (entityAreaMap = m));
 
 	// Scene data directly from the WS server, not formatted
 	let scenes: SceneStore = {};
@@ -48,7 +50,7 @@
 
 	// Scenes filtered and formatted for rendering
 	$: scenesToShow = Object.values(scenes).reduce<FormattedSceneType[]>((acc, scene) => {
-		const entityArea = data.entityAreaMap[scene.entity_id];
+		const entityArea = entityAreaMap[scene.entity_id];
 		const areaIds = ROOM_AREA_IDS[selectedRoom];
 		const inRoom = selectedRoom === Rooms.AllRooms || (entityArea != null && areaIds?.includes(entityArea));
 		if (!inRoom) return acc;
@@ -86,7 +88,7 @@
 				? 'black'
 				: 'white'
 			: getDefaultColor(i + 1)}
-		onClick={() => activateScene(data.wsConnection, scene.entity_id)}
+		onClick={() => activateScene(scene.entity_id)}
 		toggle
 	>
 		<svelte:component this={sceneIcons[scene.id]} height="5em" width="5em" />

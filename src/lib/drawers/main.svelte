@@ -1,14 +1,12 @@
 <script lang="ts">
 	import Block from '$lib/blocks/block.svelte';
 	import { selectedRoomStore } from '$lib/data/stores';
-	import { Rooms, type AppConnections } from '$lib/data/types';
-	import { toggleAreaState } from '$lib/data/ws';
+	import { Rooms } from '$lib/data/types';
+	import { toggleArea } from '$lib/data/backend';
 	import Lights from '$lib/groups/lights.svelte';
 	import Scenes from '$lib/groups/scenes.svelte';
 	import Switches from '$lib/groups/switches.svelte';
 	import ToggleSwitchOutline from 'svelte-material-icons/ToggleSwitchOutline.svelte';
-
-	export let data: AppConnections;
 	let selectedRoom: Rooms = Rooms.AllRooms;
 	selectedRoomStore.subscribe((newSelectedRoom) => {
 		selectedRoom = newSelectedRoom;
@@ -24,7 +22,7 @@
 
 	/* Function to turn all devices in a room on/off */
 	function toggleAllDevices(state: 'on' | 'off') {
-		toggleAreaState(data.wsConnection, selectedRoom, state);
+		toggleArea(selectedRoom, state);
 	}
 </script>
 
@@ -112,8 +110,8 @@
 			<span class="flipIconUp"><ToggleSwitchOutline height="5em" width="5em" /></span>
 			<h2 class="blockTitle">All Devices Off</h2>
 		</Block>
-		<Scenes {selectedRoom} {data} />
-		<Switches {selectedRoom} {data} />
-		<Lights {selectedRoom} {data} />
+		<Scenes {selectedRoom} />
+		<Switches {selectedRoom} />
+		<Lights {selectedRoom} />
 	</div>
 </section>

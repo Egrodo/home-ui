@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { AppConnections } from '$lib/data/types';
+	import { isConnectedStore } from '$lib/data/backend';
 	import Loader from '$lib/components/Loader.svelte';
 
-	export let data: AppConnections;
-
-	$: hasLoaded = data.wsConnection !== null && data.wsConnection?.connected === true;
+	let hasLoaded = false;
+	isConnectedStore.subscribe((connected) => {
+		hasLoaded = connected;
+	});
 </script>
 
 <style>

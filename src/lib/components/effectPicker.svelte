@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { changeLightEffect } from '../data/ws';
+	import { changeEffect } from '$lib/data/backend';
 
 	export let effectList: string[] = [];
 	export let activeEffect: string;
@@ -17,8 +17,8 @@
 		}
 	});
 
-	function changeEffect(effect: string) {
-		changeLightEffect(entityid, effect);
+	function handleChangeEffect(effect: string) {
+		changeEffect(entityid, effect);
 	}
 </script>
 
@@ -62,7 +62,7 @@
 				<button
 					class="effect"
 					class:active={effect === activeEffect}
-					on:click={() => changeEffect(effect)}
+					on:click={() => handleChangeEffect(effect)}
 				>
 					{effect}
 				</button>

@@ -1,20 +1,18 @@
 <script lang="ts">
 	import type { ComponentType } from 'svelte';
-	import type { AppConnections } from '$lib/data/types';
 
 	import { fly } from 'svelte/transition';
 	import CloseIcon from 'svelte-material-icons/Close.svelte';
 	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
 	import { getIcon } from '$lib/utils/getIcon';
-	import stripRoomNames from '$lib/utils/stripRoomNames';
+
 	import ColorPicker from '$lib/components/colorPicker.svelte';
 	import Brightness from '$lib/components/brightness.svelte';
 	import TemperaturePicker from '$lib/components/temperaturePicker.svelte';
-	import { toggleLightState } from '$lib/data/ws';
+	import { toggleLight } from '$lib/data/backend';
 	import EffectPicker from '$lib/components/effectPicker.svelte';
 
 	export let lightId: string | null;
-	export let data: AppConnections;
 
 	function closeDrawer() {
 		selectedLightIdStore.set(null);
@@ -183,7 +181,7 @@
 			>
 			<header>
 				<svelte:component this={lightIcon} height="6.5em" width="6.5em" color="#fff" />
-				<h2>{stripRoomNames(light.attributes.friendly_name)}</h2>
+				<h2>{light.attributes.friendly_name}</h2>
 				<p class="activeEffect">
 					{#if nonSolidEffectEnabled}
 						Active effect: {light.attributes.effect}
@@ -224,13 +222,13 @@
 			<section class="pickerContainer" class:disablePicker={light.state === 'off'}>
 				{#if activeDisplayMode === 'color'}
 					<ColorPicker
-						{data}
+
 						entityid={light.entity_id}
 						initialColor={light.attributes.rgb_color}
 					/>
 				{:else if activeDisplayMode === 'temp'}
 					<TemperaturePicker
-						{data}
+
 						entityid={light.entity_id}
 						range={[
 							+light.attributes.max_color_temp_kelvin,
@@ -248,7 +246,6 @@
 			</section>
 			<span class="brightnessSlider" class:disablePicker={light.state === 'off'}
 				><Brightness
-					{data}
 					entityid={light.entity_id}
 					initialValue={light.attributes.brightness}
 				/></span
@@ -260,7 +257,7 @@
 				on:click={() => {
 					if (light == null) throw new Error('Light is null');
 					const newState = light.state === 'on' ? 'off' : 'on';
-					toggleLightState(data.wsConnection, light.entity_id, newState);
+					toggleLight(light.entity_id, newState);
 				}}
 			>
 				{light.state === 'on' ? 'Turn Off' : 'Turn On'}
