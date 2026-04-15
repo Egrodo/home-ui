@@ -1,9 +1,14 @@
 <script lang="ts">
 	import '$lib/styles/theme.css';
+	import { browser } from '$app/environment';
 	import { themeStore } from '$lib/data/theme';
 
 	// Sync the stored theme to the DOM on first render
 	themeStore.set($themeStore);
+
+	if (browser) {
+		(window as any).theme = (t: 'light' | 'dark') => themeStore.set(t);
+	}
 </script>
 
 <style>

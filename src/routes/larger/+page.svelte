@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { isConnectedStore } from '$lib/data/backend';
 	import Loader from '$lib/components/Loader.svelte';
+	import Header from '$lib/components/larger/Header.svelte';
 
 	let hasLoaded = false;
 	isConnectedStore.subscribe((connected) => {
@@ -13,9 +14,15 @@
 		width: 1080px;
 		height: 1920px;
 		background-color: var(--page-background);
+		display: flex;
+		flex-direction: column;
 	}
 </style>
 
 <div class="container">
-	<Loader />
+	{#if !hasLoaded}
+		<Loader />
+	{:else}
+		<Header />
+	{/if}
 </div>
