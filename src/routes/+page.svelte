@@ -1,39 +1,36 @@
 <script lang="ts">
 	import { isConnectedStore } from '$lib/data/backend';
-	import { selectedLightIdStore } from '$lib/data/stores';
-	import Loader from '$lib/v1/components/Loader.svelte';
-	import LeftDrawer from '$lib/v1/drawers/left.svelte';
-	import MainDrawer from '$lib/v1/drawers/main.svelte';
-	import RightDrawer from '$lib/v1/drawers/right.svelte';
+	import Loader from '$lib/v2/Loader.svelte';
+	import Header from '$lib/v2/header/Header.svelte';
+	import Floorplan from '$lib/v2/floorplan/Floorplan.svelte';
+	import Devices from '$lib/v2/devices/Devices.svelte';
+	import Stocks from '$lib/v2/stocks/Stocks.svelte';
+	import LightDrawer from '$lib/v2/drawer/LightDrawer.svelte';
 
 	let hasLoaded = false;
-	isConnectedStore.subscribe((connected) => {
-		hasLoaded = connected;
-	});
-
-	let selectedLightId: string | null = null;
-	selectedLightIdStore.subscribe((newSelectedLightId) => {
-		selectedLightId = newSelectedLightId;
-	});
-
-	let _containerRef: HTMLElement;
+	isConnectedStore.subscribe((v) => (hasLoaded = v));
 </script>
 
 <style>
 	.container {
-		background-color: var(--page-background);
-		width: 1360px;
-		height: 768px;
+		width: 1080px;
+		height: 1920px;
+		background-color: var(--color-bg);
 		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		position: relative;
 	}
 </style>
 
-<div class="container" bind:this={_containerRef}>
-	{#if hasLoaded}
-		<LeftDrawer />
-		<MainDrawer />
-		<RightDrawer lightId={selectedLightId} />
-	{:else}
+<div class="container">
+	{#if !hasLoaded}
 		<Loader />
+	{:else}
+		<Header />
+		<Floorplan />
+		<Devices />
+		<Stocks />
+		<LightDrawer />
 	{/if}
 </div>

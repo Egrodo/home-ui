@@ -6,25 +6,19 @@
 	.loading {
 		height: 100%;
 		width: 100%;
-		background-color: var(--page-background);
-		color: var(--page-light-font-color);
-
+		background-color: var(--color-bg);
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		opacity: var(--opacity-text-secondary);
 	}
 
-	@keyframes loading-animation {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
+	@keyframes spin {
+		to { transform: rotate(360deg); }
 	}
 
 	.loader {
-		animation: ease-in-out loading-animation 1s infinite;
+		animation: spin 1s ease-in-out infinite;
 	}
 </style>
 

@@ -130,7 +130,7 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-		background: var(--color-surface-2, var(--page-background, #111));
+		background: var(--color-surface-2, #111);
 		border-top: 1px solid var(--color-border);
 		border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 		padding: 0 32px 28px;
