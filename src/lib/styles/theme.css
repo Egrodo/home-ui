@@ -1,3 +1,6 @@
+/* ─────────────────────────────────────────────
+   V1 tokens (legacy — do not use in v2)
+───────────────────────────────────────────── */
 [data-theme='dark'] {
 	--page-background: #0c0d16;
 	--page-light-font-color: #f3f4f5;
@@ -18,4 +21,72 @@
 	--block-default-dark-color: #d0d2de;
 	--block-border-radius: 32px;
 	--block-padding: 38px;
+}
+
+/* ─────────────────────────────────────────────
+   V2 design system
+   Optimised for a 24" wall-mounted display
+   viewed from ~1–2 m.
+───────────────────────────────────────────── */
+
+/* ── Shape ──────────────────────────────────
+   Slightly generous to feel premium at scale. */
+:root {
+	--radius-sm:   10px;   /* chips, tags */
+	--radius-md:   16px;   /* cards, stock blocks */
+	--radius-lg:   24px;   /* section panels */
+	--radius-xl:   32px;   /* drawer, large modals */
+	--radius-pill: 999px;  /* sliders, badges */
+}
+
+/* ── Typography ─────────────────────────────
+   Base size bumped from a typical desktop scale
+   to stay legible at arm's length. */
+:root {
+	--text-xs:   13px;   /* uppercase labels, captions */
+	--text-sm:   15px;   /* secondary info */
+	--text-base: 18px;   /* body / card names */
+	--text-md:   22px;   /* section headings */
+	--text-lg:   32px;   /* prominent figures */
+	--text-xl:   56px;   /* clock, hero numbers */
+
+	--font-weight-normal:   400;
+	--font-weight-medium:   500;
+	--font-weight-semibold: 600;
+	--font-weight-bold:     700;
+}
+
+/* ── Colours — dark ─────────────────────────
+   Surfaces layer from darkest (bg) upward. */
+[data-theme='dark'] {
+	--color-bg:        #0c0d16;
+	--color-surface:   #13141f;   /* cards, panels */
+	--color-surface-2: #1c1e2c;   /* drawer, elevated */
+	--color-border:    color-mix(in srgb, currentColor 15%, transparent);
+
+	/* Semantic */
+	--color-positive: #4caf7d;   /* stocks up, lights on */
+	--color-negative: #e05c5c;   /* stocks down */
+	--color-accent:   #5a82c8;   /* selected room, highlights */
+
+	/* Text — opacity tiers applied via CSS where needed */
+	--opacity-text-primary:   1;
+	--opacity-text-secondary: 0.6;
+	--opacity-text-muted:     0.35;
+}
+
+/* ── Colours — light ────────────────────────*/
+[data-theme='light'] {
+	--color-bg:        #f0f1f7;
+	--color-surface:   #e6e8f2;
+	--color-surface-2: #dcdff0;
+	--color-border:    color-mix(in srgb, currentColor 15%, transparent);
+
+	--color-positive: #2a8a58;
+	--color-negative: #c43c3c;
+	--color-accent:   #3a5fa0;
+
+	--opacity-text-primary:   0.9;
+	--opacity-text-secondary: 0.55;
+	--opacity-text-muted:     0.35;
 }
