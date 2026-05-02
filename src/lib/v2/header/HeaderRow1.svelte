@@ -37,40 +37,40 @@
 
 	/* Placeholder text */
 	.p-name {
-		font-size: 22px;
-		font-weight: 600;
-		opacity: 0.4;
+		font-size: var(--text-md);
+		font-weight: var(--font-weight-semibold);
+		opacity: var(--opacity-text-secondary);
 	}
 
 	.p-date {
-		font-size: 14px;
-		font-weight: 400;
-		opacity: 0.3;
+		font-size: var(--text-sm);
+		font-weight: var(--font-weight-normal);
+		opacity: var(--opacity-text-muted);
 		letter-spacing: 0.01em;
 	}
 
 	.p-hhmm {
-		font-size: 64px;
-		font-weight: 300;
+		font-size: var(--text-xl);
+		font-weight: var(--font-weight-normal);
 		line-height: 1;
-		opacity: 0.4;
+		opacity: var(--opacity-text-secondary);
 		letter-spacing: -0.02em;
 	}
 
 	.p-ampm {
-		font-size: 14px;
-		font-weight: 500;
-		opacity: 0.3;
+		font-size: var(--text-sm);
+		font-weight: var(--font-weight-medium);
+		opacity: var(--opacity-text-muted);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		align-self: flex-end;
 	}
 
 	.p-tiny {
-		font-size: 10px;
+		font-size: var(--text-xs);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		opacity: 0.25;
+		opacity: var(--opacity-text-muted);
 	}
 </style>
 

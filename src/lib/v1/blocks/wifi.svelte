@@ -1,5 +1,5 @@
 <script>
-	import WifiQrSrc from '$lib/assets/wifi_qr.png';
+	import WifiQrSrc from '$lib/v1/assets/wifi_qr.png';
 	import Block from './block.svelte';
 	const backgroundColor = '#fff'; // white
 	const fontColor = '#000'; // black

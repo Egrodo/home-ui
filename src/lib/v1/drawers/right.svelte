@@ -6,11 +6,11 @@
 	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
 	import { getIcon } from '$lib/utils/getIcon';
 
-	import ColorPicker from '$lib/components/colorPicker.svelte';
-	import Brightness from '$lib/components/brightness.svelte';
-	import TemperaturePicker from '$lib/components/temperaturePicker.svelte';
+	import ColorPicker from '$lib/v1/components/colorPicker.svelte';
+	import Brightness from '$lib/v1/components/brightness.svelte';
+	import TemperaturePicker from '$lib/v1/components/temperaturePicker.svelte';
 	import { toggleLight } from '$lib/data/backend';
-	import EffectPicker from '$lib/components/effectPicker.svelte';
+	import EffectPicker from '$lib/v1/components/effectPicker.svelte';
 
 	export let lightId: string | null;
 

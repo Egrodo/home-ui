@@ -3,7 +3,7 @@
 		display: grid;
 		grid-template-columns: 1fr 200px 220px;
 		height: 100%;
-		border-top: 1px solid currentColor;
+		border-top: 1px solid var(--color-border);
 	}
 
 	.calendar,
@@ -17,7 +17,7 @@
 
 	.current-weather,
 	.forecast {
-		border-left: 1px solid currentColor;
+		border-left: 1px solid var(--color-border);
 	}
 
 	/* Agenda scroll */
@@ -36,16 +36,16 @@
 
 	.agenda-item {
 		height: 32px;
-		border-radius: 6px;
-		border: 1.5px dashed currentColor;
+		border-radius: var(--radius-sm);
+		border: 1.5px dashed var(--color-border);
 		flex-shrink: 0;
 	}
 
 	/* Current weather: single centered block */
 	.current-block {
 		flex: 1;
-		border-radius: 8px;
-		border: 1.5px dashed currentColor;
+		border-radius: var(--radius-sm);
+		border: 1.5px dashed var(--color-border);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -63,26 +63,26 @@
 
 	.forecast-day {
 		flex: 1;
-		border-radius: 6px;
-		border: 1.5px dashed currentColor;
+		border-radius: var(--radius-sm);
+		border: 1.5px dashed var(--color-border);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
 	.section-label {
-		font-size: 10px;
+		font-size: var(--text-xs);
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		opacity: 0.25;
+		opacity: var(--opacity-text-muted);
 		flex-shrink: 0;
 	}
 
 	.p-tiny {
-		font-size: 10px;
+		font-size: var(--text-xs);
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
-		opacity: 0.25;
+		opacity: var(--opacity-text-muted);
 	}
 </style>
 

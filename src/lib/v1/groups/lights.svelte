@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Block from '$lib/blocks/block.svelte';
+	import Block from '$lib/v1/blocks/block.svelte';
 	import { lightStore, selectedLightIdStore, type LightStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
 	import { toggleLight, entityAreaMapStore } from '$lib/data/backend';

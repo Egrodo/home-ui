@@ -130,9 +130,9 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-		background: var(--page-background, #111);
-		border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-		border-radius: 20px 20px 0 0;
+		background: var(--color-surface-2, var(--page-background, #111));
+		border-top: 1px solid var(--color-border);
+		border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 		padding: 0 32px 28px;
 		z-index: 10;
 		/* Height governed by content; max-height set to cover stock section only */
@@ -168,9 +168,9 @@ overflow: hidden;
 	}
 
 	.entity-name {
-		font-size: 16px;
-		font-weight: 600;
-		opacity: 0.85;
+		font-size: var(--text-base);
+		font-weight: var(--font-weight-semibold);
+		opacity: var(--opacity-text-primary);
 	}
 
 	/* ── Recent colors ── */
@@ -182,10 +182,10 @@ overflow: hidden;
 	}
 
 	.recent-label {
-		font-size: 10px;
+		font-size: var(--text-xs);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		opacity: 0.35;
+		opacity: var(--opacity-text-muted);
 		flex-shrink: 0;
 		width: 60px;
 	}
@@ -198,9 +198,9 @@ overflow: hidden;
 	.swatch {
 		width: 28px;
 		height: 28px;
-		border-radius: 50%;
+		border-radius: var(--radius-pill);
 		cursor: pointer;
-		border: 2px solid color-mix(in srgb, currentColor 15%, transparent);
+		border: 2px solid var(--color-border);
 		flex-shrink: 0;
 		transition: transform 0.15s ease;
 	}
@@ -212,8 +212,8 @@ overflow: hidden;
 	.swatch-empty {
 		width: 28px;
 		height: 28px;
-		border-radius: 50%;
-		border: 1.5px dashed color-mix(in srgb, currentColor 20%, transparent);
+		border-radius: var(--radius-pill);
+		border: 1.5px dashed var(--color-border);
 		flex-shrink: 0;
 	}
 </style>

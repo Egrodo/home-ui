@@ -64,8 +64,8 @@
 <style>
 	.stocks {
 		margin: 0 24px 24px;
-		border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
-		border-radius: 16px;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
 		padding: 16px;
 	}
 

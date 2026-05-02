@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { isConnectedStore } from '$lib/data/backend';
 	import { selectedLightIdStore } from '$lib/data/stores';
-	import Loader from '$lib/components/Loader.svelte';
-	import LeftDrawer from '$lib/drawers/left.svelte';
-	import MainDrawer from '$lib/drawers/main.svelte';
-	import RightDrawer from '$lib/drawers/right.svelte';
+	import Loader from '$lib/v1/components/Loader.svelte';
+	import LeftDrawer from '$lib/v1/drawers/left.svelte';
+	import MainDrawer from '$lib/v1/drawers/main.svelte';
+	import RightDrawer from '$lib/v1/drawers/right.svelte';
 
 	let hasLoaded = false;
 	isConnectedStore.subscribe((connected) => {

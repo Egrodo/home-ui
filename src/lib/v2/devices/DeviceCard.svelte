@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { ComponentType } from 'svelte';
+	import type { Component } from 'svelte';
 	import type { LightEntity, SwitchEntity, SceneEntity } from '$lib/data/types';
 	import { lightDrawerStore } from '$lib/v2/drawer/drawerStore';
 
 	export let entity: LightEntity | SwitchEntity | SceneEntity;
-	export let icon: ComponentType | null = null;
+	export let icon: Component | null = null;
 
 	$: isLight = entity.entity_id.startsWith('light.');
 	$: isSwitch = entity.entity_id.startsWith('switch.');
@@ -74,8 +74,8 @@
 		flex-direction: column;
 		align-items: flex-start;
 		padding: 14px 14px 0;
-		border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-		border-radius: 12px;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
 		overflow: hidden;
 		cursor: pointer;
 		position: relative;
@@ -94,9 +94,9 @@
 	}
 
 	.name {
-		font-size: 13px;
-		font-weight: 500;
-		opacity: 0.75;
+		font-size: var(--text-xs);
+		font-weight: var(--font-weight-medium);
+		opacity: var(--opacity-text-secondary);
 		line-height: 1.2;
 		flex: 1;
 		align-self: stretch;
@@ -125,10 +125,10 @@
 		position: absolute;
 		top: 10px;
 		right: 10px;
-		font-size: 9px;
+		font-size: var(--text-xs);
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		opacity: 0.35;
+		opacity: var(--opacity-text-muted);
 	}
 
 	/* Scene: dashed border style instead of bar */

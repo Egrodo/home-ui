@@ -36,13 +36,12 @@
 
 <style>
 	.floorplan {
-		color: blue; /* Temporary outline wireframe color */
 		display: flex;
 		justify-content: center;
 		padding: 16px 24px;
 		margin: 0 24px;
-		border: 1px solid currentColor;
-		border-radius: 16px;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
 	}
 
 	svg {
@@ -62,16 +61,16 @@
 	}
 
 	path.selected {
-		fill: rgba(90, 130, 200, 0.18);
-		stroke: rgba(90, 130, 200, 0.6);
+		fill: color-mix(in srgb, var(--color-accent) 18%, transparent);
+		stroke: color-mix(in srgb, var(--color-accent) 60%, transparent);
 	}
 
 	path:hover {
-		fill: rgba(90, 130, 200, 0.08);
+		fill: color-mix(in srgb, var(--color-accent) 8%, transparent);
 	}
 
 	path.selected:hover {
-		fill: rgba(90, 130, 200, 0.26);
+		fill: color-mix(in srgb, var(--color-accent) 26%, transparent);
 	}
 </style>
 

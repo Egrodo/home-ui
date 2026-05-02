@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { isConnectedStore } from '$lib/data/backend';
-	import Loader from '$lib/components/Loader.svelte';
-	import Header from '$lib/components/larger/Header.svelte';
+	import Loader from '$lib/v1/components/Loader.svelte';
+	import Header from '$lib/v1/components/larger/Header.svelte';
 
 	let hasLoaded = false;
 	isConnectedStore.subscribe((connected) => {

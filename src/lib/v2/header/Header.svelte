@@ -6,11 +6,10 @@
 
 <style>
 	.header {
-		color: blue; /* Temporary outline wireframe color */
 		display: grid;
 		grid-template-rows: 140px 1fr 72px;
-		border: 1px solid currentColor;
-		border-radius: 16px;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
 		margin: 24px;
 		overflow: hidden;
 	}

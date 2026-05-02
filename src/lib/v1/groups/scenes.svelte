@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ComponentType } from 'svelte';
 
-	import Block from '$lib/blocks/block.svelte';
+	import Block from '$lib/v1/blocks/block.svelte';
 	import { sceneStore, type SceneStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
 	import { activateScene, entityAreaMapStore } from '$lib/data/backend';

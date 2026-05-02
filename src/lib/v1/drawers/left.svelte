@@ -1,9 +1,9 @@
 <script>
 	import { PUBLIC_HOME_NAME } from '$env/static/public';
-	import DateBlock from '$lib/blocks/date.svelte';
-	import TimeBlock from '$lib/blocks/time.svelte';
-	import Weather from '$lib/blocks/weather.svelte';
-	import Wifi from '$lib/blocks/wifi.svelte';
+	import DateBlock from '$lib/v1/blocks/date.svelte';
+	import TimeBlock from '$lib/v1/blocks/time.svelte';
+	import Weather from '$lib/v1/blocks/weather.svelte';
+	import Wifi from '$lib/v1/blocks/wifi.svelte';
 </script>
 
 <style>

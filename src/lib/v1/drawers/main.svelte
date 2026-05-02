@@ -1,11 +1,11 @@
 <script lang="ts">
-	import Block from '$lib/blocks/block.svelte';
+	import Block from '$lib/v1/blocks/block.svelte';
 	import { selectedRoomStore } from '$lib/data/stores';
 	import { Rooms } from '$lib/data/types';
 	import { toggleArea } from '$lib/data/backend';
-	import Lights from '$lib/groups/lights.svelte';
-	import Scenes from '$lib/groups/scenes.svelte';
-	import Switches from '$lib/groups/switches.svelte';
+	import Lights from '$lib/v1/groups/lights.svelte';
+	import Scenes from '$lib/v1/groups/scenes.svelte';
+	import Switches from '$lib/v1/groups/switches.svelte';
 	import ToggleSwitchOutline from 'svelte-material-icons/ToggleSwitchOutline.svelte';
 	let selectedRoom: Rooms = Rooms.AllRooms;
 	selectedRoomStore.subscribe((newSelectedRoom) => {

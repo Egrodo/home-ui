@@ -23,8 +23,8 @@
 		display: flex;
 		flex-direction: column;
 		padding: 12px 14px 10px;
-		border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-		border-radius: 12px;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
 		gap: 4px;
 		min-height: 90px;
 		position: relative;
@@ -38,30 +38,30 @@
 	}
 
 	.ticker {
-		font-size: 13px;
-		font-weight: 600;
+		font-size: var(--text-xs);
+		font-weight: var(--font-weight-semibold);
 		letter-spacing: 0.05em;
-		opacity: 0.9;
+		opacity: var(--opacity-text-primary);
 	}
 
 	.price {
-		font-size: 13px;
-		font-weight: 500;
-		opacity: 0.85;
+		font-size: var(--text-xs);
+		font-weight: var(--font-weight-medium);
+		opacity: var(--opacity-text-secondary);
 	}
 
 	.change {
-		font-size: 11px;
-		font-weight: 500;
+		font-size: var(--text-xs);
+		font-weight: var(--font-weight-medium);
 		letter-spacing: 0.02em;
 	}
 
 	.change.up {
-		color: #4caf7d;
+		color: var(--color-positive);
 	}
 
 	.change.down {
-		color: #e05c5c;
+		color: var(--color-negative);
 	}
 
 	.sparkline {

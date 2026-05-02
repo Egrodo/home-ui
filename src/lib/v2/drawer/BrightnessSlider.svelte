@@ -46,10 +46,10 @@
 	}
 
 	.label {
-		font-size: 10px;
+		font-size: var(--text-xs);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		opacity: 0.35;
+		opacity: var(--opacity-text-muted);
 		flex-shrink: 0;
 		width: 60px;
 	}
@@ -57,9 +57,9 @@
 	.track {
 		flex: 1;
 		height: 34px;
-		border-radius: 17px;
+		border-radius: var(--radius-pill);
 		background: linear-gradient(to right, #1c1c1c 0%, rgba(255, 255, 255, 0.85) 100%);
-		border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+		border: 1px solid var(--color-border);
 		position: relative;
 		cursor: pointer;
 		touch-action: none;
@@ -84,8 +84,8 @@
 		right: 12px;
 		top: 50%;
 		transform: translateY(-50%);
-		font-size: 11px;
-		opacity: 0.45;
+		font-size: var(--text-xs);
+		opacity: var(--opacity-text-secondary);
 		pointer-events: none;
 		font-variant-numeric: tabular-nums;
 	}

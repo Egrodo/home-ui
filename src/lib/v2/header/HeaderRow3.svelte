@@ -2,25 +2,25 @@
 	.row {
 		height: 100%;
 		padding: 10px 28px;
-		border-top: 1px solid currentColor;
+		border-top: 1px solid var(--color-border);
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
 	}
 
 	.section-label {
-		font-size: 10px;
+		font-size: var(--text-xs);
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		opacity: 0.25;
+		opacity: var(--opacity-text-muted);
 		flex-shrink: 0;
 	}
 
 	/* Full-width canvas area for the sparkline */
 	.sparkline-track {
 		flex: 1;
-		border-radius: 6px;
-		border: 1.5px dashed currentColor;
+		border-radius: var(--radius-sm);
+		border: 1.5px dashed var(--color-border);
 		position: relative;
 		overflow: hidden;
 	}
@@ -34,8 +34,8 @@
 	}
 
 	.tick {
-		font-size: 9px;
-		opacity: 0.2;
+		font-size: var(--text-xs);
+		opacity: var(--opacity-text-muted);
 	}
 </style>
 

@@ -4,7 +4,7 @@ import { browser } from '$app/environment';
 type Theme = 'dark' | 'light';
 
 const STORAGE_KEY = 'theme';
-const DEFAULT_THEME: Theme = 'dark';
+const DEFAULT_THEME: Theme = 'light';
 
 function getInitialTheme(): Theme {
 	if (!browser) return DEFAULT_THEME;
