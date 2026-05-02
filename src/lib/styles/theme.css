@@ -12,6 +12,20 @@
 	--radius-lg:   24px;   /* section panels */
 	--radius-xl:   32px;   /* drawer, large modals */
 	--radius-pill: 999px;  /* sliders, badges */
+
+	--tile-radius: 6px;
+}
+
+/* ── Light tile tokens ───────────────────────
+   White-temperature ramp, halo opacity bounds.
+   Semantic — can be retuned per color scheme. */
+:root {
+	--light-temp-warm:    #ffb060;   /* 2700K · tungsten */
+	--light-temp-neutral: #ffe5c4;   /* 4000K · soft white */
+	--light-temp-cool:    #c8e0ff;   /* 6500K · daylight */
+
+	--light-halo-min-opacity: 0.35;
+	--light-halo-max-opacity: 0.85;
 }
 
 /* ── Typography ─────────────────────────────
@@ -32,36 +46,50 @@
 }
 
 /* ── Colours — dark ─────────────────────────
-   Surfaces layer from darkest (bg) upward. */
+   Warm amber-brown palette; inspired by the
+   Paper scheme but in a night/candlelit key. */
 [data-theme='dark'] {
-	--color-bg:        #0c0d16;
-	--color-surface:   #13141f;   /* cards, panels */
-	--color-surface-2: #1c1e2c;   /* drawer, elevated */
+	--color-bg:        #0e0a05;   /* near-black with warm cast */
+	--color-surface:   #1e1409;   /* dark coffee-brown cards */
+	--color-surface-2: #2c1f0f;   /* drawer, elevated */
 	--color-border:    color-mix(in srgb, currentColor 15%, transparent);
 
 	/* Semantic */
-	--color-positive: #4caf7d;   /* stocks up, lights on */
-	--color-negative: #e05c5c;   /* stocks down */
-	--color-accent:   #5a82c8;   /* selected room, highlights */
+	--color-positive: #5dab6e;   /* stocks up, lights on */
+	--color-negative: #d95f4f;   /* stocks down */
+	--color-accent:   #c87830;   /* warm amber — selected room, highlights */
 
 	/* Text — opacity tiers applied via CSS where needed */
 	--opacity-text-primary:   1;
 	--opacity-text-secondary: 0.6;
 	--opacity-text-muted:     0.35;
+
+	/* Ink tokens for light tile */
+	--ink-1: rgba(255, 232, 190, 0.90);   /* warm cream */
+	--ink-2: rgba(220, 175, 110, 0.65);   /* warm tan */
+	--ink-3: rgba(175, 125, 65,  0.50);   /* warm muted */
+	--rule-strong: rgba(200, 148, 72, 0.48);
 }
 
-/* ── Colours — light ────────────────────────*/
+/* ── Colours — light (Paper scheme) ─────────
+   Exact values from the design handoff. */
 [data-theme='light'] {
-	--color-bg:        #f0f1f7;
-	--color-surface:   #e6e8f2;
-	--color-surface-2: #dcdff0;
-	--color-border:    color-mix(in srgb, currentColor 15%, transparent);
+	--color-bg:        #f4ece0;   /* warm cream page bg */
+	--color-surface:   #fbf5e9;   /* tile / card background */
+	--color-surface-2: #eee3d0;   /* drawer, elevated panels */
+	--color-border:    #e0d2b8;   /* rule — tile border off */
 
-	--color-positive: #2a8a58;
+	--color-positive: #6b8a3a;   /* state-on: olive green */
 	--color-negative: #c43c3c;
-	--color-accent:   #3a5fa0;
+	--color-accent:   #c95a2e;   /* warm rust/terracotta */
 
-	--opacity-text-primary:   0.9;
-	--opacity-text-secondary: 0.55;
-	--opacity-text-muted:     0.35;
+	--opacity-text-primary:   1;
+	--opacity-text-secondary: 0.65;
+	--opacity-text-muted:     0.45;
+
+	/* Ink tokens — Paper scheme exact values */
+	--ink-1: #2a2118;
+	--ink-2: #5a4a36;
+	--ink-3: #8a7a60;
+	--rule-strong: #8a7a60;
 }
