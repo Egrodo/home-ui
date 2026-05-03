@@ -2,9 +2,8 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { hourlyForecastStore, sunStore, weatherStore } from '../data/backendStores';
 
-	const PAD_LEFT = 28; // Y-axis label gutter
-	const PAD_RIGHT = 8;
-	const PAD_TOP = 18; // room for now-temp label
+	const PAD_X = 12;
+	const PAD_TOP = 20; // room for floating temp labels above curve
 	const PAD_BOTTOM = 16; // room for hour ticks
 
 	let containerWidth = 0;
@@ -17,8 +16,8 @@
 	});
 	onDestroy(() => clearInterval(interval));
 
-	function toAbsMinutes(iso: string): number {
-		return Math.floor(new Date(iso).getTime() / 60_000);
+	function toAbsMin(d: Date): number {
+		return Math.floor(d.getTime() / 60_000);
 	}
 
 	function catmullRomPath(pts: { x: number; y: number }[]): string {
@@ -43,50 +42,44 @@
 	$: unit = $weatherStore?.attributes.temperature_unit ?? '°F';
 	$: currentTemp = $weatherStore?.attributes.temperature ?? null;
 
-	// Fixed X range: today midnight → tomorrow midnight
-	$: dayStartAbs = (() => {
-		const d = new Date(now);
-		d.setHours(0, 0, 0, 0);
-		return Math.floor(d.getTime() / 60_000);
-	})();
-	$: dayEndAbs = dayStartAbs + 24 * 60;
-	$: timeRange = 24 * 60;
+	// Rolling 12h window starting from now
+	$: nowMin = toAbsMin(now);
+	$: windowStart = nowMin;
+	$: windowEnd = nowMin + 12 * 60;
 
-	// Today's hourly entries only
 	$: windowEntries = hourly.filter((e) => {
-		const abs = toAbsMinutes(e.datetime);
-		return abs >= dayStartAbs && abs < dayEndAbs;
+		const abs = toAbsMin(new Date(e.datetime));
+		return abs >= windowStart && abs <= windowEnd;
 	});
 
-	// Y scale — pad so even a narrow range shows curvature
+	// X mapping over the 12h window
+	function toX(absMin: number): number {
+		return PAD_X + ((absMin - windowStart) / (12 * 60)) * (containerWidth - PAD_X * 2);
+	}
+
+	// Y scale with padding so narrow ranges still show curvature
 	$: temps = windowEntries.map((e) => e.temperature);
 	$: rawMin = temps.length ? Math.min(...temps) : 0;
 	$: rawMax = temps.length ? Math.max(...temps) : 10;
 	$: tempPad = Math.max((rawMax - rawMin) * 0.35, 2);
-	$: minTemp = rawMin - tempPad;
-	$: maxTemp = rawMax + tempPad;
-	$: tempRange = maxTemp - minTemp;
-
-	function toX(absMinutes: number): number {
-		return PAD_LEFT + ((absMinutes - dayStartAbs) / timeRange) * (containerWidth - PAD_LEFT - PAD_RIGHT);
-	}
+	$: scaledMin = rawMin - tempPad;
+	$: scaledMax = rawMax + tempPad;
+	$: scaledRange = scaledMax - scaledMin;
 
 	function toY(temp: number): number {
-		const normalized = (temp - minTemp) / tempRange;
-		return PAD_TOP + (1 - normalized) * (containerHeight - PAD_TOP - PAD_BOTTOM);
+		return PAD_TOP + (1 - (temp - scaledMin) / scaledRange) * (containerHeight - PAD_TOP - PAD_BOTTOM);
 	}
 
 	$: points = windowEntries.map((e) => ({
-		x: toX(toAbsMinutes(e.datetime)),
+		x: toX(toAbsMin(new Date(e.datetime))),
 		y: toY(e.temperature),
 		temp: e.temperature
 	}));
 
 	$: pathD = catmullRomPath(points);
 
-	// Now indicator — always within the fixed 24h range
-	$: nowAbs = Math.floor(now.getTime() / 60_000);
-	$: nowX = toX(nowAbs);
+	// Now indicator — always rendered at left edge of window
+	$: nowX = toX(nowMin);
 	$: nowY = currentTemp != null ? toY(currentTemp) : containerHeight / 2;
 
 	function displayTemp(temp: number): string {
@@ -94,31 +87,38 @@
 		return `${val}°`;
 	}
 
-	// Y axis labels: actual data high/low
-	$: yLabelHigh = rawMax;
-	$: yLabelLow = rawMin;
+	// Floating Y labels at the curve's high/low points
+	$: highPoint = points.reduce((a, b) => (b.temp > a.temp ? b : a), points[0] ?? { x: 0, y: 0, temp: 0 });
+	$: lowPoint = points.reduce((a, b) => (b.temp < a.temp ? b : a), points[0] ?? { x: 0, y: 0, temp: 0 });
+	// Only show both if they're far enough apart vertically
+	$: showBothYLabels = Math.abs(highPoint.y - lowPoint.y) > 14;
 
 	// Sunset marker
-	$: sunsetIso = sun?.attributes.next_setting ?? null;
-	$: sunsetAbs = sunsetIso ? toAbsMinutes(sunsetIso) : null;
-	$: sunsetInRange =
-		sunsetAbs != null && sunsetAbs >= dayStartAbs && sunsetAbs < dayEndAbs;
+	$: sunsetDate = sun?.attributes.next_setting ? new Date(sun.attributes.next_setting) : null;
+	$: sunsetAbs = sunsetDate ? toAbsMin(sunsetDate) : null;
+	$: sunsetInRange = sunsetAbs != null && sunsetAbs >= windowStart && sunsetAbs <= windowEnd;
 	$: sunsetX = sunsetAbs != null ? toX(sunsetAbs) : 0;
 
-	// Hour ticks every 3h on a fixed 24h grid
+	// Hour tick labels — whole hours within the window, every 3h
 	$: tickHours = (() => {
 		const ticks: { label: string; x: number }[] = [];
-		for (let h = 0; h <= 24; h += 3) {
-			ticks.push({
-				label: formatHour(h),
-				x: toX(dayStartAbs + h * 60)
-			});
+		// Find the next whole hour at or after windowStart
+		const startDate = new Date(windowStart * 60_000);
+		startDate.setMinutes(0, 0, 0);
+		if (startDate.getTime() / 60_000 < windowStart) {
+			startDate.setHours(startDate.getHours() + 1);
+		}
+		// Advance to next 3h boundary
+		while (startDate.getHours() % 3 !== 0) startDate.setHours(startDate.getHours() + 1);
+		while (toAbsMin(startDate) <= windowEnd) {
+			ticks.push({ label: formatHour(startDate.getHours()), x: toX(toAbsMin(startDate)) });
+			startDate.setHours(startDate.getHours() + 3);
 		}
 		return ticks;
 	})();
 
 	function formatHour(h: number): string {
-		if (h === 0 || h === 24) return '12a';
+		if (h === 0) return '12a';
 		if (h === 12) return '12p';
 		return h < 12 ? `${h}a` : `${h - 12}p`;
 	}
@@ -127,20 +127,6 @@
 <div class="graph" bind:clientWidth={containerWidth} bind:clientHeight={containerHeight}>
 	{#if containerWidth > 0 && windowEntries.length > 0}
 		<svg width={containerWidth} height={containerHeight}>
-			<!-- Y axis labels: high / low -->
-			<text
-				x={PAD_LEFT - 4}
-				y={toY(yLabelHigh) + 3}
-				text-anchor="end"
-				class="y-label"
-			>{displayTemp(yLabelHigh)}</text>
-			<text
-				x={PAD_LEFT - 4}
-				y={toY(yLabelLow) + 3}
-				text-anchor="end"
-				class="y-label"
-			>{displayTemp(yLabelLow)}</text>
-
 			<!-- Temperature curve -->
 			<path
 				d={pathD}
@@ -151,6 +137,24 @@
 				stroke-linejoin="round"
 				opacity="0.7"
 			/>
+
+			<!-- Floating Y labels at high and low points -->
+			{#if points.length}
+				<text
+					x={highPoint.x}
+					y={highPoint.y - 5}
+					text-anchor="middle"
+					class="y-label"
+				>{displayTemp(rawMax)}</text>
+				{#if showBothYLabels}
+					<text
+						x={lowPoint.x}
+						y={lowPoint.y + 11}
+						text-anchor="middle"
+						class="y-label"
+					>{displayTemp(rawMin)}</text>
+				{/if}
+			{/if}
 
 			<!-- Sunset marker -->
 			{#if sunsetInRange}
@@ -163,15 +167,12 @@
 					stroke-width="1"
 					opacity="0.18"
 				/>
-				<text
-					x={sunsetX}
-					y={containerHeight - PAD_BOTTOM + 12}
-					text-anchor="middle"
-					class="tick-label sunset-label"
-				>☀</text>
+				<text x={sunsetX} y={containerHeight - PAD_BOTTOM + 12} text-anchor="middle" class="tick-label sunset-label">
+					set
+				</text>
 			{/if}
 
-			<!-- Now indicator -->
+			<!-- Now indicator — always visible -->
 			<line
 				x1={nowX}
 				y1={PAD_TOP - 4}
@@ -191,7 +192,7 @@
 					stroke="var(--color-accent)"
 					stroke-width="1.5"
 				/>
-				<text x={nowX} y={PAD_TOP - 5} text-anchor="middle" class="now-label">
+				<text x={nowX} y={PAD_TOP - 6} text-anchor="middle" class="now-label">
 					{displayTemp(currentTemp)}
 				</text>
 			{/if}
@@ -226,9 +227,9 @@
 	}
 
 	.y-label {
-		font-size: 8px;
+		font-size: 9px;
 		fill: currentColor;
-		opacity: 0.5;
+		opacity: 0.55;
 	}
 
 	.tick-label {
@@ -238,7 +239,7 @@
 	}
 
 	.sunset-label {
-		opacity: 0.45;
+		opacity: 0.4;
 	}
 
 	.empty {
