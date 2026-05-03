@@ -1,0 +1,103 @@
+/* ─────────────────────────────────────────────
+   V2 design system
+   Optimised for a 24" wall-mounted display
+   viewed from ~1–2 m.
+───────────────────────────────────────────── */
+
+/* ── Shape ──────────────────────────────────
+   Slightly generous to feel premium at scale. */
+:root {
+	--radius-sm:   10px;   /* chips, tags */
+	--radius-md:   16px;   /* cards, stock blocks */
+	--radius-lg:   24px;   /* section panels */
+	--radius-xl:   32px;   /* drawer, large modals */
+	--radius-pill: 999px;  /* sliders, badges */
+
+	--tile-radius: 6px;
+}
+
+/* ── Light tile tokens ───────────────────────
+   White-temperature ramp, halo opacity bounds.
+   Semantic — can be retuned per color scheme. */
+:root {
+	--light-temp-warm:    #ffb060;   /* 2700K · tungsten */
+	--light-temp-neutral: #ffe5c4;   /* 4000K · soft white */
+	--light-temp-cool:    #c8e0ff;   /* 6500K · daylight */
+
+	--light-halo-min-opacity: 0.35;
+	--light-halo-max-opacity: 0.85;
+}
+
+/* ── Typography ─────────────────────────────
+   Base size bumped from a typical desktop scale
+   to stay legible at arm's length. */
+:root {
+	--text-xs:   13px;   /* uppercase labels, captions */
+	--text-sm:   15px;   /* secondary info */
+	--text-base: 18px;   /* body / card names */
+	--text-md:   22px;   /* section headings */
+	--text-lg:   32px;   /* prominent figures */
+	--text-xl:   56px;   /* clock, hero numbers */
+
+	--font-weight-normal:   400;
+	--font-weight-medium:   500;
+	--font-weight-semibold: 600;
+	--font-weight-bold:     700;
+}
+
+/* ── Colours — dark ─────────────────────────
+   Warm amber-brown palette; inspired by the
+   Paper scheme but in a night/candlelit key. */
+[data-theme='dark'] {
+	--color-bg:        #0e0a05;   /* near-black with warm cast */
+	--color-surface:   #1e1409;   /* dark coffee-brown cards */
+	--color-surface-2: #2c1f0f;   /* drawer, elevated */
+	--color-border:    color-mix(in srgb, currentColor 15%, transparent);
+
+	/* Semantic */
+	--color-positive: #5dab6e;   /* stocks up, lights on */
+	--color-negative: #d95f4f;   /* stocks down */
+	--color-accent:   #c87830;   /* warm amber — selected room, highlights */
+
+	/* Text — opacity tiers applied via CSS where needed */
+	--opacity-text-primary:   1;
+	--opacity-text-secondary: 0.6;
+	--opacity-text-muted:     0.35;
+
+	/* Ink tokens for light tile */
+	--ink-1: rgba(255, 232, 190, 0.90);   /* warm cream */
+	--ink-2: rgba(220, 175, 110, 0.65);   /* warm tan */
+	--ink-3: rgba(175, 125, 65,  0.50);   /* warm muted */
+	--rule-strong: rgba(200, 148, 72, 0.48);
+
+	/* Clock tokens */
+	--surface-1:   #1e1409;
+	--accent-warm: #c87830;
+}
+
+/* ── Colours — light (Paper scheme) ─────────
+   Exact values from the design handoff. */
+[data-theme='light'] {
+	--color-bg:        #f4ece0;   /* warm cream page bg */
+	--color-surface:   #fbf5e9;   /* tile / card background */
+	--color-surface-2: #eee3d0;   /* drawer, elevated panels */
+	--color-border:    #e0d2b8;   /* rule — tile border off */
+
+	--color-positive: #6b8a3a;   /* state-on: olive green */
+	--color-negative: #c43c3c;
+	--color-accent:   #c95a2e;   /* warm rust/terracotta */
+
+	--opacity-text-primary:   1;
+	--opacity-text-secondary: 0.65;
+	--opacity-text-muted:     0.45;
+
+	/* Ink tokens — Paper scheme exact values */
+	--ink-1: #2a2118;
+	--ink-2: #5a4a36;
+	--ink-3: #8a7a60;
+	--rule-strong: #8a7a60;
+
+	/* Clock tokens */
+	--surface-1:   #fbf5e9;
+	--accent-warm: #e0a040;
+}

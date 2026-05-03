@@ -1,5 +1,3 @@
-import type { Connection, UnsubscribeFunc } from 'home-assistant-js-websocket';
-
 export type ColorMode = 'hs' | 'xy' | 'rgb' | 'color_temp';
 
 interface LightEntityAttributes {
@@ -23,7 +21,7 @@ interface LightEntityAttributes {
 	rate_limit_reset_seconds?: number;
 }
 
-type EntityTypes = 'light' | 'switch' | 'scene' | 'weather';
+type EntityTypes = 'light' | 'switch' | 'scene' | 'weather' | 'sun';
 
 export type WeatherStates =
 	| 'clear-night'
@@ -53,19 +51,30 @@ interface PrimitiveEntity<EntityAttributes = void> {
 	last_updated?: string; // Date string
 }
 
-interface ForecastType {
+export interface ForecastType {
 	condition: WeatherStates;
 	datetime: string;
 	temperature: number;
-	templow: number;
+	templow?: number; // only present in daily forecasts
 }
+
+interface SunEntityAttributes {
+	next_rising: string;
+	next_setting: string;
+	elevation: number;
+	azimuth: number;
+	rising: boolean;
+	friendly_name: string;
+}
+
+export type SunEntity = PrimitiveEntity<SunEntityAttributes>;
 
 interface WeatherEntityAttributes {
 	temperature: number;
 	temperature_unit: '°C' | '°F';
-	humidity: 75;
-	forecast: ForecastType[];
-	friendly_name: 'Forecast Home';
+	humidity: number;
+	forecast?: ForecastType[];
+	friendly_name: string;
 }
 
 interface SwitchEntityAttributes {
@@ -116,33 +125,10 @@ export interface EntityRegistryEntry {
 /** Maps entity_id → effective area_id (entity-level override, falling back to device area) */
 export type EntityAreaMap = Record<string, string | null>;
 
-export interface AppConnections {
-	wsConnection: Connection;
-	deviceLookupTable: DeviceInfoLookupTable;
-	entityAreaMap: EntityAreaMap;
-	wsUnsubscribe: UnsubscribeFunc;
+export interface CalendarEvent {
+	summary: string;
+	start: { dateTime?: string; date?: string };
+	end: { dateTime?: string; date?: string };
+	description?: string;
+	location?: string;
 }
-
-export type PongEvent = {
-	deviceName: string;
-	timestamp: string;
-};
-
-export interface GameConfig {
-	blueBtnName: string;
-	redBtnName: string;
-	maxScore: number;
-	maxScoreOptions: number[];
-	serveCount: number;
-	firstPlayer: 'blue' | 'red';
-}
-
-export interface PlayerData {
-	score: number; // Total score for this player
-	pointTs: string[]; // Timestamps for each point that's scored
-	whichColor: 'blue' | 'red';
-}
-
-export type GameState = {
-	[deviceName: string]: PlayerData;
-};
