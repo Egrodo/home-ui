@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
 	import type { LightEntity, SwitchEntity, SceneEntity } from '$lib/data/types';
-	import { lightDrawerStore } from '$lib/v2/drawer/drawerStore';
+	import { lightDrawerStore } from '$lib/drawer/drawerStore';
+	import { toggleLight, toggleSwitch, activateScene } from '$lib/data/backend';
 
 	export let entity: LightEntity | SwitchEntity | SceneEntity;
 	export let icon: Component | null = null;
@@ -48,15 +49,23 @@
 	// Use entity's custom HA icon when defined; fall back to Material Symbols lightbulb
 	$: hasCustomIcon = isLight && !!(entity as LightEntity).attributes.icon;
 
-	// ── Long-press to open light drawer ──────────────────────────────────────
+	// ── Tap = toggle, long-press (lights only) = open drawer ────────────────
 	let pressTimer: ReturnType<typeof setTimeout> | null = null;
 	let pressStartX = 0;
 	let pressStartY = 0;
+	let hasMoved = false;
+
+	function handleAction() {
+		if (isLight) toggleLight(entity.entity_id, isOn ? 'off' : 'on');
+		else if (isSwitch) toggleSwitch(entity.entity_id, isOn ? 'off' : 'on');
+		else if (isScene) activateScene(entity.entity_id);
+	}
 
 	function onPointerDown(e: PointerEvent) {
-		if (!isLight) return;
+		hasMoved = false;
 		pressStartX = e.clientX;
 		pressStartY = e.clientY;
+		if (!isLight) return;
 		pressTimer = setTimeout(() => {
 			pressTimer = null;
 			lightDrawerStore.set({
@@ -72,16 +81,34 @@
 	}
 
 	function onPointerMove(e: PointerEvent) {
-		if (!pressTimer) return;
 		const dx = e.clientX - pressStartX;
 		const dy = e.clientY - pressStartY;
 		if (dx * dx + dy * dy > 100) {
-			clearTimeout(pressTimer);
-			pressTimer = null;
+			hasMoved = true;
+			if (pressTimer) {
+				clearTimeout(pressTimer);
+				pressTimer = null;
+			}
 		}
 	}
 
 	function onPointerUp() {
+		if (hasMoved) return;
+		if (isLight) {
+			if (pressTimer) {
+				// Short tap — long-press hasn't fired yet, so toggle
+				clearTimeout(pressTimer);
+				pressTimer = null;
+				handleAction();
+			}
+			// pressTimer already null = long-press fired the drawer — do nothing
+		} else {
+			handleAction();
+		}
+	}
+
+	function onPointerCancel() {
+		hasMoved = true;
 		if (pressTimer) {
 			clearTimeout(pressTimer);
 			pressTimer = null;
@@ -237,14 +264,13 @@
 	class:card--switch={isSwitch}
 	class:card--scene={isScene}
 	class:card--on={isOn}
-	on:click
 	role="button"
 	tabindex="0"
-	on:keydown={(e) => e.key === 'Enter' && (e.target as HTMLElement).click()}
+	on:keydown={(e) => { if (e.key === 'Enter') handleAction(); }}
 	on:pointerdown={onPointerDown}
 	on:pointermove={onPointerMove}
 	on:pointerup={onPointerUp}
-	on:pointercancel={onPointerUp}
+	on:pointercancel={onPointerCancel}
 	aria-label="{entity.attributes.friendly_name}{isLight
 		? `, ${isOn ? 'on' : 'off'}${isOn ? `, ${brightnessPercent}%` : ''}${isOn && lightMode === 'temp' && colorTempKelvin ? `, ${colorTempKelvin}K` : ''}`
 		: ''}"

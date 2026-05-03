@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { isConnectedStore } from '$lib/data/backend';
-	import Loader from '$lib/v2/Loader.svelte';
-	import Header from '$lib/v2/header/Header.svelte';
-	import Floorplan from '$lib/v2/floorplan/Floorplan.svelte';
-	import Devices from '$lib/v2/devices/Devices.svelte';
-	import Stocks from '$lib/v2/stocks/Stocks.svelte';
-	import LightDrawer from '$lib/v2/drawer/LightDrawer.svelte';
+	import Loader from '$lib/Loader.svelte';
+	import Header from '$lib/header/Header.svelte';
+	import Floorplan from '$lib/floorplan/Floorplan.svelte';
+	import Devices from '$lib/devices/Devices.svelte';
+	import Stocks from '$lib/stocks/Stocks.svelte';
+	import LightDrawer from '$lib/drawer/LightDrawer.svelte';
 
 	let hasLoaded = false;
 	isConnectedStore.subscribe((v) => (hasLoaded = v));

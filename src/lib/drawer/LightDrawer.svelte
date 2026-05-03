@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { lightDrawerStore, type DrawerTarget } from './drawerStore';
 	import { getColorHistory, addColorToHistory } from './colorHistory';
-	import { DRAWER_MAX_HEIGHT } from '$lib/v2/constants';
+	import { DRAWER_MAX_HEIGHT } from '$lib/constants';
 	import { changeBrightness, changeColor, changeTemperature } from '$lib/data/backend';
 	import ColorPicker from './ColorPicker.svelte';
 	import BrightnessSlider from './BrightnessSlider.svelte';
