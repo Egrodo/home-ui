@@ -46,7 +46,7 @@
 
 	.floorplan {
 		height: 500px;
-		opacity: 0.75;
+		opacity: 0.3;
 		pointer-events: none;
 	}
 

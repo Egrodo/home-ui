@@ -2,9 +2,10 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { hourlyForecastStore, sunStore, weatherStore } from '../data/backendStores';
 
-	const PAD_X = 8;
-	const PAD_TOP = 18; // room for temp label above the line
-	const PAD_BOTTOM = 16; // room for hour tick labels
+	const PAD_LEFT = 28; // Y-axis label gutter
+	const PAD_RIGHT = 8;
+	const PAD_TOP = 18; // room for now-temp label
+	const PAD_BOTTOM = 16; // room for hour ticks
 
 	let containerWidth = 0;
 	let containerHeight = 0;
@@ -16,12 +17,6 @@
 	});
 	onDestroy(() => clearInterval(interval));
 
-	function toMinutes(iso: string): number {
-		const d = new Date(iso);
-		return d.getHours() * 60 + d.getMinutes();
-	}
-
-	// Absolute minutes from a fixed epoch for cross-day comparison
 	function toAbsMinutes(iso: string): number {
 		return Math.floor(new Date(iso).getTime() / 60_000);
 	}
@@ -46,31 +41,34 @@
 	$: hourly = $hourlyForecastStore;
 	$: sun = $sunStore;
 	$: unit = $weatherStore?.attributes.temperature_unit ?? '°F';
+	$: currentTemp = $weatherStore?.attributes.temperature ?? null;
 
-	// Show the next 12 hours from now regardless of day boundary
-	$: windowEntries = (() => {
-		const nowAbs = toAbsMinutes(now.toISOString());
-		return hourly.filter((e) => {
-			const abs = toAbsMinutes(e.datetime);
-			return abs >= nowAbs - 30 && abs <= nowAbs + 12 * 60;
-		});
+	// Fixed X range: today midnight → tomorrow midnight
+	$: dayStartAbs = (() => {
+		const d = new Date(now);
+		d.setHours(0, 0, 0, 0);
+		return Math.floor(d.getTime() / 60_000);
 	})();
+	$: dayEndAbs = dayStartAbs + 24 * 60;
+	$: timeRange = 24 * 60;
 
-	$: minAbs = windowEntries.length ? toAbsMinutes(windowEntries[0].datetime) : 0;
-	$: maxAbs = windowEntries.length ? toAbsMinutes(windowEntries[windowEntries.length - 1].datetime) : 12 * 60;
-	$: timeRange = Math.max(maxAbs - minAbs, 60);
+	// Today's hourly entries only
+	$: windowEntries = hourly.filter((e) => {
+		const abs = toAbsMinutes(e.datetime);
+		return abs >= dayStartAbs && abs < dayEndAbs;
+	});
 
+	// Y scale — pad so even a narrow range shows curvature
 	$: temps = windowEntries.map((e) => e.temperature);
 	$: rawMin = temps.length ? Math.min(...temps) : 0;
 	$: rawMax = temps.length ? Math.max(...temps) : 10;
-	// Pad the Y scale so even a narrow temp range shows visible curvature
-	$: tempPad = Math.max((rawMax - rawMin) * 0.4, 2);
+	$: tempPad = Math.max((rawMax - rawMin) * 0.35, 2);
 	$: minTemp = rawMin - tempPad;
 	$: maxTemp = rawMax + tempPad;
 	$: tempRange = maxTemp - minTemp;
 
 	function toX(absMinutes: number): number {
-		return PAD_X + ((absMinutes - minAbs) / timeRange) * (containerWidth - PAD_X * 2);
+		return PAD_LEFT + ((absMinutes - dayStartAbs) / timeRange) * (containerWidth - PAD_LEFT - PAD_RIGHT);
 	}
 
 	function toY(temp: number): number {
@@ -81,58 +79,40 @@
 	$: points = windowEntries.map((e) => ({
 		x: toX(toAbsMinutes(e.datetime)),
 		y: toY(e.temperature),
-		temp: e.temperature,
-		abs: toAbsMinutes(e.datetime)
+		temp: e.temperature
 	}));
 
 	$: pathD = catmullRomPath(points);
 
-	// Now indicator
-	$: nowAbs = toAbsMinutes(now.toISOString());
+	// Now indicator — always within the fixed 24h range
+	$: nowAbs = Math.floor(now.getTime() / 60_000);
 	$: nowX = toX(nowAbs);
-	$: nowInRange = nowAbs >= minAbs && nowAbs <= maxAbs;
-
-	$: nowTemp = (() => {
-		if (!points.length) return null;
-		const before = points.filter((p) => p.abs <= nowAbs);
-		const after = points.filter((p) => p.abs > nowAbs);
-		if (!before.length) return points[0].temp;
-		if (!after.length) return points[points.length - 1].temp;
-		const p1 = before[before.length - 1];
-		const p2 = after[0];
-		const t = (nowAbs - p1.abs) / (p2.abs - p1.abs);
-		return p1.temp + t * (p2.temp - p1.temp);
-	})();
-
-	$: nowY = nowTemp != null ? toY(nowTemp) : 0;
+	$: nowY = currentTemp != null ? toY(currentTemp) : containerHeight / 2;
 
 	function displayTemp(temp: number): string {
 		const val = unit === '°C' ? Math.round((temp * 9) / 5 + 32) : Math.round(temp);
 		return `${val}°`;
 	}
 
+	// Y axis labels: actual data high/low
+	$: yLabelHigh = rawMax;
+	$: yLabelLow = rawMin;
+
 	// Sunset marker
 	$: sunsetIso = sun?.attributes.next_setting ?? null;
 	$: sunsetAbs = sunsetIso ? toAbsMinutes(sunsetIso) : null;
-	$: sunsetInRange = sunsetAbs != null && sunsetAbs >= minAbs && sunsetAbs <= maxAbs;
+	$: sunsetInRange =
+		sunsetAbs != null && sunsetAbs >= dayStartAbs && sunsetAbs < dayEndAbs;
 	$: sunsetX = sunsetAbs != null ? toX(sunsetAbs) : 0;
 
-	// Hour tick labels — one per 3h across the window
+	// Hour ticks every 3h on a fixed 24h grid
 	$: tickHours = (() => {
-		if (!windowEntries.length) return [];
 		const ticks: { label: string; x: number }[] = [];
-		const startMs = minAbs * 60_000;
-		const endMs = maxAbs * 60_000;
-		// Snap to next whole 3-hour boundary after start
-		const startD = new Date(startMs);
-		let h = new Date(startD);
-		h.setMinutes(0, 0, 0);
-		if (h.getTime() < startMs) h.setHours(h.getHours() + 1);
-		// Advance to next 3h slot
-		while (h.getHours() % 3 !== 0) h.setHours(h.getHours() + 1);
-		while (h.getTime() <= endMs) {
-			ticks.push({ label: formatHour(h.getHours()), x: toX(h.getTime() / 60_000) });
-			h.setHours(h.getHours() + 3);
+		for (let h = 0; h <= 24; h += 3) {
+			ticks.push({
+				label: formatHour(h),
+				x: toX(dayStartAbs + h * 60)
+			});
 		}
 		return ticks;
 	})();
@@ -147,6 +127,20 @@
 <div class="graph" bind:clientWidth={containerWidth} bind:clientHeight={containerHeight}>
 	{#if containerWidth > 0 && windowEntries.length > 0}
 		<svg width={containerWidth} height={containerHeight}>
+			<!-- Y axis labels: high / low -->
+			<text
+				x={PAD_LEFT - 4}
+				y={toY(yLabelHigh) + 3}
+				text-anchor="end"
+				class="y-label"
+			>{displayTemp(yLabelHigh)}</text>
+			<text
+				x={PAD_LEFT - 4}
+				y={toY(yLabelLow) + 3}
+				text-anchor="end"
+				class="y-label"
+			>{displayTemp(yLabelLow)}</text>
+
 			<!-- Temperature curve -->
 			<path
 				d={pathD}
@@ -167,30 +161,28 @@
 					y2={containerHeight - PAD_BOTTOM}
 					stroke="currentColor"
 					stroke-width="1"
-					opacity="0.2"
+					opacity="0.18"
 				/>
 				<text
 					x={sunsetX}
 					y={containerHeight - PAD_BOTTOM + 12}
 					text-anchor="middle"
 					class="tick-label sunset-label"
-				>
-					☀
-				</text>
+				>☀</text>
 			{/if}
 
 			<!-- Now indicator -->
-			{#if nowInRange}
-				<line
-					x1={nowX}
-					y1={PAD_TOP - 4}
-					x2={nowX}
-					y2={containerHeight - PAD_BOTTOM}
-					stroke="currentColor"
-					stroke-width="1"
-					stroke-dasharray="2 3"
-					opacity="0.3"
-				/>
+			<line
+				x1={nowX}
+				y1={PAD_TOP - 4}
+				x2={nowX}
+				y2={containerHeight - PAD_BOTTOM}
+				stroke="currentColor"
+				stroke-width="1"
+				stroke-dasharray="2 3"
+				opacity="0.3"
+			/>
+			{#if currentTemp != null}
 				<circle
 					cx={nowX}
 					cy={nowY}
@@ -199,11 +191,9 @@
 					stroke="var(--color-accent)"
 					stroke-width="1.5"
 				/>
-				{#if nowTemp != null}
-					<text x={nowX} y={PAD_TOP - 5} text-anchor="middle" class="now-label">
-						{displayTemp(nowTemp)}
-					</text>
-				{/if}
+				<text x={nowX} y={PAD_TOP - 5} text-anchor="middle" class="now-label">
+					{displayTemp(currentTemp)}
+				</text>
 			{/if}
 
 			<!-- Hour tick labels -->
@@ -233,6 +223,12 @@
 		font-size: 9px;
 		fill: currentColor;
 		opacity: 0.9;
+	}
+
+	.y-label {
+		font-size: 8px;
+		fill: currentColor;
+		opacity: 0.5;
 	}
 
 	.tick-label {
