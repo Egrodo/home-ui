@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { LightEntity, SceneEntity, SwitchEntity, WeatherEntity } from './types';
+import type { CalendarEvent, ForecastType, LightEntity, SceneEntity, SunEntity, SwitchEntity, WeatherEntity } from './types';
 
 export interface LightStore {
 	[lightId: string]: LightEntity;
@@ -56,11 +56,13 @@ function createSceneStore() {
 }
 
 function createWeatherStore() {
-	const { subscribe, set } = writable<WeatherEntity>();
+	const { subscribe, set, update } = writable<WeatherEntity>();
 
 	return {
 		subscribe,
-		set
+		set,
+		patchForecast: (forecast: ForecastType[]) =>
+			update((w) => (w ? { ...w, attributes: { ...w.attributes, forecast } } : w))
 	};
 }
 
@@ -68,3 +70,6 @@ export const lightStore = createLightStore();
 export const switchStore = createSwitchStore();
 export const sceneStore = createSceneStore();
 export const weatherStore = createWeatherStore();
+export const calendarStore = writable<CalendarEvent[]>([]);
+export const hourlyForecastStore = writable<ForecastType[]>([]);
+export const sunStore = writable<SunEntity | null>(null);

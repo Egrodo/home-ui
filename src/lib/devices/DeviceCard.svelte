@@ -32,8 +32,7 @@
 		const neutral = [255, 229, 196];
 		const cool = [200, 224, 255];
 		const lerp = (a: number, b: number, k: number) => Math.round(a + (b - a) * k);
-		const [a, b, k] =
-			t < 0.5 ? [warm, neutral, t * 2] : [neutral, cool, (t - 0.5) * 2];
+		const [a, b, k] = t < 0.5 ? [warm, neutral, t * 2] : [neutral, cool, (t - 0.5) * 2];
 		return `rgb(${lerp(a[0], b[0], k)}, ${lerp(a[1], b[1], k)}, ${lerp(a[2], b[2], k)})`;
 	}
 
@@ -48,6 +47,7 @@
 
 	// Use entity's custom HA icon when defined; fall back to Material Symbols lightbulb
 	$: hasCustomIcon = isLight && !!(entity as LightEntity).attributes.icon;
+	console.log((entity as LightEntity).attributes.icon);
 
 	// ── Tap = toggle, long-press (lights only) = open drawer ────────────────
 	let pressTimer: ReturnType<typeof setTimeout> | null = null;
@@ -169,7 +169,11 @@
 	.bulb-icon {
 		font-family: 'Material Symbols Rounded', sans-serif;
 		font-size: 34px;
-		font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+		font-variation-settings:
+			'FILL' 0,
+			'wght' 400,
+			'GRAD' 0,
+			'opsz' 24;
 		color: var(--ink-3);
 		line-height: 1;
 		user-select: none;
@@ -179,7 +183,11 @@
 	}
 
 	.card--on .bulb-icon {
-		font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+		font-variation-settings:
+			'FILL' 1,
+			'wght' 400,
+			'GRAD' 0,
+			'opsz' 24;
 		color: var(--ink-1);
 	}
 
@@ -266,7 +274,9 @@
 	class:card--on={isOn}
 	role="button"
 	tabindex="0"
-	on:keydown={(e) => { if (e.key === 'Enter') handleAction(); }}
+	on:keydown={(e) => {
+		if (e.key === 'Enter') handleAction();
+	}}
 	on:pointerdown={onPointerDown}
 	on:pointermove={onPointerMove}
 	on:pointerup={onPointerUp}

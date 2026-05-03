@@ -69,6 +69,10 @@
 	--ink-2: rgba(220, 175, 110, 0.65);   /* warm tan */
 	--ink-3: rgba(175, 125, 65,  0.50);   /* warm muted */
 	--rule-strong: rgba(200, 148, 72, 0.48);
+
+	/* Clock tokens */
+	--surface-1:   #1e1409;
+	--accent-warm: #c87830;
 }
 
 /* ── Colours — light (Paper scheme) ─────────
@@ -92,4 +96,8 @@
 	--ink-2: #5a4a36;
 	--ink-3: #8a7a60;
 	--rule-strong: #8a7a60;
+
+	/* Clock tokens */
+	--surface-1:   #fbf5e9;
+	--accent-warm: #e0a040;
 }

@@ -35,13 +35,19 @@
 </script>
 
 <style>
-	.floorplan {
+	.floorplanContainer {
 		display: flex;
 		justify-content: center;
 		padding: 16px 24px;
 		margin: 0 24px;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
+	}
+
+	.floorplan {
+		height: 500px;
+		opacity: 0.75;
+		pointer-events: none;
 	}
 
 	svg {
@@ -74,8 +80,9 @@
 	}
 </style>
 
-<div class="floorplan">
-	<svg viewBox="0 0 1413 964" xmlns="http://www.w3.org/2000/svg">
+<div class="floorplanContainer">
+	<img class="floorplan" src="/floorplan.png" alt="Floorplan" />
+	<!-- <svg viewBox="0 0 1413 964" xmlns="http://www.w3.org/2000/svg">
 		<path
 			id="Bedroom"
 			role="button"
@@ -139,5 +146,5 @@
 			on:click={() => handleRegionClick('Living-Room-Dining-Area')}
 			on:keydown={(e) => handleKeydown(e, 'Living-Room-Dining-Area')}
 		/>
-	</svg>
+	</svg> -->
 </div>

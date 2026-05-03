@@ -19,10 +19,12 @@ const { mockLightAddOrUpdate, mockSwitchAddOrUpdate, mockSceneAddOrUpdate, mockW
 	}));
 
 vi.mock('./backendStores', () => ({
-	lightStore: { addOrUpdate: mockLightAddOrUpdate, subscribe: vi.fn() },
-	switchStore: { addOrUpdate: mockSwitchAddOrUpdate, subscribe: vi.fn() },
-	sceneStore: { addOrUpdate: mockSceneAddOrUpdate, subscribe: vi.fn() },
-	weatherStore: { set: mockWeatherSet, subscribe: vi.fn() }
+	lightStore: { addOrUpdate: mockLightAddOrUpdate, subscribe: vi.fn(() => vi.fn()) },
+	switchStore: { addOrUpdate: mockSwitchAddOrUpdate, subscribe: vi.fn(() => vi.fn()) },
+	sceneStore: { addOrUpdate: mockSceneAddOrUpdate, subscribe: vi.fn(() => vi.fn()) },
+	weatherStore: { set: mockWeatherSet, subscribe: vi.fn(() => vi.fn()) },
+	sunStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) },
+	hourlyForecastStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) }
 }));
 
 import { setHiddenEntityIds, handleStateMessage, ROOM_AREA_IDS } from './ws';

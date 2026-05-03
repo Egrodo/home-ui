@@ -6,7 +6,8 @@ vi.mock('$app/environment', () => ({ browser: true }));
 vi.mock('$env/static/public', () => ({
 	PUBLIC_WS_AUTH_KEY: 'test-key',
 	PUBLIC_SERVER_URL: 'http://localhost:8123',
-	PUBLIC_WEATHER_ENTITY_ID: 'weather.home'
+	PUBLIC_WEATHER_ENTITY_ID: 'weather.home',
+	PUBLIC_CALENDAR_ENTITY_ID: 'calendar.test'
 }));
 
 // Hoist mock functions for ws.ts
@@ -48,6 +49,9 @@ vi.mock('./ws', () => ({
 	fetchEntityRegistry: mockFetchEntityRegistry,
 	setHiddenEntityIds: mockSetHiddenEntityIds,
 	handleStateMessage: vi.fn(),
+	fetchWeatherForecast: vi.fn().mockResolvedValue([]),
+	fetchHourlyForecast: vi.fn().mockResolvedValue([]),
+	fetchCalendarEvents: vi.fn().mockResolvedValue([]),
 	toggleLightState: mockToggleLightState,
 	toggleSwitchState: mockToggleSwitchState,
 	activateScene: mockActivateScene,

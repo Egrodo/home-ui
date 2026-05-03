@@ -1,9 +1,13 @@
 import { writable } from 'svelte/store';
 import { subscribeEntities, type Connection, type UnsubscribeFunc } from 'home-assistant-js-websocket';
+import { PUBLIC_WEATHER_ENTITY_ID, PUBLIC_CALENDAR_ENTITY_ID } from '$env/static/public';
 import {
 	initWsConnection,
 	fetchDeviceRegistry,
 	fetchEntityRegistry,
+	fetchWeatherForecast,
+	fetchHourlyForecast,
+	fetchCalendarEvents,
 	setHiddenEntityIds,
 	handleStateMessage,
 	toggleLightState,
@@ -17,10 +21,12 @@ import {
 } from './ws';
 import type { DeviceInfoLookupTable, EntityAreaMap } from './types';
 import { Rooms } from './types';
+import { calendarStore, hourlyForecastStore, weatherStore } from './backendStores';
 
 // Module-scoped connection state
 let connection: Connection | null = null;
 let unsubscribe: UnsubscribeFunc | null = null;
+let calendarPollTimer: ReturnType<typeof setInterval> | null = null;
 
 /** Reactive store for entity → area mapping, used by components for room filtering */
 export const entityAreaMapStore = writable<EntityAreaMap>({});
@@ -31,6 +37,15 @@ export const isConnectedStore = writable<boolean>(false);
 function getConnection(): Connection {
 	if (!connection) throw new Error('Backend not initialized — call initBackend() first');
 	return connection;
+}
+
+async function refreshCalendar(): Promise<void> {
+	const conn = getConnection();
+	const now = new Date();
+	const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+	const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+	const events = await fetchCalendarEvents(conn, PUBLIC_CALENDAR_ENTITY_ID, start, end);
+	calendarStore.set(events);
 }
 
 /**
@@ -61,6 +76,17 @@ export async function initBackend(): Promise<void> {
 	// Subscribe AFTER hidden set is populated so the first state message is filtered correctly
 	unsubscribe = subscribeEntities(connection, handleStateMessage);
 
+	// Forecast data was moved out of state attributes in HA 2024.3+ — fetch separately
+	fetchWeatherForecast(connection, PUBLIC_WEATHER_ENTITY_ID).then((forecast) => {
+		if (forecast.length) weatherStore.patchForecast(forecast);
+	});
+	fetchHourlyForecast(connection, PUBLIC_WEATHER_ENTITY_ID).then((forecast) => {
+		if (forecast.length) hourlyForecastStore.set(forecast);
+	});
+
+	refreshCalendar();
+	calendarPollTimer = setInterval(refreshCalendar, 60 * 60 * 1000);
+
 	// Build entity_id → area_id map. Entity-level area_id takes precedence over device area_id.
 	const entityAreaMap = entityRegistry.reduce<EntityAreaMap>((acc, entry) => {
 		acc[entry.entity_id] =
@@ -76,6 +102,10 @@ export async function initBackend(): Promise<void> {
 export function destroyBackend(): void {
 	unsubscribe?.();
 	unsubscribe = null;
+	if (calendarPollTimer) {
+		clearInterval(calendarPollTimer);
+		calendarPollTimer = null;
+	}
 	connection = null;
 	isConnectedStore.set(false);
 }

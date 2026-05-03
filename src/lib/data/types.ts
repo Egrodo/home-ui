@@ -21,7 +21,7 @@ interface LightEntityAttributes {
 	rate_limit_reset_seconds?: number;
 }
 
-type EntityTypes = 'light' | 'switch' | 'scene' | 'weather';
+type EntityTypes = 'light' | 'switch' | 'scene' | 'weather' | 'sun';
 
 export type WeatherStates =
 	| 'clear-night'
@@ -51,19 +51,30 @@ interface PrimitiveEntity<EntityAttributes = void> {
 	last_updated?: string; // Date string
 }
 
-interface ForecastType {
+export interface ForecastType {
 	condition: WeatherStates;
 	datetime: string;
 	temperature: number;
-	templow: number;
+	templow?: number; // only present in daily forecasts
 }
+
+interface SunEntityAttributes {
+	next_rising: string;
+	next_setting: string;
+	elevation: number;
+	azimuth: number;
+	rising: boolean;
+	friendly_name: string;
+}
+
+export type SunEntity = PrimitiveEntity<SunEntityAttributes>;
 
 interface WeatherEntityAttributes {
 	temperature: number;
 	temperature_unit: '°C' | '°F';
-	humidity: 75;
-	forecast: ForecastType[];
-	friendly_name: 'Forecast Home';
+	humidity: number;
+	forecast?: ForecastType[];
+	friendly_name: string;
 }
 
 interface SwitchEntityAttributes {
@@ -113,3 +124,11 @@ export interface EntityRegistryEntry {
 
 /** Maps entity_id → effective area_id (entity-level override, falling back to device area) */
 export type EntityAreaMap = Record<string, string | null>;
+
+export interface CalendarEvent {
+	summary: string;
+	start: { dateTime?: string; date?: string };
+	end: { dateTime?: string; date?: string };
+	description?: string;
+	location?: string;
+}

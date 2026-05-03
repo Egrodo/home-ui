@@ -12,11 +12,15 @@ import {
 	type HassEntities,
 	type HassEntity
 } from 'home-assistant-js-websocket';
-import { lightStore, sceneStore, switchStore, weatherStore } from './backendStores';
+import { get } from 'svelte/store';
+import { hourlyForecastStore, lightStore, sceneStore, sunStore, switchStore, weatherStore } from './backendStores';
 import {
 	Rooms,
+	type CalendarEvent,
+	type ForecastType,
 	type LightEntity,
 	type SceneEntity,
+	type SunEntity,
 	type SwitchEntity,
 	type WeatherEntity
 } from './types';
@@ -83,6 +87,9 @@ export function handleStateMessage(states: HassEntities) {
 				// @ts-expect-error Refining type
 				const weatherEntity = entity as WeatherEntity;
 				newWeather = weatherEntity;
+			} else if (entity_id === 'sun.sun') {
+				// @ts-expect-error Refining type
+				sunStore.set(entity as SunEntity);
 			}
 
 			return [lights, switches, scenes, newWeather];
@@ -100,7 +107,11 @@ export function handleStateMessage(states: HassEntities) {
 		sceneStore.addOrUpdate(sceneEntities);
 	}
 	if (weatherEntity) {
-		weatherStore.set(weatherEntity);
+		const existing = get(weatherStore);
+		const forecast = weatherEntity.attributes.forecast?.length
+			? weatherEntity.attributes.forecast
+			: existing?.attributes.forecast;
+		weatherStore.set({ ...weatherEntity, attributes: { ...weatherEntity.attributes, forecast } });
 	}
 }
 
@@ -283,6 +294,74 @@ export async function fetchDeviceRegistry(connection: Connection): Promise<Devic
 		return deviceRegistry;
 	} catch (err: any) {
 		throw new Error('Failed to fetch device registry', err);
+	}
+}
+
+export async function fetchWeatherForecast(
+	connection: Connection,
+	entityId: string
+): Promise<ForecastType[]> {
+	try {
+		const result = await connection.sendMessagePromise<{
+			response: Record<string, { forecast: ForecastType[] }>;
+		}>({
+			type: 'call_service',
+			domain: 'weather',
+			service: 'get_forecasts',
+			service_data: { type: 'daily' },
+			target: { entity_id: entityId },
+			return_response: true
+		});
+		return result?.response?.[entityId]?.forecast ?? [];
+	} catch (err) {
+		console.error('Failed to fetch weather forecast:', err);
+		return [];
+	}
+}
+
+export async function fetchHourlyForecast(
+	connection: Connection,
+	entityId: string
+): Promise<ForecastType[]> {
+	try {
+		const result = await connection.sendMessagePromise<{
+			response: Record<string, { forecast: ForecastType[] }>;
+		}>({
+			type: 'call_service',
+			domain: 'weather',
+			service: 'get_forecasts',
+			service_data: { type: 'hourly' },
+			target: { entity_id: entityId },
+			return_response: true
+		});
+		return result?.response?.[entityId]?.forecast ?? [];
+	} catch (err) {
+		console.error('Failed to fetch hourly weather forecast:', err);
+		return [];
+	}
+}
+
+export async function fetchCalendarEvents(
+	connection: Connection,
+	entityId: string,
+	start: string,
+	end: string
+): Promise<CalendarEvent[]> {
+	try {
+		const result = await connection.sendMessagePromise<{
+			response: Record<string, { events: CalendarEvent[] }>;
+		}>({
+			type: 'call_service',
+			domain: 'calendar',
+			service: 'get_events',
+			service_data: { start_date_time: start, end_date_time: end },
+			target: { entity_id: entityId },
+			return_response: true
+		});
+		return result?.response?.[entityId]?.events ?? [];
+	} catch (err) {
+		console.error('Failed to fetch calendar events:', err);
+		return [];
 	}
 }
 
