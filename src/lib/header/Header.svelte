@@ -7,7 +7,8 @@
 <style>
 	.header {
 		display: grid;
-		grid-template-rows: 140px 1fr 100px;
+		/* Date/Time Calendar/Weather TemperatureGraph */
+		grid-template-rows: 140px 1fr 140px;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
 		margin: 24px;

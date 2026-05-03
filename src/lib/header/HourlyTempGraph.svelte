@@ -2,9 +2,12 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { hourlyForecastStore, sunStore, weatherStore } from '../data/backendStores';
 
-	const PAD_X = 12;
-	const PAD_TOP = 20; // room for floating temp labels above curve
-	const PAD_BOTTOM = 16; // room for hour ticks
+	const PAD_LEFT = 26; // Y-label column
+	const PAD_RIGHT = 8;
+	const PAD_TOP = 16; // above-curve label room
+	const PAD_BOTTOM = 13; // hour-tick room
+	const LOOKBACK_MIN = 60; // 1h of empty space before "now"
+	const WINDOW_MIN = 12 * 60; // total window width in minutes
 
 	let containerWidth = 0;
 	let containerHeight = 0;
@@ -39,79 +42,103 @@
 
 	$: hourly = $hourlyForecastStore;
 	$: sun = $sunStore;
-	$: unit = $weatherStore?.attributes.temperature_unit ?? '°F';
 	$: currentTemp = $weatherStore?.attributes.temperature ?? null;
 
-	// Rolling 12h window starting from now
+	// Rolling window: 1h before now → 11h after now
 	$: nowMin = toAbsMin(now);
-	$: windowStart = nowMin;
-	$: windowEnd = nowMin + 12 * 60;
+	$: windowStart = nowMin - LOOKBACK_MIN;
+	$: windowEnd = windowStart + WINDOW_MIN;
 
+	// Entries within the window (all future, HA provides no historical data)
 	$: windowEntries = hourly.filter((e) => {
 		const abs = toAbsMin(new Date(e.datetime));
 		return abs >= windowStart && abs <= windowEnd;
 	});
 
-	// X mapping over the 12h window
-	function toX(absMin: number): number {
-		return PAD_X + ((absMin - windowStart) / (12 * 60)) * (containerWidth - PAD_X * 2);
-	}
+	// X: inlined so Svelte tracks windowStart and containerWidth as deps
+	$: nowX =
+		PAD_LEFT + ((nowMin - windowStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT);
 
-	// Y scale with padding so narrow ranges still show curvature
+	// Y scale over the window's forecast range
 	$: temps = windowEntries.map((e) => e.temperature);
 	$: rawMin = temps.length ? Math.min(...temps) : 0;
 	$: rawMax = temps.length ? Math.max(...temps) : 10;
-	$: tempPad = Math.max((rawMax - rawMin) * 0.35, 2);
-	$: scaledMin = rawMin - tempPad;
-	$: scaledMax = rawMax + tempPad;
-	$: scaledRange = scaledMax - scaledMin;
+	// 1° breathing room so curve doesn't clip the edges; labels sit at rawMin/rawMax
+	$: scaledMin = rawMin - 1;
+	$: scaledMax = rawMax + 1;
+	$: scaledRange = scaledMax - scaledMin || 1;
 
-	function toY(temp: number): number {
-		return PAD_TOP + (1 - (temp - scaledMin) / scaledRange) * (containerHeight - PAD_TOP - PAD_BOTTOM);
-	}
+	// Now y-position — explicit deps
+	$: nowY =
+		currentTemp != null
+			? PAD_TOP +
+				(1 - (currentTemp - scaledMin) / scaledRange) * (containerHeight - PAD_TOP - PAD_BOTTOM)
+			: containerHeight / 2;
 
-	$: points = windowEntries.map((e) => ({
-		x: toX(toAbsMin(new Date(e.datetime))),
-		y: toY(e.temperature),
-		temp: e.temperature
+	// Forecast curve points — inlined so all deps are tracked
+	$: forecastPoints = windowEntries.map((e) => ({
+		x:
+			PAD_LEFT +
+			((toAbsMin(new Date(e.datetime)) - windowStart) / WINDOW_MIN) *
+				(containerWidth - PAD_LEFT - PAD_RIGHT),
+		y:
+			PAD_TOP +
+			(1 - (e.temperature - scaledMin) / scaledRange) * (containerHeight - PAD_TOP - PAD_BOTTOM)
 	}));
 
-	$: pathD = catmullRomPath(points);
+	// Prepend synthetic "now" anchor so curve starts at current temp
+	$: curvePoints = (() => {
+		if (currentTemp == null) return forecastPoints;
+		const synth = { x: nowX, y: nowY };
+		if (!forecastPoints.length || synth.x <= forecastPoints[0].x) return [synth, ...forecastPoints];
+		return forecastPoints;
+	})();
 
-	// Now indicator — always rendered at left edge of window
-	$: nowX = toX(nowMin);
-	$: nowY = currentTemp != null ? toY(currentTemp) : containerHeight / 2;
+	$: pathD = catmullRomPath(curvePoints);
 
-	function displayTemp(temp: number): string {
-		const val = unit === '°C' ? Math.round((temp * 9) / 5 + 32) : Math.round(temp);
-		return `${val}°`;
-	}
+	// High/low Y positions for axis labels
+	$: highY =
+		PAD_TOP + (1 - (rawMax - scaledMin) / scaledRange) * (containerHeight - PAD_TOP - PAD_BOTTOM);
+	$: lowY =
+		PAD_TOP + (1 - (rawMin - scaledMin) / scaledRange) * (containerHeight - PAD_TOP - PAD_BOTTOM);
 
-	// Floating Y labels at the curve's high/low points
-	$: highPoint = points.reduce((a, b) => (b.temp > a.temp ? b : a), points[0] ?? { x: 0, y: 0, temp: 0 });
-	$: lowPoint = points.reduce((a, b) => (b.temp < a.temp ? b : a), points[0] ?? { x: 0, y: 0, temp: 0 });
-	// Only show both if they're far enough apart vertically
-	$: showBothYLabels = Math.abs(highPoint.y - lowPoint.y) > 14;
-
-	// Sunset marker
-	$: sunsetDate = sun?.attributes.next_setting ? new Date(sun.attributes.next_setting) : null;
-	$: sunsetAbs = sunsetDate ? toAbsMin(sunsetDate) : null;
+	// Sun events — check if they fall within the rolling window
+	$: sunsetAbs = sun?.attributes.next_setting
+		? toAbsMin(new Date(sun.attributes.next_setting))
+		: null;
 	$: sunsetInRange = sunsetAbs != null && sunsetAbs >= windowStart && sunsetAbs <= windowEnd;
-	$: sunsetX = sunsetAbs != null ? toX(sunsetAbs) : 0;
+	$: sunsetX =
+		sunsetAbs != null
+			? PAD_LEFT +
+				((sunsetAbs - windowStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT)
+			: 0;
 
-	// Hour tick labels — whole hours within the window, every 3h
+	$: sunriseAbs = sun?.attributes.next_rising
+		? toAbsMin(new Date(sun.attributes.next_rising))
+		: null;
+	$: sunriseInRange = sunriseAbs != null && sunriseAbs >= windowStart && sunriseAbs <= windowEnd;
+	$: sunriseX =
+		sunriseAbs != null
+			? PAD_LEFT +
+				((sunriseAbs - windowStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT)
+			: 0;
+
+	// Hour ticks: every 3h, snapped to whole-hour boundaries within the window
 	$: tickHours = (() => {
+		if (!containerWidth) return [];
 		const ticks: { label: string; x: number }[] = [];
-		// Find the next whole hour at or after windowStart
 		const startDate = new Date(windowStart * 60_000);
 		startDate.setMinutes(0, 0, 0);
-		if (startDate.getTime() / 60_000 < windowStart) {
-			startDate.setHours(startDate.getHours() + 1);
-		}
+		// Advance to the next whole hour if we're mid-minute
+		if (startDate.getTime() / 60_000 < windowStart) startDate.setHours(startDate.getHours() + 1);
 		// Advance to next 3h boundary
 		while (startDate.getHours() % 3 !== 0) startDate.setHours(startDate.getHours() + 1);
 		while (toAbsMin(startDate) <= windowEnd) {
-			ticks.push({ label: formatHour(startDate.getHours()), x: toX(toAbsMin(startDate)) });
+			const abs = toAbsMin(startDate);
+			ticks.push({
+				label: formatHour(startDate.getHours()),
+				x: PAD_LEFT + ((abs - windowStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT)
+			});
 			startDate.setHours(startDate.getHours() + 3);
 		}
 		return ticks;
@@ -123,91 +150,6 @@
 		return h < 12 ? `${h}a` : `${h - 12}p`;
 	}
 </script>
-
-<div class="graph" bind:clientWidth={containerWidth} bind:clientHeight={containerHeight}>
-	{#if containerWidth > 0 && windowEntries.length > 0}
-		<svg width={containerWidth} height={containerHeight}>
-			<!-- Temperature curve -->
-			<path
-				d={pathD}
-				fill="none"
-				stroke="var(--color-accent)"
-				stroke-width="1.5"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				opacity="0.7"
-			/>
-
-			<!-- Floating Y labels at high and low points -->
-			{#if points.length}
-				<text
-					x={highPoint.x}
-					y={highPoint.y - 5}
-					text-anchor="middle"
-					class="y-label"
-				>{displayTemp(rawMax)}</text>
-				{#if showBothYLabels}
-					<text
-						x={lowPoint.x}
-						y={lowPoint.y + 11}
-						text-anchor="middle"
-						class="y-label"
-					>{displayTemp(rawMin)}</text>
-				{/if}
-			{/if}
-
-			<!-- Sunset marker -->
-			{#if sunsetInRange}
-				<line
-					x1={sunsetX}
-					y1={PAD_TOP}
-					x2={sunsetX}
-					y2={containerHeight - PAD_BOTTOM}
-					stroke="currentColor"
-					stroke-width="1"
-					opacity="0.18"
-				/>
-				<text x={sunsetX} y={containerHeight - PAD_BOTTOM + 12} text-anchor="middle" class="tick-label sunset-label">
-					set
-				</text>
-			{/if}
-
-			<!-- Now indicator — always visible -->
-			<line
-				x1={nowX}
-				y1={PAD_TOP - 4}
-				x2={nowX}
-				y2={containerHeight - PAD_BOTTOM}
-				stroke="currentColor"
-				stroke-width="1"
-				stroke-dasharray="2 3"
-				opacity="0.3"
-			/>
-			{#if currentTemp != null}
-				<circle
-					cx={nowX}
-					cy={nowY}
-					r="2.5"
-					fill="var(--color-bg)"
-					stroke="var(--color-accent)"
-					stroke-width="1.5"
-				/>
-				<text x={nowX} y={PAD_TOP - 6} text-anchor="middle" class="now-label">
-					{displayTemp(currentTemp)}
-				</text>
-			{/if}
-
-			<!-- Hour tick labels -->
-			{#each tickHours as tick}
-				<text x={tick.x} y={containerHeight - 2} text-anchor="middle" class="tick-label">
-					{tick.label}
-				</text>
-			{/each}
-		</svg>
-	{:else if windowEntries.length === 0}
-		<div class="empty">Loading…</div>
-	{/if}
-</div>
 
 <style>
 	.graph {
@@ -222,14 +164,14 @@
 
 	.now-label {
 		font-size: 9px;
-		fill: currentColor;
+		fill: var(--color-accent);
 		opacity: 0.9;
 	}
 
 	.y-label {
-		font-size: 9px;
+		font-size: 8px;
 		fill: currentColor;
-		opacity: 0.55;
+		opacity: 0.4;
 	}
 
 	.tick-label {
@@ -238,8 +180,8 @@
 		opacity: 0.35;
 	}
 
-	.sunset-label {
-		opacity: 0.4;
+	.sun-label {
+		opacity: 0.45;
 	}
 
 	.empty {
@@ -253,3 +195,104 @@
 		opacity: var(--opacity-text-muted);
 	}
 </style>
+
+<div class="graph" bind:clientWidth={containerWidth} bind:clientHeight={containerHeight}>
+	{#if containerWidth > 0}
+		<svg width={containerWidth} height={containerHeight}>
+			<!-- High/low boundary lines + labels -->
+			{#if temps.length}
+				<line x1={PAD_LEFT} y1={highY} x2={containerWidth - PAD_RIGHT} y2={highY}
+					stroke="currentColor" stroke-width="1" opacity="0.1" />
+				<text x={PAD_LEFT - 4} y={highY + 3.5} text-anchor="end" class="y-label">
+					{Math.round(rawMax)}°
+				</text>
+				{#if lowY - highY > 12}
+					<line x1={PAD_LEFT} y1={lowY} x2={containerWidth - PAD_RIGHT} y2={lowY}
+						stroke="currentColor" stroke-width="1" opacity="0.1" />
+					<text x={PAD_LEFT - 4} y={lowY + 3.5} text-anchor="end" class="y-label">
+						{Math.round(rawMin)}°
+					</text>
+				{/if}
+			{/if}
+
+			<!-- Temperature curve (now-anchor + forecast) -->
+			{#if pathD}
+				<path
+					d={pathD}
+					fill="none"
+					stroke="var(--color-accent)"
+					stroke-width="1.5"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					opacity="0.8"
+				/>
+			{/if}
+
+			<!-- Sunrise marker -->
+			{#if sunriseInRange}
+				<line
+					x1={sunriseX}
+					y1={PAD_TOP}
+					x2={sunriseX}
+					y2={containerHeight - PAD_BOTTOM}
+					stroke="currentColor"
+					stroke-width="1"
+					opacity="0.15"
+				/>
+				<text x={sunriseX} y={containerHeight - 2} text-anchor="middle" class="tick-label sun-label"
+					>sunrise</text
+				>
+			{/if}
+
+			<!-- Sunset marker -->
+			{#if sunsetInRange}
+				<line
+					x1={sunsetX}
+					y1={PAD_TOP}
+					x2={sunsetX}
+					y2={containerHeight - PAD_BOTTOM}
+					stroke="currentColor"
+					stroke-width="1"
+					opacity="0.15"
+				/>
+				<text x={sunsetX} y={containerHeight - 2} text-anchor="middle" class="tick-label sun-label"
+					>set</text
+				>
+			{/if}
+
+			<!-- Now indicator: dashed line + dot + current temp -->
+			<line
+				x1={nowX}
+				y1={PAD_TOP - 4}
+				x2={nowX}
+				y2={containerHeight - PAD_BOTTOM}
+				stroke="var(--color-accent)"
+				stroke-width="1"
+				stroke-dasharray="2 3"
+				opacity="0.55"
+			/>
+			{#if currentTemp != null}
+				<circle
+					cx={nowX}
+					cy={nowY}
+					r="2.5"
+					fill="var(--color-bg)"
+					stroke="var(--color-accent)"
+					stroke-width="1.5"
+				/>
+				<text x={nowX} y={PAD_TOP - 5} text-anchor="middle" class="now-label">
+					{Math.round(currentTemp)}°
+				</text>
+			{/if}
+
+			<!-- Hour tick labels -->
+			{#each tickHours as tick}
+				<text x={tick.x} y={containerHeight - 2} text-anchor="middle" class="tick-label">
+					{tick.label}
+				</text>
+			{/each}
+		</svg>
+	{:else}
+		<div class="empty">loading</div>
+	{/if}
+</div>
