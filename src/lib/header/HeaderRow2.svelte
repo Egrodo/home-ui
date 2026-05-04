@@ -197,6 +197,9 @@
 		flex-direction: column;
 		gap: 6px;
 		margin-top: 8px;
+		touch-action: pan-y;
+		cursor: grab;
+		user-select: none;
 	}
 
 	.forecast-days::-webkit-scrollbar {
@@ -327,7 +330,24 @@
 	<div class="forecast">
 		<span class="section-label">Forecast</span>
 		{#if dailyForecast.length > 0}
-			<div class="forecast-days">
+			<div
+				class="forecast-days"
+				on:pointerdown={(e) => {
+					const el = e.currentTarget;
+					const startY = e.clientY;
+					const startTop = el.scrollTop;
+					el.setPointerCapture(e.pointerId);
+					const onMove = (ev: PointerEvent) => {
+						el.scrollTop = startTop - (ev.clientY - startY);
+					};
+					const onUp = () => {
+						el.removeEventListener('pointermove', onMove);
+						el.removeEventListener('pointerup', onUp);
+					};
+					el.addEventListener('pointermove', onMove);
+					el.addEventListener('pointerup', onUp);
+				}}
+			>
 				{#each dailyForecast as day}
 					<div class="forecast-day">
 						<span class="forecast-day-label">{getDayLabel(day.datetime)}</span>
