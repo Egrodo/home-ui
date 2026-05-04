@@ -7,8 +7,6 @@
 	import Stocks from '$lib/stocks/Stocks.svelte';
 	import LightDrawer from '$lib/drawer/LightDrawer.svelte';
 
-	let hasLoaded = false;
-	isConnectedStore.subscribe((v) => (hasLoaded = v));
 </script>
 
 <style>
@@ -24,7 +22,7 @@
 </style>
 
 <div class="container">
-	{#if !hasLoaded}
+	{#if !$isConnectedStore}
 		<Loader />
 	{:else}
 		<Header />

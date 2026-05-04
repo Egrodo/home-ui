@@ -3,7 +3,10 @@
 
 	export let initialRgb: [number, number, number] = [255, 160, 60];
 
-	const dispatch = createEventDispatcher<{ change: { rgb: [number, number, number] } }>();
+	const dispatch = createEventDispatcher<{
+		change: { rgb: [number, number, number] };
+		'change-end': { rgb: [number, number, number] };
+	}>();
 
 	let svCanvas: HTMLCanvasElement;
 	let hueCanvas: HTMLCanvasElement;
@@ -140,6 +143,7 @@
 	}
 	function onSVUp() {
 		capturingSV = false;
+		dispatch('change-end', { rgb: hsvToRgb(hue, sat, val) });
 	}
 
 	function onHueDown(e: PointerEvent) {
@@ -152,6 +156,7 @@
 	}
 	function onHueUp() {
 		capturingHue = false;
+		dispatch('change-end', { rgb: hsvToRgb(hue, sat, val) });
 	}
 
 	// ── Lifecycle ─────────────────────────────────────────────────────────────

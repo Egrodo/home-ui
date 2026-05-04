@@ -2,6 +2,7 @@
 	import { calendarStore, weatherStore } from '../data/backendStores';
 	import { showFahrenheitStore } from '../data/stores';
 	import { getIconKey } from '../utils/getIcon';
+	import { displayTemp } from '../utils/temperature';
 	import MdiIcon from '../utils/MdiIcon.svelte';
 	import type { WeatherStates } from '../data/types';
 
@@ -12,12 +13,8 @@
 		templow?: number;
 	}
 
-	function toFahrenheit(temp: number, unit: string): number {
-		return unit === '°C' ? (temp * 9) / 5 + 32 : temp;
-	}
-
 	function tempColor(temp: number, unit: string): string {
-		const f = toFahrenheit(temp, unit);
+		const f = unit === '°C' ? (temp * 9) / 5 + 32 : temp;
 		const cold = { r: 30, g: 74, b: 140 };
 		const mid = { r: 200, g: 120, b: 48 };
 		const hot = { r: 140, g: 30, b: 30 };
@@ -62,12 +59,6 @@
 	}
 
 	$: showFahrenheit = $showFahrenheitStore;
-
-	function displayTemp(temp: number): string {
-		if (showFahrenheit && unit === '°C') return Math.round((temp * 9) / 5 + 32) + '°F';
-		if (!showFahrenheit && unit === '°F') return Math.round(((temp - 32) * 5) / 9) + '°C';
-		return Math.round(temp) + unit;
-	}
 
 	function formatEventTime(iso: string | undefined): string {
 		if (!iso) return '';
@@ -320,7 +311,7 @@
 					color={tempColor(weather.attributes.temperature, unit)}
 				/>
 				<button class="current-temp" on:click={() => showFahrenheitStore.update((v) => !v)}>
-					{displayTemp(weather.attributes.temperature)}
+					{displayTemp(weather.attributes.temperature, unit, showFahrenheit)}
 				</button>
 				<span class="current-condition">{weather.state.replace(/-/g, ' ')}</span>
 				<span class="current-humidity">{weather.attributes.humidity}% humidity</span>
@@ -348,10 +339,10 @@
 						/>
 						</span>
 						<div class="forecast-day-temps">
-							<span class="temp-high">{displayTemp(day.temperature)}</span>
+							<span class="temp-high">{displayTemp(day.temperature, unit, showFahrenheit)}</span>
 							{#if day.templow != null}
 								<span class="temp-sep">–</span>
-								<span class="temp-low">{displayTemp(day.templow)}</span>
+								<span class="temp-low">{displayTemp(day.templow, unit, showFahrenheit)}</span>
 							{/if}
 						</div>
 					</div>

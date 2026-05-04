@@ -1,8 +1,8 @@
 export type ColorMode = 'hs' | 'xy' | 'rgb' | 'color_temp';
 
 interface LightEntityAttributes {
-	min_color_temp_kelvin: string;
-	max_color_temp_kelvin: string;
+	min_color_temp_kelvin: number;
+	max_color_temp_kelvin: number;
 	supported_color_modes: ColorMode[]; // Stored for sanity check
 	effect_list: string[];
 	effect: string;
@@ -31,7 +31,7 @@ export type WeatherStates =
 	| 'hail'
 	| 'lightning'
 	| 'lightning-rainy'
-	| 'partycloudy'
+	| 'partlycloudy'
 	| 'pouring'
 	| 'rainy'
 	| 'snowy'

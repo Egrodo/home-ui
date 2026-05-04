@@ -17,8 +17,8 @@
 	$: brightness = light?.attributes.brightness ?? 0;
 	$: brightnessPercent = Math.round((brightness / 255) * 100);
 	$: colorTempKelvin = light?.attributes.color_temp_kelvin ?? null;
-	$: minColorTemp = Number(light?.attributes.min_color_temp_kelvin ?? 2000);
-	$: maxColorTemp = Number(light?.attributes.max_color_temp_kelvin ?? 6500);
+	$: minColorTemp = light?.attributes.min_color_temp_kelvin ?? 2000;
+	$: maxColorTemp = light?.attributes.max_color_temp_kelvin ?? 6500;
 	$: colorMode = light?.attributes.color_mode;
 	$: lightMode = colorMode === 'color_temp' ? 'temp' : 'rgb';
 
@@ -47,7 +47,6 @@
 
 	// Use entity's custom HA icon when defined; fall back to Material Symbols lightbulb
 	$: hasCustomIcon = isLight && !!(entity as LightEntity).attributes.icon;
-	console.log((entity as LightEntity).attributes.icon);
 
 	// ── Tap = toggle, long-press (lights only) = open drawer ────────────────
 	let pressTimer: ReturnType<typeof setTimeout> | null = null;
@@ -135,8 +134,8 @@
 			background-color 0.3s ease;
 	}
 
-	/* ── Light: on state border ──────────────────────────── */
-	.card--light.card--on {
+	/* ── On state border ──────────────────────────── */
+	.card--on {
 		border-color: var(--rule-strong);
 	}
 

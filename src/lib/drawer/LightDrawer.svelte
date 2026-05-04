@@ -2,11 +2,11 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { lightDrawerStore, type DrawerTarget } from './drawerStore';
 	import { getColorHistory, addColorToHistory } from './colorHistory';
-	import { DRAWER_MAX_HEIGHT } from '$lib/constants';
 	import { changeBrightness, changeColor, changeTemperature } from '$lib/data/backend';
 	import ColorPicker from './ColorPicker.svelte';
 	import BrightnessSlider from './BrightnessSlider.svelte';
 	import ColorTempSlider from './ColorTempSlider.svelte';
+	const DRAWER_MAX_HEIGHT = 700; // px — covers stock section, nothing above
 
 	// `target` tracks the store value; `displayTarget` holds the last non-null
 	// value so content stays mounted during the close animation.
@@ -130,13 +130,13 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-		background: var(--color-surface-2, #111);
+		background: var(--color-surface-2);
 		border-top: 1px solid var(--color-border);
 		border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 		padding: 0 32px 28px;
 		z-index: 10;
 		/* Height governed by content; max-height set to cover stock section only */
-overflow: hidden;
+		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		gap: 14px;
@@ -279,7 +279,7 @@ overflow: hidden;
 			<ColorPicker
 				initialRgb={displayTarget.currentRgb ?? [255, 160, 60]}
 				on:change={onColorChange}
-				on:change={onColorChangeEnd}
+				on:change-end={onColorChangeEnd}
 			/>
 		{/key}
 	{/if}

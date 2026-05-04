@@ -13,7 +13,14 @@ import {
 	type HassEntity
 } from 'home-assistant-js-websocket';
 import { get } from 'svelte/store';
-import { hourlyForecastStore, lightStore, sceneStore, sunStore, switchStore, weatherStore } from './backendStores';
+import {
+	hourlyForecastStore,
+	lightStore,
+	sceneStore,
+	sunStore,
+	switchStore,
+	weatherStore
+} from './backendStores';
 import {
 	Rooms,
 	type CalendarEvent,
@@ -35,9 +42,7 @@ export function setHiddenEntityIds(entityRegistry: EntityRegistryEntry[]) {
 		entityRegistry
 			.filter(
 				(entry) =>
-					entry.hidden_by != null ||
-					entry.disabled_by != null ||
-					entry.entity_category != null
+					entry.hidden_by != null || entry.disabled_by != null || entry.entity_category != null
 			)
 			.map((entry) => entry.entity_id)
 	);

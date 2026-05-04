@@ -1,5 +1,9 @@
 import { writable } from 'svelte/store';
-import { subscribeEntities, type Connection, type UnsubscribeFunc } from 'home-assistant-js-websocket';
+import {
+	subscribeEntities,
+	type Connection,
+	type UnsubscribeFunc
+} from 'home-assistant-js-websocket';
 import { PUBLIC_WEATHER_ENTITY_ID, PUBLIC_CALENDAR_ENTITY_ID } from '$env/static/public';
 import {
 	initWsConnection,

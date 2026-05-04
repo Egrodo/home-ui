@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { get } from 'svelte/store';
-import { lightStore, switchStore, sceneStore, weatherStore, selectedRoomStore, selectedLightIdStore } from './stores';
+import { lightStore, switchStore, sceneStore, weatherStore } from './backendStores';
+import { selectedRoomStore } from './stores';
 import { Rooms } from './types';
 import type { LightEntity, SwitchEntity, SceneEntity, WeatherEntity } from './types';
 
@@ -10,8 +11,8 @@ function makeLightEntity(id: string, state: 'on' | 'off' = 'on'): LightEntity {
 		state,
 		attributes: {
 			friendly_name: `Test Light ${id}`,
-			min_color_temp_kelvin: '2000',
-			max_color_temp_kelvin: '6500',
+			min_color_temp_kelvin: 2000,
+			max_color_temp_kelvin: 6500,
 			supported_color_modes: ['rgb'],
 			effect_list: [],
 			effect: '',
@@ -112,15 +113,5 @@ describe('UI stores', () => {
 		selectedRoomStore.set(Rooms.Bedroom);
 		expect(get(selectedRoomStore)).toBe(Rooms.Bedroom);
 		selectedRoomStore.set(Rooms.AllRooms); // reset
-	});
-
-	it('selectedLightIdStore defaults to null', () => {
-		expect(get(selectedLightIdStore)).toBeNull();
-	});
-
-	it('selectedLightIdStore can be set', () => {
-		selectedLightIdStore.set('light.test');
-		expect(get(selectedLightIdStore)).toBe('light.test');
-		selectedLightIdStore.set(null); // reset
 	});
 });

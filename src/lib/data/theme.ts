@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 type Theme = 'dark' | 'light';
@@ -26,9 +26,7 @@ function createThemeStore() {
 			set(theme);
 		},
 		toggle() {
-			let current: Theme = DEFAULT_THEME;
-			subscribe((v) => (current = v))();
-			this.set(current === 'dark' ? 'light' : 'dark');
+			this.set(get({ subscribe }) === 'dark' ? 'light' : 'dark');
 		}
 	};
 }

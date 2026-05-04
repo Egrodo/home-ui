@@ -5,7 +5,7 @@
 	export let min: number = 2000;
 	export let max: number = 6500;
 
-	const dispatch = createEventDispatcher<{ change: number }>();
+	const dispatch = createEventDispatcher<{ change: number; 'change-end': number }>();
 
 	let track: HTMLDivElement;
 	let capturing = false;
@@ -32,6 +32,7 @@
 		if (!capturing) return;
 		capturing = false;
 		commit(e);
+		dispatch('change-end', value);
 	}
 
 	function commit(e: PointerEvent) {
