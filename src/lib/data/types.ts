@@ -127,8 +127,8 @@ export type EntityAreaMap = Record<string, string | null>;
 
 export interface CalendarEvent {
 	summary: string;
-	start: { dateTime?: string; date?: string };
-	end: { dateTime?: string; date?: string };
+	start: string;
+	end: string;
 	description?: string;
 	location?: string;
 }

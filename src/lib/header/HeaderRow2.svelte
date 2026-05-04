@@ -77,8 +77,8 @@
 		return m === 0 ? `${hour}${ampm}` : `${hour}:${m.toString().padStart(2, '0')}${ampm}`;
 	}
 
-	function isAllDay(event: { start: { dateTime?: string; date?: string } }): boolean {
-		return !event.start.dateTime;
+	function isAllDay(event: { start: string }): boolean {
+		return !event.start.includes('T');
 	}
 
 	$: weather = $weatherStore;
@@ -140,7 +140,7 @@
 		letter-spacing: 0.04em;
 		opacity: var(--opacity-text-muted);
 		flex-shrink: 0;
-		width: 42px;
+		width: 56px;
 	}
 
 	.agenda-title {
@@ -297,7 +297,7 @@
 							{#if isAllDay(event)}
 								All day
 							{:else}
-								{formatEventTime(event.start.dateTime)}
+								{formatEventTime(event.start)}
 							{/if}
 						</span>
 						<span class="agenda-title">{event.summary}</span>

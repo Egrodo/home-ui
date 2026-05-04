@@ -4,7 +4,9 @@
 
 	const PAD_LEFT = 26; // Y-label column
 	const PAD_RIGHT = 8;
-	const PAD_TOP = 16; // above-curve label room
+	// TODO (human): I don't like this approach of adding padding to the top and using that to render the now-line label.
+	// I'd rather have the curve use the full height and intelligently position the now-line label to avoid collisions with the curve (place it below if the curve is on top ie).
+	const PAD_TOP = 24; // above-curve label room
 	const PAD_BOTTOM = 13; // hour-tick room
 	const LOOKBACK_MIN = 60; // 1h of empty space before "now"
 	const WINDOW_MIN = 12 * 60; // total window width in minutes
@@ -201,14 +203,28 @@
 		<svg width={containerWidth} height={containerHeight}>
 			<!-- High/low boundary lines + labels -->
 			{#if temps.length}
-				<line x1={PAD_LEFT} y1={highY} x2={containerWidth - PAD_RIGHT} y2={highY}
-					stroke="currentColor" stroke-width="1" opacity="0.1" />
+				<line
+					x1={PAD_LEFT}
+					y1={highY}
+					x2={containerWidth - PAD_RIGHT}
+					y2={highY}
+					stroke="currentColor"
+					stroke-width="1"
+					opacity="0.1"
+				/>
 				<text x={PAD_LEFT - 4} y={highY + 3.5} text-anchor="end" class="y-label">
 					{Math.round(rawMax)}°
 				</text>
 				{#if lowY - highY > 12}
-					<line x1={PAD_LEFT} y1={lowY} x2={containerWidth - PAD_RIGHT} y2={lowY}
-						stroke="currentColor" stroke-width="1" opacity="0.1" />
+					<line
+						x1={PAD_LEFT}
+						y1={lowY}
+						x2={containerWidth - PAD_RIGHT}
+						y2={lowY}
+						stroke="currentColor"
+						stroke-width="1"
+						opacity="0.1"
+					/>
 					<text x={PAD_LEFT - 4} y={lowY + 3.5} text-anchor="end" class="y-label">
 						{Math.round(rawMin)}°
 					</text>
@@ -256,7 +272,7 @@
 					opacity="0.15"
 				/>
 				<text x={sunsetX} y={containerHeight - 2} text-anchor="middle" class="tick-label sun-label"
-					>set</text
+					>sunset</text
 				>
 			{/if}
 
@@ -280,7 +296,7 @@
 					stroke="var(--color-accent)"
 					stroke-width="1.5"
 				/>
-				<text x={nowX} y={PAD_TOP - 5} text-anchor="middle" class="now-label">
+				<text x={nowX} y={PAD_TOP - 10} text-anchor="middle" class="now-label">
 					{Math.round(currentTemp)}°
 				</text>
 			{/if}
