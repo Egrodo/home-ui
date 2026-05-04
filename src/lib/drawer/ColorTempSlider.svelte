@@ -12,6 +12,9 @@
 
 	$: pct = ((value - min) / (max - min)) * 100;
 
+	// Normalise pct between 2-98% to avoid thumb being cut off at edges
+	$: leftVal = Math.max(2, Math.min(98, pct));
+
 	function fromPointer(e: PointerEvent): number {
 		const rect = track.getBoundingClientRect();
 		return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
@@ -25,7 +28,7 @@
 
 	function onPointerMove(e: PointerEvent) {
 		if (!capturing) return;
-		commit(e);
+		commit(e, false);
 	}
 
 	function onPointerUp(e: PointerEvent) {
@@ -35,10 +38,12 @@
 		dispatch('change-end', value);
 	}
 
-	function commit(e: PointerEvent) {
+	function commit(e: PointerEvent, dispatchChange = true) {
 		const t = fromPointer(e);
 		value = Math.round(min + t * (max - min));
-		dispatch('change', value);
+		if (dispatchChange) {
+			dispatch('change', value);
+		}
 	}
 </script>
 
@@ -55,7 +60,7 @@
 		text-transform: uppercase;
 		opacity: var(--opacity-text-muted);
 		flex-shrink: 0;
-		width: 60px;
+		width: 100px;
 	}
 
 	.track {
@@ -119,7 +124,7 @@
 		aria-valuemax={max}
 		tabindex="0"
 	>
-		<div class="thumb" style:left="{pct}%"></div>
+		<div class="thumb" style:left="{leftVal}%"></div>
 		<span class="kelvin">{value}K</span>
 	</div>
 </div>

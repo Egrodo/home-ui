@@ -109,7 +109,7 @@
 
 	// ── Pointer handling ──────────────────────────────────────────────────────
 
-	function svFromPointer(e: PointerEvent) {
+	function svFromPointer(e: PointerEvent, dispatchChange = true) {
 		const rect = svCanvas.getBoundingClientRect();
 		const nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
 		const ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
@@ -117,20 +117,16 @@
 		val = 1 - ny;
 		svX = nx * 100;
 		svY = ny * 100;
-		emit();
+		if (dispatchChange) dispatch('change', { rgb: hsvToRgb(hue, sat, val) });
 	}
 
-	function hueFromPointer(e: PointerEvent) {
+	function hueFromPointer(e: PointerEvent, dispatchChange = true) {
 		const rect = hueCanvas.getBoundingClientRect();
 		const nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
 		hue = nx * 360;
 		hueX = nx * 100;
 		drawSV();
-		emit();
-	}
-
-	function emit() {
-		dispatch('change', { rgb: hsvToRgb(hue, sat, val) });
+		if (dispatchChange) dispatch('change', { rgb: hsvToRgb(hue, sat, val) });
 	}
 
 	function onSVDown(e: PointerEvent) {
@@ -139,7 +135,7 @@
 		svFromPointer(e);
 	}
 	function onSVMove(e: PointerEvent) {
-		if (capturingSV) svFromPointer(e);
+		if (capturingSV) svFromPointer(e, false);
 	}
 	function onSVUp() {
 		capturingSV = false;
@@ -152,7 +148,7 @@
 		hueFromPointer(e);
 	}
 	function onHueMove(e: PointerEvent) {
-		if (capturingHue) hueFromPointer(e);
+		if (capturingHue) hueFromPointer(e, false);
 	}
 	function onHueUp() {
 		capturingHue = false;

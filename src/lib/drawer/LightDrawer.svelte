@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { lightDrawerStore, type DrawerTarget } from './drawerStore';
-	import { getColorHistory, addColorToHistory } from './colorHistory';
+	import { getColorHistory, addToHistory, type HistoryEntry } from './colorHistory';
 	import { changeBrightness, changeColor, changeTemperature } from '$lib/data/backend';
 	import ColorPicker from './ColorPicker.svelte';
 	import BrightnessSlider from './BrightnessSlider.svelte';
@@ -50,7 +50,7 @@
 		document.removeEventListener('pointerdown', handleDocPointerDown, { capture: true });
 	});
 
-	let colorHistory: [number, number, number][] = [];
+	let colorHistory: HistoryEntry[] = [];
 
 	function loadHistory(entityId: string) {
 		colorHistory = getColorHistory(entityId);
@@ -75,15 +75,34 @@
 		changeTemperature(target.entityId, e.detail);
 	}
 
-	function onColorChangeEnd(e: CustomEvent<{ rgb: [number, number, number] }>) {
-		if (!target) return;
-		colorHistory = addColorToHistory(target.entityId, e.detail.rgb);
+	function kelvinToRgb(k: number): [number, number, number] {
+		const t = k / 100;
+		const r = t <= 66 ? 255 : Math.min(255, Math.max(0, Math.round(329.699 * Math.pow(t - 60, -0.1332))));
+		const g = t <= 66
+			? Math.min(255, Math.max(0, Math.round(99.471 * Math.log(t) - 161.12)))
+			: Math.min(255, Math.max(0, Math.round(288.122 * Math.pow(t - 60, -0.0755))));
+		const b = t >= 66 ? 255 : t <= 19 ? 0 : Math.min(255, Math.max(0, Math.round(138.518 * Math.log(t - 10) - 305.045)));
+		return [r, g, b];
 	}
 
-	function pickHistoryColor(rgb: [number, number, number]) {
+	function onColorChangeEnd(e: CustomEvent<{ rgb: [number, number, number] }>) {
 		if (!target) return;
-		changeColor(target.entityId, rgb);
-		colorHistory = addColorToHistory(target.entityId, rgb);
+		colorHistory = addToHistory(target.entityId, e.detail.rgb);
+	}
+
+	function onColorTempChangeEnd(e: CustomEvent<number>) {
+		if (!target) return;
+		colorHistory = addToHistory(target.entityId, [...kelvinToRgb(e.detail), e.detail] as [number, number, number, number]);
+	}
+
+	function pickHistoryEntry(entry: HistoryEntry) {
+		if (!target) return;
+		if (entry.length === 4) {
+			changeTemperature(target.entityId, entry[3]);
+		} else {
+			changeColor(target.entityId, entry);
+		}
+		colorHistory = addToHistory(target.entityId, entry);
 	}
 
 	// ── Drag-to-dismiss ───────────────────────────────────────────────────────
@@ -249,12 +268,12 @@
 		<div class="recent-row">
 			<span class="recent-label">Recent</span>
 			<div class="color-swatches">
-				{#each colorHistory as rgb (rgb.join(','))}
+				{#each colorHistory as entry (entry.join(','))}
 					<button
 						class="swatch"
-						style:background-color="rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-						on:click={() => pickHistoryColor(rgb)}
-						aria-label="Pick colour rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
+						style:background-color="rgb({entry[0]}, {entry[1]}, {entry[2]})"
+						on:click={() => pickHistoryEntry(entry)}
+						aria-label="Pick colour rgb({entry[0]}, {entry[1]}, {entry[2]})"
 					></button>
 				{/each}
 				{#each Array(Math.max(0, 8 - colorHistory.length)) as _}
@@ -272,6 +291,7 @@
 			min={displayTarget.minColorTemp}
 			max={displayTarget.maxColorTemp}
 			on:change={onColorTempChange}
+			on:change-end={onColorTempChangeEnd}
 		/>
 
 		<!-- Color picker — remount when entity changes so HSV state resets -->

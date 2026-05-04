@@ -4,7 +4,10 @@ function key(entityId: string) {
 	return `color_history_${entityId}`;
 }
 
-export function getColorHistory(entityId: string): [number, number, number][] {
+// 3 elements → RGB color; 4 elements → color temperature (first 3 for display, 4th is Kelvin)
+export type HistoryEntry = [number, number, number] | [number, number, number, number];
+
+export function getColorHistory(entityId: string): HistoryEntry[] {
 	try {
 		const raw = localStorage.getItem(key(entityId));
 		return raw ? JSON.parse(raw) : [];
@@ -13,14 +16,10 @@ export function getColorHistory(entityId: string): [number, number, number][] {
 	}
 }
 
-export function addColorToHistory(
-	entityId: string,
-	rgb: [number, number, number]
-): [number, number, number][] {
-	const deduped = getColorHistory(entityId).filter(
-		([r, g, b]) => !(r === rgb[0] && g === rgb[1] && b === rgb[2])
-	);
-	const updated: [number, number, number][] = [rgb, ...deduped].slice(0, MAX_COLORS);
+export function addToHistory(entityId: string, entry: HistoryEntry): HistoryEntry[] {
+	const sig = entry.join(',');
+	const deduped = getColorHistory(entityId).filter((e) => e.join(',') !== sig);
+	const updated: HistoryEntry[] = [entry, ...deduped].slice(0, MAX_COLORS);
 	localStorage.setItem(key(entityId), JSON.stringify(updated));
 	return updated;
 }
