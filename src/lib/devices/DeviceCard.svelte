@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { Component } from 'svelte';
 	import type { LightEntity, SwitchEntity, SceneEntity } from '$lib/data/types';
+	import MdiIcon from '$lib/utils/MdiIcon.svelte';
 	import { lightDrawerStore } from '$lib/drawer/drawerStore';
 	import { toggleLight, toggleSwitch, activateScene } from '$lib/data/backend';
 
 	export let entity: LightEntity | SwitchEntity | SceneEntity;
-	export let icon: Component | null = null;
+	export let icon: string | null = null;
 
 	$: isLight = entity.entity_id.startsWith('light.');
 	$: isSwitch = entity.entity_id.startsWith('switch.');
@@ -300,7 +300,7 @@
 		<div class="icon-row">
 			{#if hasCustomIcon && icon}
 				<div class="light-icon-wrap" aria-hidden="true">
-					<svelte:component this={icon} width="26px" height="26px" />
+					<MdiIcon name={icon} width="26px" height="26px" />
 				</div>
 			{:else}
 				<span class="bulb-icon" aria-hidden="true">lightbulb</span>
@@ -325,7 +325,7 @@
 
 		<div class="icon-wrap">
 			{#if icon}
-				<svelte:component this={icon} width="24px" height="24px" />
+				<MdiIcon name={icon} width="24px" height="24px" />
 			{:else}
 				<div
 					style="width:24px;height:24px;border-radius:50%;border:1.5px dashed currentColor;opacity:0.4"

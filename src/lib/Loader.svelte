@@ -1,5 +1,5 @@
 <script lang="ts">
-	import LoadingIcon from 'svelte-material-icons/Loading.svelte';
+	import MdiIcon from './utils/MdiIcon.svelte';
 </script>
 
 <style>
@@ -24,6 +24,6 @@
 
 <section class="loading">
 	<span class="loader">
-		<LoadingIcon height={150} width={150} />
+		<MdiIcon name="mdiLoading" width={150} height={150} />
 	</span>
 </section>

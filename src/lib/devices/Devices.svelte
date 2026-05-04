@@ -3,7 +3,7 @@
 	import { lightStore, switchStore, sceneStore, selectedRoomStore } from '$lib/data/stores';
 	import { Rooms, type LightEntity, type SwitchEntity, type SceneEntity } from '$lib/data/types';
 	import { ROOM_AREA_IDS } from '$lib/data/ws';
-	import { getIcon } from '$lib/utils/getIcon';
+	import { getIconKey } from '$lib/utils/getIcon';
 	import DeviceCard from './DeviceCard.svelte';
 
 	let selectedRoom: Rooms = Rooms.AllRooms;
@@ -15,8 +15,7 @@
 	let lights: Record<string, LightEntity> = {};
 	let switches: Record<string, SwitchEntity> = {};
 	let scenes: Record<string, SceneEntity> = {};
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let icons: Record<string, any> = {};
+	let icons: Record<string, string> = {};
 
 	function inRoom(entityId: string): boolean {
 		if (selectedRoom === Rooms.AllRooms) return true;
@@ -24,31 +23,31 @@
 		return entityArea != null && (ROOM_AREA_IDS[selectedRoom] ?? []).includes(entityArea);
 	}
 
-	lightStore.subscribe(async (newLights) => {
+	lightStore.subscribe((newLights) => {
 		lights = newLights;
 		for (const light of Object.values(newLights)) {
 			if (!icons[light.entity_id]) {
-				icons[light.entity_id] = await getIcon(light.attributes.icon ?? 'mdi:lightbulb-variant');
+				icons[light.entity_id] = getIconKey(light.attributes.icon ?? 'mdi:lightbulb-variant');
 			}
 		}
 		icons = { ...icons };
 	});
 
-	switchStore.subscribe(async (newSwitches) => {
+	switchStore.subscribe((newSwitches) => {
 		switches = newSwitches;
 		for (const sw of Object.values(newSwitches)) {
 			if (!icons[sw.entity_id]) {
-				icons[sw.entity_id] = await getIcon(sw.attributes.icon ?? 'mdi:toggle-switch-outline');
+				icons[sw.entity_id] = getIconKey(sw.attributes.icon ?? 'mdi:toggle-switch-outline');
 			}
 		}
 		icons = { ...icons };
 	});
 
-	sceneStore.subscribe(async (newScenes) => {
+	sceneStore.subscribe((newScenes) => {
 		scenes = newScenes;
 		for (const scene of Object.values(newScenes)) {
 			if (!icons[scene.entity_id]) {
-				icons[scene.entity_id] = await getIcon(scene.attributes.icon ?? 'mdi:palette');
+				icons[scene.entity_id] = getIconKey(scene.attributes.icon ?? 'mdi:palette');
 			}
 		}
 		icons = { ...icons };

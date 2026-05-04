@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { calendarStore, weatherStore } from '../data/backendStores';
 	import { showFahrenheitStore } from '../data/stores';
-	import { getIcon } from '../utils/getIcon';
+	import { getIconKey } from '../utils/getIcon';
+	import MdiIcon from '../utils/MdiIcon.svelte';
 	import type { WeatherStates } from '../data/types';
 
 	interface ForecastEntry {
@@ -313,15 +314,11 @@
 		<span class="section-label">Now</span>
 		{#if weather}
 			<div class="current-block">
-				{#await getIcon(weather.state)}
-					<div style="width:48px;height:48px;"></div>
-				{:then Icon}
-					<svelte:component
-						this={Icon}
-						size="48"
-						color={tempColor(weather.attributes.temperature, unit)}
-					/>
-				{/await}
+				<MdiIcon
+					name={getIconKey(weather.state)}
+					size="48"
+					color={tempColor(weather.attributes.temperature, unit)}
+				/>
 				<button class="current-temp" on:click={() => showFahrenheitStore.update((v) => !v)}>
 					{displayTemp(weather.attributes.temperature)}
 				</button>
@@ -344,11 +341,11 @@
 					<div class="forecast-day">
 						<span class="forecast-day-label">{getDayLabel(day.datetime)}</span>
 						<span class="forecast-day-icon">
-							{#await getIcon(day.condition)}
-								<div style="width:20px;height:20px;"></div>
-							{:then Icon}
-								<svelte:component this={Icon} size="20" color={tempColor(day.temperature, unit)} />
-							{/await}
+							<MdiIcon
+							name={getIconKey(day.condition)}
+							size="20"
+							color={tempColor(day.temperature, unit)}
+						/>
 						</span>
 						<div class="forecast-day-temps">
 							<span class="temp-high">{displayTemp(day.temperature)}</span>
