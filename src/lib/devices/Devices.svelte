@@ -27,6 +27,16 @@
 		padding: 16px;
 	}
 
+	.roomLabel {
+		font-size: var(--text-xs);
+		margin-top: 0;
+		margin-bottom: 8px;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		opacity: var(--opacity-text-muted);
+		flex-shrink: 0;
+	}
+
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(6, 1fr);
@@ -35,15 +45,22 @@
 </style>
 
 <section class="devices">
+	<p class="roomLabel">{$selectedRoomStore}</p>
 	<div class="grid">
 		{#each visibleScenes as scene (scene.entity_id)}
 			<DeviceCard entity={scene} icon={getIconKey(scene.attributes.icon ?? 'mdi:palette')} />
 		{/each}
 		{#each visibleSwitches as sw (sw.entity_id)}
-			<DeviceCard entity={sw} icon={getIconKey(sw.attributes.icon ?? 'mdi:toggle-switch-outline')} />
+			<DeviceCard
+				entity={sw}
+				icon={getIconKey(sw.attributes.icon ?? 'mdi:toggle-switch-outline')}
+			/>
 		{/each}
 		{#each visibleLights as light (light.entity_id)}
-			<DeviceCard entity={light} icon={getIconKey(light.attributes.icon ?? 'mdi:lightbulb-variant')} />
+			<DeviceCard
+				entity={light}
+				icon={getIconKey(light.attributes.icon ?? 'mdi:lightbulb-variant')}
+			/>
 		{/each}
 	</div>
 </section>

@@ -5,32 +5,39 @@
 	let selectedRoom: Rooms = Rooms.AllRooms;
 	selectedRoomStore.subscribe((r) => (selectedRoom = r));
 
-	// Maps each SVG path ID to a Rooms value.
-	// Living Room spans three named zones; Den/Office are the same physical room.
 	const REGION_ROOM: Record<string, Rooms> = {
-		Bedroom: Rooms.Bedroom,
-		Office: Rooms.Office,
-		Den: Rooms.Office,
-		Hallway: Rooms.Hallway,
-		'Living-Room-Overhead': Rooms.LivingRoom,
-		'Living-Room-Above-Couch': Rooms.LivingRoom,
-		'Living-Room-Dining-Area': Rooms.LivingRoom
-		// Hall-Bathroom, Entryway, Kitchen intentionally omitted (no Rooms entry)
+		'master-bedroom': Rooms.Bedroom,
+		'guest-bedroom': Rooms.Office,
+		den: Rooms.Den,
+		'living-room': Rooms.LivingRoom,
+		hallway: Rooms.Hallway
+		// hallway-bathroom, stairwell, kitchen, master-bathroom, guest-bathroom: no Rooms entry
 	};
 
-	function handleRegionClick(pathId: string) {
+	function handleRegionClick(e: MouseEvent, pathId: string) {
+		e.stopPropagation();
 		const room = REGION_ROOM[pathId];
-		if (!room) return;
+		if (!room) {
+			selectedRoomStore.set(Rooms.AllRooms);
+			return;
+		}
 		selectedRoomStore.set(selectedRoom === room ? Rooms.AllRooms : room);
 	}
 
-	function isSelected(pathId: string): boolean {
-		const room = REGION_ROOM[pathId];
-		return !!room && selectedRoom === room;
+	function pathStyle(pathId: string, room: Rooms): string {
+		const clickable = !!REGION_ROOM[pathId];
+		const dimmed =
+			room !== Rooms.AllRooms && (!REGION_ROOM[pathId] || REGION_ROOM[pathId] !== room);
+		return [
+			`fill: ${dimmed ? 'rgba(255,255,255,0.7)' : 'transparent'}`,
+			`cursor: ${clickable ? 'pointer' : 'default'}`,
+			'stroke: none',
+			'transition: fill 0.15s ease'
+		].join('; ');
 	}
 
-	function handleKeydown(e: KeyboardEvent, pathId: string) {
-		if (e.key === 'Enter' || e.key === ' ') handleRegionClick(pathId);
+	function handleContainerClick() {
+		selectedRoomStore.set(Rooms.AllRooms);
 	}
 </script>
 
@@ -42,109 +49,108 @@
 		margin: 0 24px;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
+		cursor: pointer;
+	}
+
+	.floorplanWrapper {
+		position: relative;
+		display: inline-block;
+		height: 380px;
 	}
 
 	.floorplan {
-		height: 500px;
-		opacity: 0.3;
+		height: 380px;
+		width: auto;
+		display: block;
 		pointer-events: none;
 	}
 
-	svg {
-		height: 380px;
-		width: auto;
-	}
-
-	path {
-		fill: transparent;
-		stroke: currentColor;
-		stroke-width: 6;
-		stroke-linejoin: round;
-		cursor: pointer;
-		transition:
-			fill 0.2s ease,
-			stroke 0.2s ease;
-	}
-
-	path.selected {
-		fill: color-mix(in srgb, var(--color-accent) 18%, transparent);
-		stroke: color-mix(in srgb, var(--color-accent) 60%, transparent);
-	}
-
-	path:hover {
-		fill: color-mix(in srgb, var(--color-accent) 8%, transparent);
-	}
-
-	path.selected:hover {
-		fill: color-mix(in srgb, var(--color-accent) 26%, transparent);
+	.regionsOverlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
 	}
 </style>
 
-<div class="floorplanContainer">
-	<img class="floorplan" src="/floorplan.png" alt="Floorplan" />
-	<!-- <svg viewBox="0 0 1413 964" xmlns="http://www.w3.org/2000/svg">
-		<path
-			id="Bedroom"
-			role="button"
-			tabindex="0"
-			class:selected={isSelected('Bedroom')}
-			d="M108.338,37.645L408.668,37.429L399.495,358.603L549.445,359.477L547.696,412.375L452.83,471.394L131.508,471.831L136.754,391.391L20.466,277.289L28.772,140.454"
-			on:click={() => handleRegionClick('Bedroom')}
-			on:keydown={(e) => handleKeydown(e, 'Bedroom')}
-		/>
-		<path
-			id="Office"
-			role="button"
-			tabindex="0"
-			class:selected={isSelected('Office')}
-			d="M130.957,486.544L445.835,485.82L438.503,783.993L116.365,784.351"
-			on:click={() => handleRegionClick('Office')}
-			on:keydown={(e) => handleKeydown(e, 'Office')}
-		/>
-		<path
-			id="Den"
-			role="button"
-			tabindex="0"
-			class:selected={isSelected('Den')}
-			d="M562.525,409.816L749.765,409.941L749.309,208.877L819.368,208.653L820.04,37.645L569.208,37.429L562.525,409.816Z"
-			on:click={() => handleRegionClick('Den')}
-			on:keydown={(e) => handleKeydown(e, 'Den')}
-		/>
-		<path
-			id="Hallway"
-			role="button"
-			tabindex="0"
-			class:selected={isSelected('Hallway')}
-			d="M556.726,424.359L460.887,483.484L458.829,568.424L994.502,568.846L993.039,450.582L820.04,452.595L820.04,425.068"
-			on:click={() => handleRegionClick('Hallway')}
-			on:keydown={(e) => handleKeydown(e, 'Hallway')}
-		/>
-		<path
-			id="Living-Room-Overhead"
-			role="button"
-			tabindex="0"
-			class:selected={isSelected('Living-Room-Overhead')}
-			d="M992.462,409.941L992.892,450.885L864.14,451.319L864.374,438.073L834.364,437.863L834.364,219.635L1192.408,216.575L1191.971,409.805"
-			on:click={() => handleRegionClick('Living-Room-Overhead')}
-			on:keydown={(e) => handleKeydown(e, 'Living-Room-Overhead')}
-		/>
-		<path
-			id="Living-Room-Above-Couch"
-			role="button"
-			tabindex="0"
-			class:selected={isSelected('Living-Room-Above-Couch')}
-			d="M1192.408,216.575L1192.408,37.771L834.364,36.897L834.364,219.635"
-			on:click={() => handleRegionClick('Living-Room-Above-Couch')}
-			on:keydown={(e) => handleKeydown(e, 'Living-Room-Above-Couch')}
-		/>
-		<path
-			id="Living-Room-Dining-Area"
-			role="button"
-			tabindex="0"
-			class:selected={isSelected('Living-Room-Dining-Area')}
-			d="M1192.408,37.771L1306.073,36.897L1384.276,119.701L1391.53,316.034L1319.625,409.805L1191.95,410.544"
-			on:click={() => handleRegionClick('Living-Room-Dining-Area')}
-			on:keydown={(e) => handleKeydown(e, 'Living-Room-Dining-Area')}
-		/>
-	</svg> -->
+<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+<div class="floorplanContainer" on:click={handleContainerClick}>
+	<div class="floorplanWrapper">
+		<img class="floorplan" src="/floorplan.png" alt="Floorplan" />
+		<svg class="regionsOverlay" viewBox="0 0 1698 1110" xmlns="http://www.w3.org/2000/svg">
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<path
+				id="master-bedroom"
+				d="M670.755,482.732L670.249,426.052L499.196,426.558L498.791,33.339L145.35,32.934L59.52,161.274L60.33,322.003L200.411,456.416L200.411,546.7L563.164,547.104L670.755,482.732Z"
+				style={pathStyle('master-bedroom', selectedRoom)}
+				on:click={(e) => handleRegionClick(e, 'master-bedroom')}
+			/>
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<path
+				id="master-bathroom"
+				d="M515.884,401.922L670.755,401.847L670.755,33.958L516.204,33.851"
+				style={pathStyle('master-bathroom', selectedRoom)}
+				on:click={(e) => handleRegionClick(e, 'master-bathroom')}
+			/>
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<path
+				id="den"
+				d="M904.677,478.013L690.608,477.507L689.596,32.934L980.082,32.934L979.576,237.628L901.134,238.641"
+				style={pathStyle('den', selectedRoom)}
+				on:click={(e) => handleRegionClick(e, 'den')}
+			/>
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<g transform="matrix(1.002694,0,0,0.995165,-4.417389,2.547196)">
+				<path
+					id="living-room"
+					d="M1000.562,32.934L1554.206,32.934L1639.732,135.607L1637.708,365.871L1553.7,478.013L1178.462,478.013L1178.462,526.296L1032.444,526.802L1033.457,510.101L999.55,509.089"
+					style={pathStyle('living-room', selectedRoom)}
+					on:click={(e) => handleRegionClick(e, 'living-room')}
+				/>
+			</g>
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<path
+				id="hallway"
+				d="M682.511,495.726C683.523,494.207 980.082,496.232 980.082,496.232L979.576,527.608L1176.944,529.126L1178.462,659.693L575.729,659.187L574.717,560.503"
+				style={pathStyle('hallway', selectedRoom)}
+				on:click={(e) => handleRegionClick(e, 'hallway')}
+			/>
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<path
+				id="guest-bedroom"
+				d="M202.304,566.171L201.332,898.803L556.636,901.07L555.664,565.848"
+				style={pathStyle('guest-bedroom', selectedRoom)}
+				on:click={(e) => handleRegionClick(e, 'guest-bedroom')}
+			/>
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<path
+				id="hallway-bathroom"
+				d="M767.786,677.008L575.527,677.785L574.491,1062.681L767.009,1062.681"
+				style={pathStyle('hallway-bathroom', selectedRoom)}
+				on:click={(e) => handleRegionClick(e, 'hallway-bathroom')}
+			/>
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<path
+				id="stairwell"
+				d="M1034.136,659.693L1033.124,1061.163L786.666,1062.681L785.654,659.693"
+				style={pathStyle('stairwell', selectedRoom)}
+				on:click={(e) => handleRegionClick(e, 'stairwell')}
+			/>
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<path
+				id="kitchen"
+				d="M1052.355,677.56L1197.091,678.572L1199.116,495.161L1545.776,495.161L1545.472,1062.681L1051.95,1062.681"
+				style={pathStyle('kitchen', selectedRoom)}
+				on:click={(e) => handleRegionClick(e, 'kitchen')}
+			/>
+			<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+			<path
+				id="guest-bathroom"
+				d="M302.173,917.984L557.053,917.984L557.053,1064.08L301.675,1063.914"
+				style={pathStyle('guest-bathroom', selectedRoom)}
+				on:click={(e) => handleRegionClick(e, 'guest-bathroom')}
+			/>
+		</svg>
+	</div>
 </div>

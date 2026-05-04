@@ -123,7 +123,8 @@ export function handleStateMessage(states: HassEntities) {
 export const ROOM_AREA_IDS: Partial<Record<Rooms, string[]>> = {
 	[Rooms.LivingRoom]: ['living_room'],
 	[Rooms.Bedroom]: ['bedroom'],
-	[Rooms.Office]: ['den'],
+	[Rooms.Office]: ['office'],
+	[Rooms.Den]: ['den'],
 	[Rooms.Hallway]: ['hallway']
 };
 

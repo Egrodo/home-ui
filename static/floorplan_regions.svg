@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 1413 964" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <path id="Bedroom" d="M108.338,37.645L408.668,37.429L399.495,358.603L549.445,359.477L547.696,412.375L452.83,471.394L131.508,471.831L136.754,391.391L20.466,277.289L28.772,140.454" style="fill:rgb(255,31,31);fill-opacity:0;"/>
-    <path id="Office" d="M130.957,486.544L445.835,485.82L438.503,783.993L116.365,784.351" style="fill:rgb(255,31,31);fill-opacity:0;"/>
-    <path id="Hall-Bathroom" serif:id="Hall Bathroom" d="M458.95,581.998L630.322,584.184L626.018,934.295L449.916,934.001" style="fill:rgb(255,31,31);fill-opacity:0;"/>
-    <path id="Hallway" d="M556.726,424.359L460.887,483.484L458.829,568.424L994.502,568.846L993.039,450.582L820.04,452.595L820.04,425.068" style="fill:rgb(255,31,31);fill-opacity:0;"/>
-    <path id="Entryway" d="M646.497,567.134L641.547,934.295L867.528,934.295L866.395,567.134" style="fill:rgb(255,31,31);fill-opacity:0;"/>
-    <path id="Kitchen" d="M1316.403,425.068L1008.026,425.355L1009.639,584.004L881.077,584.004L883.316,934.295L1334.249,934.295" style="fill:rgb(255,31,31);fill-opacity:0;"/>
-    <path id="Living-Room-Overhead" serif:id="Living Room Overhead" d="M992.462,409.941L992.892,450.885L864.14,451.319L864.374,438.073L834.364,437.863L834.364,219.635L1192.408,216.575L1191.971,409.805" style="fill:rgb(255,31,31);fill-opacity:0;"/>
-    <path id="Living-Room-Above-Couch" serif:id="Living Room Above Couch" d="M1192.408,216.575L1192.408,37.771L834.364,36.897L834.364,219.635" style="fill:rgb(255,31,31);fill-opacity:0;"/>
-    <path id="Living-Room-Dining-Area" serif:id="Living Room Dining Area" d="M1192.408,37.771L1306.073,36.897L1384.276,119.701L1391.53,316.034L1319.625,409.805L1191.95,410.544" style="fill:rgb(255,31,31);fill-opacity:0;"/>
-    <path id="Den" d="M562.525,409.816L749.765,409.941L749.309,208.877L819.368,208.653L820.04,37.645L569.208,37.429L562.525,409.816Z" style="fill:rgb(249,16,16);fill-opacity:0;"/>
+<svg width="100%" height="100%" viewBox="0 0 1698 1110" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <path id="guest-bedroom" d="M202.304,566.171L201.332,898.803L556.636,901.07L555.664,565.848" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
+    <path id="hallway-bathroom" d="M767.786,677.008L575.527,677.785L574.491,1062.681L767.009,1062.681" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
+    <path id="stairwell" d="M1034.136,659.693L1033.124,1061.163L786.666,1062.681L785.654,659.693" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
+    <path id="master-bedroom" d="M670.755,482.732L670.249,426.052L499.196,426.558L498.791,33.339L145.35,32.934L59.52,161.274L60.33,322.003L200.411,456.416L200.411,546.7L563.164,547.104L670.755,482.732Z" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
+    <path id="hallway" d="M682.511,495.726C683.523,494.207 980.082,496.232 980.082,496.232L979.576,527.608L1176.944,529.126L1178.462,659.693L575.729,659.187L574.717,560.503" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
+    <path id="den" d="M904.677,478.013L690.608,477.507L689.596,32.934L980.082,32.934L979.576,237.628L901.134,238.641" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
+    <g id="living-room" transform="matrix(1.002694,0,0,0.995165,-4.417389,2.547196)">
+        <path d="M1000.562,32.934L1554.206,32.934L1639.732,135.607L1637.708,365.871L1553.7,478.013L1178.462,478.013L1178.462,526.296L1032.444,526.802L1033.457,510.101L999.55,509.089" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
+    </g>
+    <path id="kitchen" d="M1052.355,677.56L1197.091,678.572L1199.116,495.161L1545.776,495.161L1545.472,1062.681L1051.95,1062.681" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
+    <path id="master-bathroom" d="M515.884,401.922L670.755,401.847L670.755,33.958L516.204,33.851" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
+    <path id="guest-bathroom" d="M302.173,917.984L557.053,917.984L557.053,1064.08L301.675,1063.914" style="fill:white;fill-opacity:0;stroke:black;stroke-width:1px;"/>
 </svg>
