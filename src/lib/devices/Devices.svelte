@@ -7,16 +7,17 @@
 	import { getIconKey } from '$lib/utils/getIcon';
 	import DeviceCard from './DeviceCard.svelte';
 
-	function inRoom(entityId: string): boolean {
-		if ($selectedRoomStore === Rooms.AllRooms) return true;
-		const entityArea = $entityAreaMapStore[entityId];
-		return entityArea != null && (ROOM_AREA_IDS[$selectedRoomStore] ?? []).includes(entityArea);
+	function inRoom(entityId: string, room: Rooms, areaMap: typeof $entityAreaMapStore): boolean {
+		if (room === Rooms.AllRooms) return true;
+		const entityArea = areaMap[entityId];
+		return entityArea != null && (ROOM_AREA_IDS[room] ?? []).includes(entityArea);
 	}
 
 	// Ordered: Scenes → Switches → Lights, filtered by room
-	$: visibleScenes = Object.values($sceneStore).filter((e) => inRoom(e.entity_id));
-	$: visibleSwitches = Object.values($switchStore).filter((e) => inRoom(e.entity_id));
-	$: visibleLights = Object.values($lightStore).filter((e) => inRoom(e.entity_id));
+	// $selectedRoomStore and $entityAreaMapStore passed explicitly so Svelte tracks them as dependencies
+	$: visibleScenes = Object.values($sceneStore).filter((e) => inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore));
+	$: visibleSwitches = Object.values($switchStore).filter((e) => inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore));
+	$: visibleLights = Object.values($lightStore).filter((e) => inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore));
 </script>
 
 <style>

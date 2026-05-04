@@ -61,6 +61,7 @@
 	.floorplan {
 		height: 380px;
 		width: auto;
+		opacity: 0.5;
 		display: block;
 		pointer-events: none;
 	}

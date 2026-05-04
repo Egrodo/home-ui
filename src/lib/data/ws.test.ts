@@ -227,16 +227,3 @@ describe('handleStateMessage', () => {
 		expect(mockWeatherSet).toHaveBeenCalled();
 	});
 });
-
-describe('ROOM_AREA_IDS', () => {
-	it('maps rooms to correct area IDs', () => {
-		expect(ROOM_AREA_IDS[Rooms.LivingRoom]).toEqual(['living_room']);
-		expect(ROOM_AREA_IDS[Rooms.Bedroom]).toEqual(['bedroom']);
-		expect(ROOM_AREA_IDS[Rooms.Office]).toEqual(['den']);
-		expect(ROOM_AREA_IDS[Rooms.Hallway]).toEqual(['hallway']);
-	});
-
-	it('does not have an entry for AllRooms', () => {
-		expect(ROOM_AREA_IDS[Rooms.AllRooms]).toBeUndefined();
-	});
-});

@@ -36,12 +36,11 @@
 		return `rgb(${lerp(a[0], b[0], k)}, ${lerp(a[1], b[1], k)}, ${lerp(a[2], b[2], k)})`;
 	}
 
-	$: haloColor =
-		isLight && isOn
-			? rgb
-				? `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`
-				: tempColor(normalizedTemp)
-			: null;
+	$: displayHaloColor = isLight
+		? rgb
+			? `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`
+			: tempColor(normalizedTemp)
+		: null;
 
 	$: haloOpacity = isOn ? 0.35 + (brightnessPercent / 100) * (0.85 - 0.35) : 0;
 
@@ -148,7 +147,10 @@
 		height: 200px;
 		border-radius: 50%;
 		pointer-events: none;
-		transition: opacity 0.3s ease;
+		transform-origin: 25% 25%; /* card's top-left corner in halo-local space */
+		transition:
+			opacity 0.3s ease,
+			transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -286,12 +288,13 @@
 >
 	{#if isLight}
 		<!-- Halo glow — decorative, only when on -->
-		{#if isOn && haloColor}
+		{#if isLight && displayHaloColor}
 			<div
 				class="halo"
 				aria-hidden="true"
-				style:background="radial-gradient(circle, {haloColor} 0%, transparent 70%)"
+				style:background="radial-gradient(circle, {displayHaloColor} 0%, transparent 70%)"
 				style:opacity={haloOpacity}
+				style:transform={isOn ? 'scale(1)' : 'scale(0)'}
 			></div>
 		{/if}
 
