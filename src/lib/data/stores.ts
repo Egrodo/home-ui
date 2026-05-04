@@ -35,3 +35,5 @@ function createSelectedLightIdStore() {
 }
 
 export const selectedLightIdStore = createSelectedLightIdStore();
+
+export const showFahrenheitStore = writable<boolean>(false);

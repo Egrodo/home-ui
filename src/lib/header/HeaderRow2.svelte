@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { calendarStore, weatherStore } from '../data/backendStores';
+	import { showFahrenheitStore } from '../data/stores';
 	import { getIcon } from '../utils/getIcon';
 	import type { WeatherStates } from '../data/types';
 
@@ -59,7 +60,7 @@
 		return daily;
 	}
 
-	let showFahrenheit = false;
+	$: showFahrenheit = $showFahrenheitStore;
 
 	function displayTemp(temp: number): string {
 		if (showFahrenheit && unit === '°C') return Math.round((temp * 9) / 5 + 32) + '°F';
@@ -321,7 +322,7 @@
 						color={tempColor(weather.attributes.temperature, unit)}
 					/>
 				{/await}
-				<button class="current-temp" on:click={() => (showFahrenheit = !showFahrenheit)}>
+				<button class="current-temp" on:click={() => showFahrenheitStore.update((v) => !v)}>
 					{displayTemp(weather.attributes.temperature)}
 				</button>
 				<span class="current-condition">{weather.state.replace(/-/g, ' ')}</span>

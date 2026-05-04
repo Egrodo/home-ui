@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { hourlyForecastStore, sunStore, weatherStore } from '../data/backendStores';
+	import { showFahrenheitStore } from '../data/stores';
 
 	const PAD_LEFT = 26; // Y-label column
 	const PAD_RIGHT = 8;
@@ -40,6 +41,15 @@
 			d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
 		}
 		return d;
+	}
+
+	$: showFahrenheit = $showFahrenheitStore;
+	$: unit = $weatherStore?.attributes.temperature_unit ?? '°F';
+
+	function graphTemp(temp: number): string {
+		if (showFahrenheit && unit === '°C') return Math.round((temp * 9) / 5 + 32) + '°F';
+		if (!showFahrenheit && unit === '°F') return Math.round(((temp - 32) * 5) / 9) + '°C';
+		return Math.round(temp) + unit;
 	}
 
 	$: hourly = $hourlyForecastStore;
@@ -213,7 +223,7 @@
 					opacity="0.1"
 				/>
 				<text x={PAD_LEFT - 4} y={highY + 3.5} text-anchor="end" class="y-label">
-					{Math.round(rawMax)}°
+					{graphTemp(rawMax)}
 				</text>
 				{#if lowY - highY > 12}
 					<line
@@ -226,7 +236,7 @@
 						opacity="0.1"
 					/>
 					<text x={PAD_LEFT - 4} y={lowY + 3.5} text-anchor="end" class="y-label">
-						{Math.round(rawMin)}°
+						{graphTemp(rawMin)}
 					</text>
 				{/if}
 			{/if}
@@ -297,7 +307,7 @@
 					stroke-width="1.5"
 				/>
 				<text x={nowX} y={PAD_TOP - 10} text-anchor="middle" class="now-label">
-					{Math.round(currentTemp)}°
+					{graphTemp(currentTemp)}
 				</text>
 			{/if}
 
