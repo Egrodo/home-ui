@@ -1,64 +1,49 @@
 <script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
 	import StockCard from './StockCard.svelte';
+	import type { StockData } from '$lib/data/types';
 
-	const stocks = [
-		{
-			ticker: 'AAPL',
-			price: 213.49,
-			change: 2.31,
-			changePercent: 1.09,
-			sparkline: [0.4, 0.38, 0.42, 0.36, 0.45, 0.5, 0.48, 0.55, 0.6, 0.58, 0.65, 0.7]
-		},
-		{
-			ticker: 'TSLA',
-			price: 174.12,
-			change: -3.88,
-			changePercent: -2.18,
-			sparkline: [0.7, 0.65, 0.68, 0.6, 0.55, 0.52, 0.5, 0.45, 0.42, 0.4, 0.38, 0.35]
-		},
-		{
-			ticker: 'NVDA',
-			price: 875.4,
-			change: 14.2,
-			changePercent: 1.65,
-			sparkline: [0.3, 0.35, 0.32, 0.4, 0.45, 0.5, 0.55, 0.6, 0.58, 0.65, 0.72, 0.78]
-		},
-		{
-			ticker: 'MSFT',
-			price: 418.76,
-			change: -1.24,
-			changePercent: -0.3,
-			sparkline: [0.6, 0.62, 0.58, 0.55, 0.57, 0.54, 0.5, 0.52, 0.48, 0.45, 0.47, 0.44]
-		},
-		{
-			ticker: 'GOOGL',
-			price: 172.38,
-			change: 0.94,
-			changePercent: 0.55,
-			sparkline: [0.45, 0.47, 0.44, 0.48, 0.5, 0.49, 0.52, 0.54, 0.53, 0.56, 0.55, 0.58]
-		},
-		{
-			ticker: 'AMZN',
-			price: 198.02,
-			change: -4.11,
-			changePercent: -2.03,
-			sparkline: [0.75, 0.7, 0.72, 0.65, 0.62, 0.58, 0.55, 0.52, 0.5, 0.48, 0.45, 0.42]
-		},
-		{
-			ticker: 'META',
-			price: 524.67,
-			change: 8.43,
-			changePercent: 1.63,
-			sparkline: [0.35, 0.38, 0.4, 0.42, 0.45, 0.5, 0.52, 0.56, 0.6, 0.63, 0.68, 0.72]
-		},
-		{
-			ticker: 'SPY',
-			price: 537.21,
-			change: 1.78,
-			changePercent: 0.33,
-			sparkline: [0.5, 0.48, 0.52, 0.5, 0.53, 0.55, 0.54, 0.57, 0.56, 0.58, 0.6, 0.62]
+	// NYSE/NASDAQ: 9:30–16:00 America/New_York, weekdays only
+	function isMarketOpen(): boolean {
+		const parts = new Intl.DateTimeFormat('en-US', {
+			timeZone: 'America/New_York',
+			hour: 'numeric',
+			minute: 'numeric',
+			hour12: false,
+			weekday: 'short'
+		}).formatToParts(new Date());
+
+		const weekday = parts.find((p) => p.type === 'weekday')?.value ?? '';
+		const hour = parseInt(parts.find((p) => p.type === 'hour')?.value ?? '0');
+		const minute = parseInt(parts.find((p) => p.type === 'minute')?.value ?? '0');
+
+		if (weekday === 'Sat' || weekday === 'Sun') return false;
+
+		const mins = hour * 60 + minute;
+		return mins >= 9 * 60 + 30 && mins < 16 * 60;
+	}
+
+	let stocks: StockData[] = [];
+	let interval: ReturnType<typeof setInterval>;
+
+	async function fetchStocks() {
+		try {
+			const res = await fetch('/api/stocks');
+			if (res.ok) stocks = await res.json();
+		} catch {
+			// silently retain last data
 		}
-	];
+	}
+
+	onMount(() => {
+		fetchStocks();
+		// Refetch hourly — only during market hours to avoid unnecessary calls
+		interval = setInterval(() => {
+			if (isMarketOpen()) fetchStocks();
+		}, 60 * 60 * 1000);
+	});
+
+	onDestroy(() => clearInterval(interval));
 </script>
 
 <style>

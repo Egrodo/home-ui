@@ -125,6 +125,14 @@ export interface EntityRegistryEntry {
 /** Maps entity_id → effective area_id (entity-level override, falling back to device area) */
 export type EntityAreaMap = Record<string, string | null>;
 
+export interface StockData {
+	ticker: string;
+	price: number;
+	change: number;
+	changePercent: number;
+	sparkline: number[];
+}
+
 export interface CalendarEvent {
 	summary: string;
 	start: string;
