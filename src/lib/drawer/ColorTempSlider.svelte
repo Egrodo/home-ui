@@ -55,7 +55,7 @@
 	}
 
 	.label {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		opacity: var(--opacity-text-muted);
@@ -102,7 +102,7 @@
 		right: 12px;
 		top: 50%;
 		transform: translateY(-50%);
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		opacity: var(--opacity-text-secondary);
 		pointer-events: none;
 		font-variant-numeric: tabular-nums;

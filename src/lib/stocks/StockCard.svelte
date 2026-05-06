@@ -38,20 +38,20 @@
 	}
 
 	.ticker {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		font-weight: var(--font-weight-semibold);
 		letter-spacing: 0.05em;
 		opacity: var(--opacity-text-primary);
 	}
 
 	.price {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		font-weight: var(--font-weight-medium);
 		opacity: var(--opacity-text-secondary);
 	}
 
 	.change {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		font-weight: var(--font-weight-medium);
 		letter-spacing: 0.02em;
 	}

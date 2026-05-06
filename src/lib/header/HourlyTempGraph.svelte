@@ -170,19 +170,19 @@
 	}
 
 	.now-label {
-		font-size: 9px;
+		font-size: var(--text-caption);
 		fill: var(--color-accent);
 		opacity: 0.9;
 	}
 
 	.y-label {
-		font-size: 8px;
+		font-size: var(--text-caption);
 		fill: currentColor;
 		opacity: 0.4;
 	}
 
 	.tick-label {
-		font-size: 8px;
+		font-size: var(--text-caption);
 		fill: currentColor;
 		opacity: 0.35;
 	}
@@ -196,7 +196,7 @@
 		align-items: center;
 		justify-content: center;
 		height: 100%;
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		opacity: var(--opacity-text-muted);

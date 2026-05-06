@@ -84,20 +84,20 @@
 
 	/* Placeholder text */
 	.p-name {
-		font-size: var(--text-md);
+		font-size: var(--text-headline);
 		font-weight: var(--font-weight-semibold);
 		opacity: var(--opacity-text-primary);
 	}
 
 	.p-date {
-		font-size: var(--text-sm);
+		font-size: var(--text-body);
 		font-weight: var(--font-weight-normal);
 		opacity: var(--opacity-text-muted);
 		letter-spacing: 0.01em;
 	}
 
 	.p-hhmm {
-		font-size: var(--text-xl);
+		font-size: var(--text-title);
 		font-weight: var(--font-weight-normal);
 		line-height: 1;
 		opacity: var(--opacity-text-primary);
@@ -105,7 +105,7 @@
 	}
 
 	.p-ampm {
-		font-size: var(--text-sm);
+		font-size: var(--text-caption);
 		font-weight: var(--font-weight-medium);
 		opacity: var(--opacity-text-muted);
 		letter-spacing: 0.08em;

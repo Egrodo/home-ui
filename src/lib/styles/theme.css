@@ -32,12 +32,10 @@
    Base size bumped from a typical desktop scale
    to stay legible at arm's length. */
 :root {
-	--text-xs:   13px;   /* uppercase labels, captions */
-	--text-sm:   15px;   /* secondary info */
-	--text-base: 18px;   /* body / card names */
-	--text-md:   22px;   /* section headings */
-	--text-lg:   32px;   /* prominent figures */
-	--text-xl:   56px;   /* clock, hero numbers */
+	--text-title:    55px;   /* clock, hero numbers */
+	--text-headline: 32px;   /* prominent figures */
+	--text-body:     16px;   /* card names, readable info */
+	--text-caption:  12px;   /* labels, captions, badges */
 
 	--font-weight-normal:   400;
 	--font-weight-medium:   500;

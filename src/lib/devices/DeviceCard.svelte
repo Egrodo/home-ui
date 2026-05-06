@@ -44,8 +44,9 @@
 
 	$: haloOpacity = isOn ? 0.35 + (brightnessPercent / 100) * (0.85 - 0.35) : 0;
 
-	// Use entity's custom HA icon when defined; fall back to Material Symbols lightbulb
+	// Use entity's custom HA icon when defined; fall back to MDI lightbulb
 	$: hasCustomIcon = isLight && !!(entity as LightEntity).attributes.icon;
+	$: bulbIconName = isOn ? 'mdiLightbulb' : 'mdiLightbulbOutline';
 
 	// ── Tap = toggle, long-press (lights only) = open drawer ────────────────
 	let pressTimer: ReturnType<typeof setTimeout> | null = null;
@@ -168,32 +169,18 @@
 	}
 
 	.bulb-icon {
-		font-family: 'Material Symbols Rounded', sans-serif;
-		font-size: 34px;
-		font-variation-settings:
-			'FILL' 0,
-			'wght' 400,
-			'GRAD' 0,
-			'opsz' 24;
 		color: var(--ink-3);
 		line-height: 1;
 		user-select: none;
-		transition:
-			font-variation-settings 0.2s ease,
-			color 0.2s ease;
+		transition: color 0.2s ease;
 	}
 
 	.card--on .bulb-icon {
-		font-variation-settings:
-			'FILL' 1,
-			'wght' 400,
-			'GRAD' 0,
-			'opsz' 24;
 		color: var(--ink-1);
 	}
 
 	.mode-label {
-		font-size: 11px;
+		font-size: var(--text-caption);
 		letter-spacing: 0.08em;
 		color: var(--ink-2);
 	}
@@ -237,14 +224,14 @@
 	}
 
 	.name {
-		font-size: var(--text-xs);
+		font-size: var(--text-body);
 		font-weight: var(--font-weight-medium);
 		color: var(--ink-1);
 		line-height: 1.2;
 	}
 
 	.sub {
-		font-size: 11px;
+		font-size: var(--text-caption);
 		letter-spacing: 0.08em;
 		color: var(--ink-3);
 		text-transform: uppercase;
@@ -260,7 +247,7 @@
 		position: absolute;
 		top: 16px;
 		right: 16px;
-		font-size: 9px;
+		font-size: var(--text-caption);
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
 		color: var(--ink-3);
@@ -305,7 +292,9 @@
 					<MdiIcon name={icon} width="26px" height="26px" />
 				</div>
 			{:else}
-				<span class="bulb-icon" aria-hidden="true">lightbulb</span>
+				<div class="bulb-icon">
+						<MdiIcon name={bulbIconName} width="34px" height="34px" />
+					</div>
 			{/if}
 			{#if isOn}
 				<span class="mode-label">

@@ -187,7 +187,7 @@
 	}
 
 	.entity-name {
-		font-size: var(--text-base);
+		font-size: var(--text-body);
 		font-weight: var(--font-weight-semibold);
 		opacity: var(--opacity-text-primary);
 	}
@@ -201,7 +201,7 @@
 	}
 
 	.recent-label {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		opacity: var(--opacity-text-muted);

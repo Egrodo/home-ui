@@ -13,7 +13,7 @@
 	}
 
 	.section-label {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
 		opacity: var(--opacity-text-muted);

@@ -129,7 +129,7 @@
 	}
 
 	.agenda-time {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.04em;
 		opacity: var(--opacity-text-muted);
 		flex-shrink: 0;
@@ -137,7 +137,7 @@
 	}
 
 	.agenda-title {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		opacity: var(--opacity-text-secondary);
 		white-space: nowrap;
 		overflow: hidden;
@@ -145,7 +145,7 @@
 	}
 
 	.agenda-empty {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		opacity: var(--opacity-text-muted);
@@ -164,7 +164,7 @@
 	}
 
 	.current-temp {
-		font-size: var(--text-lg);
+		font-size: var(--text-headline);
 		font-weight: var(--font-weight-normal);
 		line-height: 1;
 		opacity: var(--opacity-text-secondary);
@@ -177,14 +177,14 @@
 	}
 
 	.current-condition {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		opacity: var(--opacity-text-muted);
 	}
 
 	.current-humidity {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		opacity: var(--opacity-text-muted);
 		margin-top: 2px;
 	}
@@ -218,7 +218,7 @@
 	}
 
 	.forecast-day-label {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		opacity: var(--opacity-text-secondary);
@@ -237,7 +237,7 @@
 		display: flex;
 		align-items: center;
 		gap: 4px;
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 	}
 
 	.temp-high {
@@ -254,7 +254,7 @@
 	}
 
 	.section-label {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
 		opacity: var(--opacity-text-muted);
@@ -272,7 +272,7 @@
 	}
 
 	.p-tiny {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		opacity: var(--opacity-text-muted);

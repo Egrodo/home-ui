@@ -29,7 +29,7 @@
 	}
 
 	.roomLabel {
-		font-size: var(--text-xs);
+		font-size: var(--text-caption);
 		margin-top: 0;
 		margin-bottom: 8px;
 		letter-spacing: 0.1em;
