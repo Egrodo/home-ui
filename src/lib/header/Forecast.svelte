@@ -22,11 +22,12 @@
 	}
 
 	function getDailyForecasts(forecast: ForecastEntry[]): ForecastEntry[] {
+		const today = new Date().toDateString();
 		const seen = new Set<string>();
 		const daily: ForecastEntry[] = [];
 		for (const entry of forecast) {
 			const date = entry.datetime.slice(0, 10);
-			if (!seen.has(date)) {
+			if (!seen.has(date) && new Date(date).toDateString() !== today) {
 				seen.add(date);
 				daily.push(entry);
 			}
