@@ -70,12 +70,12 @@
 		/* warm amber → neutral → cool blue-white */
 		background: linear-gradient(
 			to right,
-			#ff9a3c 0%,
+			var(--light-temp-warm) 0%,
 			#ffd27a 20%,
 			#fff4e0 40%,
 			#ffffff 55%,
 			#e8f0ff 70%,
-			#c9daff 100%
+			var(--light-temp-cool) 100%
 		);
 		border: 1px solid var(--color-border);
 		position: relative;
@@ -92,7 +92,7 @@
 		height: 26px;
 		border-radius: 50%;
 		background: white;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+		box-shadow: var(--shadow-thumb);
 		pointer-events: none;
 		transition: left 0.05s linear;
 	}

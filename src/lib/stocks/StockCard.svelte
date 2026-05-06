@@ -79,11 +79,11 @@
 	}
 
 	polyline.up {
-		stroke: #4caf7d;
+		stroke: var(--color-positive);
 	}
 
 	polyline.down {
-		stroke: #e05c5c;
+		stroke: var(--color-negative);
 	}
 </style>
 

@@ -78,7 +78,7 @@
 		height: 26px;
 		border-radius: 50%;
 		background: white;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+		box-shadow: var(--shadow-thumb);
 		pointer-events: none;
 		transition: left 0.05s linear;
 	}

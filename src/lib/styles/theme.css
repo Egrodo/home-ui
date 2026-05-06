@@ -68,9 +68,12 @@
 	--ink-3: rgba(175, 125, 65,  0.50);   /* warm muted */
 	--rule-strong: rgba(200, 148, 72, 0.48);
 
-	/* Clock tokens */
-	--surface-1:   #1e1409;
-	--accent-warm: #c87830;
+	/* Elevation */
+	--shadow-thumb: 0 2px 8px rgba(0, 0, 0, 0.55);   /* slider thumb */
+
+	/* Clock aliases — intentional splits from --color-* */
+	--surface-1:   #1e1409;   /* = --color-surface */
+	--accent-warm: #c87830;   /* = --color-accent; gold for clock hands */
 }
 
 /* ── Colours — light (Paper scheme) ─────────
@@ -95,7 +98,10 @@
 	--ink-3: #8a7a60;
 	--rule-strong: #8a7a60;
 
-	/* Clock tokens */
-	--surface-1:   #fbf5e9;
-	--accent-warm: #e0a040;
+	/* Elevation */
+	--shadow-thumb: 0 2px 8px rgba(0, 0, 0, 0.30);   /* lighter on light bg */
+
+	/* Clock aliases — intentional splits from --color-* */
+	--surface-1:   #fbf5e9;   /* = --color-surface */
+	--accent-warm: #e0a040;   /* gold for clock hands; warmer than --color-accent */
 }
