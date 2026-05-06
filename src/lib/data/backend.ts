@@ -47,7 +47,7 @@ async function refreshCalendar(): Promise<void> {
 	const conn = getConnection();
 	const now = new Date();
 	const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-	const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+	const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14).toISOString();
 	const events = await fetchCalendarEvents(conn, PUBLIC_CALENDAR_ENTITY_ID, start, end);
 	calendarStore.set(events);
 }
