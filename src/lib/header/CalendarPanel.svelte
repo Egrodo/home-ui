@@ -75,7 +75,7 @@
 	.calendar {
 		display: flex;
 		flex-direction: column;
-		padding: 14px 20px;
+		padding: 10px 20px;
 		overflow: hidden;
 	}
 

@@ -289,11 +289,11 @@
 		<div class="icon-row">
 			{#if hasCustomIcon && icon}
 				<div class="light-icon-wrap" aria-hidden="true">
-					<MdiIcon name={icon} width="26px" height="26px" />
+					<MdiIcon name={icon} size="32" />
 				</div>
 			{:else}
 				<div class="bulb-icon">
-						<MdiIcon name={bulbIconName} width="34px" height="34px" />
+						<MdiIcon name={bulbIconName} />
 					</div>
 			{/if}
 			{#if isOn}
@@ -316,7 +316,7 @@
 
 		<div class="icon-wrap">
 			{#if icon}
-				<MdiIcon name={icon} width="24px" height="24px" />
+				<MdiIcon name={icon} size="32" />
 			{:else}
 				<div
 					style="width:24px;height:24px;border-radius:50%;border:1.5px dashed currentColor;opacity:0.4"

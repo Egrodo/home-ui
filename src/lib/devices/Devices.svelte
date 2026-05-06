@@ -25,7 +25,7 @@
 		margin: 16px 24px;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
-		padding: 16px;
+		padding: 10px 20px;
 	}
 
 	.roomLabel {

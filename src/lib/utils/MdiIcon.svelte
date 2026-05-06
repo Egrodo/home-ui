@@ -7,8 +7,8 @@
 	export let height: number | string | undefined = undefined;
 	export let color: string | undefined = undefined;
 
-	$: w = width ?? size ?? 24;
-	$: h = height ?? size ?? 24;
+	$: w = width ?? size ?? 32;
+	$: h = height ?? size ?? 32;
 	$: path = (mdi as Record<string, string>)[name] ?? mdi.mdiHelpRhombusOutline;
 </script>
 

@@ -5,7 +5,7 @@
 <style>
 	.row {
 		height: 100%;
-		padding: 10px 28px;
+		padding: 10px 20px;
 		border-top: 1px solid var(--color-border);
 		display: flex;
 		flex-direction: column;
@@ -28,7 +28,7 @@
 </style>
 
 <div class="row">
-	<span class="section-label">Hourly</span>
+	<span class="section-label">Temp Graph</span>
 	<div class="sparkline-track">
 		<HourlyTempGraph />
 	</div>

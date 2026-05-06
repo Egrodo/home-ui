@@ -44,7 +44,7 @@
 	.forecast {
 		display: flex;
 		flex-direction: column;
-		padding: 14px 20px;
+		padding: 10px 20px;
 		overflow: hidden;
 		border-left: 1px solid var(--color-border);
 	}
