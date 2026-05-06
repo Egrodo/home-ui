@@ -14,6 +14,7 @@
 		// hallway-bathroom, stairwell, kitchen, master-bathroom, guest-bathroom: no Rooms entry
 	};
 
+	let timer: ReturnType<typeof setTimeout>;
 	function handleRegionClick(e: MouseEvent, pathId: string) {
 		e.stopPropagation();
 		const room = REGION_ROOM[pathId];
@@ -22,6 +23,15 @@
 			return;
 		}
 		selectedRoomStore.set(selectedRoom === room ? Rooms.AllRooms : room);
+
+		clearTimeout(timer);
+		// If the user clicks a region, reset to all rooms after 5 minutes of inactivity
+		timer = setTimeout(
+			() => {
+				selectedRoomStore.set(Rooms.AllRooms);
+			},
+			5 * 60 * 1000
+		);
 	}
 
 	function pathStyle(pathId: string, room: Rooms): string {
