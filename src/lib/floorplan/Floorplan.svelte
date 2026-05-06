@@ -39,7 +39,7 @@
 		const dimmed =
 			room !== Rooms.AllRooms && (!REGION_ROOM[pathId] || REGION_ROOM[pathId] !== room);
 		return [
-			`fill: ${dimmed ? 'rgba(255,255,255,0.7)' : 'transparent'}`,
+			`fill: ${dimmed ? 'var(--floorplan-dimmed-fill)' : 'transparent'}`,
 			`cursor: ${clickable ? 'pointer' : 'default'}`,
 			'stroke: none',
 			'transition: fill 0.15s ease'
@@ -74,6 +74,7 @@
 		opacity: 0.5;
 		display: block;
 		pointer-events: none;
+		filter: var(--floorplan-filter, none);
 	}
 
 	.regionsOverlay {

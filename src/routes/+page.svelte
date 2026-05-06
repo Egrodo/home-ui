@@ -14,6 +14,7 @@
 		width: 1080px;
 		height: 1920px;
 		background-color: var(--color-bg);
+		color: var(--ink-1);
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;

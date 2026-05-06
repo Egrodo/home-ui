@@ -48,8 +48,8 @@
    Paper scheme but in a night/candlelit key. */
 [data-theme='dark'] {
 	--color-bg:        #0e0a05;   /* near-black with warm cast */
-	--color-surface:   #1e1409;   /* dark coffee-brown cards */
-	--color-surface-2: #2c1f0f;   /* drawer, elevated */
+	--color-surface:   #2d1e0c;   /* dark coffee-brown cards */
+	--color-surface-2: #3e280f;   /* drawer, elevated */
 	--color-border:    color-mix(in srgb, currentColor 15%, transparent);
 
 	/* Semantic */
@@ -60,7 +60,7 @@
 	/* Text — opacity tiers applied via CSS where needed */
 	--opacity-text-primary:   1;
 	--opacity-text-secondary: 0.6;
-	--opacity-text-muted:     0.35;
+	--opacity-text-muted:     0.42;
 
 	/* Ink tokens for light tile */
 	--ink-1: rgba(255, 232, 190, 0.90);   /* warm cream */
@@ -71,9 +71,13 @@
 	/* Elevation */
 	--shadow-thumb: 0 2px 8px rgba(0, 0, 0, 0.55);   /* slider thumb */
 
+	/* Floorplan */
+	--floorplan-filter:      invert(1);           /* invert light-bg PNG for dark theme */
+	--floorplan-dimmed-fill: rgba(0, 0, 0, 0.45); /* darken inactive rooms */
+
 	/* Clock aliases — intentional splits from --color-* */
-	--surface-1:   #1e1409;   /* = --color-surface */
-	--accent-warm: #c87830;   /* = --color-accent; gold for clock hands */
+	--surface-1:   var(--color-surface);
+	--accent-warm: #c87830;   /* gold for clock hands; = --color-accent in dark */
 }
 
 /* ── Colours — light (Paper scheme) ─────────
@@ -101,7 +105,11 @@
 	/* Elevation */
 	--shadow-thumb: 0 2px 8px rgba(0, 0, 0, 0.30);   /* lighter on light bg */
 
+	/* Floorplan */
+	--floorplan-filter:      none;
+	--floorplan-dimmed-fill: rgba(255, 255, 255, 0.70);
+
 	/* Clock aliases — intentional splits from --color-* */
-	--surface-1:   #fbf5e9;   /* = --color-surface */
+	--surface-1:   var(--color-surface);
 	--accent-warm: #e0a040;   /* gold for clock hands; warmer than --color-accent */
 }

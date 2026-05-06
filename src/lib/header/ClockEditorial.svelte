@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { themeStore } from '$lib/data/theme';
 
 	export let size: number = 280;
 	export let time: { h: number; m: number; s?: number } | undefined = undefined;
@@ -43,8 +44,12 @@
 	width={size}
 	height={size}
 	viewBox="0 0 {size} {size}"
-	role="img"
+	role="button"
 	aria-label={ariaLabel}
+	style="cursor: pointer"
+	on:click={() => themeStore.toggle()}
+	on:keydown={(e) => e.key === 'Enter' && themeStore.toggle()}
+	tabindex="0"
 >
 	<!-- face -->
 	<circle
