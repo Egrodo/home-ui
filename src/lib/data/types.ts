@@ -42,7 +42,7 @@ export type WeatherStates =
 
 interface PrimitiveEntity<EntityAttributes = void> {
 	entity_id: `${EntityTypes}.${string}`;
-	state: 'off' | 'on' | 'unavailable' | WeatherStates;
+	state: 'off' | 'on' | 'unavailable' | 'above_horizon' | 'below_horizon' | WeatherStates;
 	attributes: EntityAttributes;
 	context?: {
 		id: string;

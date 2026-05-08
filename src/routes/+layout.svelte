@@ -2,12 +2,20 @@
 	import '$lib/styles/theme.css';
 	import { browser } from '$app/environment';
 	import { themeStore } from '$lib/data/theme';
+	import { sunStore } from '$lib/data/backendStores';
 
 	// Sync the stored theme to the DOM on first render
 	themeStore.set($themeStore);
 
 	if (browser) {
 		(window as any).theme = (t: 'light' | 'dark') => themeStore.set(t);
+	}
+
+	// Auto-switch theme only when sun state transitions (sunrise/sunset), not on every poll
+	let prevSunState: string | null = null;
+	$: if ($sunStore && $sunStore.state !== prevSunState) {
+		prevSunState = $sunStore.state;
+		themeStore.set($sunStore.state === 'below_horizon' ? 'dark' : 'light');
 	}
 </script>
 
