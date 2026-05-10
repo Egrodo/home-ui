@@ -7,11 +7,11 @@
 /* ── Shape ──────────────────────────────────
    Slightly generous to feel premium at scale. */
 :root {
-	--radius-sm:   10px;   /* chips, tags */
-	--radius-md:   16px;   /* cards, stock blocks */
-	--radius-lg:   24px;   /* section panels */
-	--radius-xl:   32px;   /* drawer, large modals */
-	--radius-pill: 999px;  /* sliders, badges */
+	--radius-sm: 10px; /* chips, tags */
+	--radius-md: 16px; /* cards, stock blocks */
+	--radius-lg: 24px; /* section panels */
+	--radius-xl: 32px; /* drawer, large modals */
+	--radius-pill: 999px; /* sliders, badges */
 
 	--tile-radius: 6px;
 }
@@ -20,9 +20,9 @@
    White-temperature ramp, halo opacity bounds.
    Semantic — can be retuned per color scheme. */
 :root {
-	--light-temp-warm:    #ffb060;   /* 2700K · tungsten */
-	--light-temp-neutral: #ffe5c4;   /* 4000K · soft white */
-	--light-temp-cool:    #c8e0ff;   /* 6500K · daylight */
+	--light-temp-warm: #ffb060; /* 2700K · tungsten */
+	--light-temp-neutral: #ffe5c4; /* 4000K · soft white */
+	--light-temp-cool: #c8e0ff; /* 6500K · daylight */
 
 	--light-halo-min-opacity: 0.35;
 	--light-halo-max-opacity: 0.85;
@@ -32,69 +32,78 @@
    Base size bumped from a typical desktop scale
    to stay legible at arm's length. */
 :root {
-	--text-title:    55px;   /* clock, hero numbers */
-	--text-headline: 32px;   /* prominent figures */
-	--text-body:     16px;   /* card names, readable info */
-	--text-caption:  12px;   /* labels, captions, badges */
+	--text-title: 55px; /* clock, hero numbers */
+	--text-headline: 32px; /* prominent figures */
+	--text-body: 16px; /* card names, readable info */
+	--text-caption: 12px; /* labels, captions, badges */
 
-	--font-weight-normal:   400;
-	--font-weight-medium:   500;
+	--font-weight-normal: 400;
+	--font-weight-medium: 500;
 	--font-weight-semibold: 600;
-	--font-weight-bold:     700;
+	--font-weight-bold: 700;
+}
+
+/* Transition all color changes to create a smooth, polished feel when switching themes */
+* {
+	transition:
+		color 300ms ease,
+		background-color 300ms ease,
+		border-color 300ms ease,
+		box-shadow 300ms ease;
 }
 
 /* ── Colours — dark ─────────────────────────
    Warm amber-brown palette; inspired by the
    Paper scheme but in a night/candlelit key. */
 [data-theme='dark'] {
-	--color-bg:        #0e0a05;   /* near-black with warm cast */
-	--color-surface:   #2d1e0c;   /* dark coffee-brown cards */
-	--color-surface-2: #3e280f;   /* drawer, elevated */
-	--color-border:    color-mix(in srgb, currentColor 15%, transparent);
+	--color-bg: #0e0a05; /* near-black with warm cast */
+	--color-surface: #2d1e0c; /* dark coffee-brown cards */
+	--color-surface-2: #3e280f; /* drawer, elevated */
+	--color-border: color-mix(in srgb, currentColor 15%, transparent);
 
 	/* Semantic */
-	--color-positive: #5dab6e;   /* stocks up, lights on */
-	--color-negative: #d95f4f;   /* stocks down */
-	--color-accent:   #c87830;   /* warm amber — selected room, highlights */
+	--color-positive: #5dab6e; /* stocks up, lights on */
+	--color-negative: #d95f4f; /* stocks down */
+	--color-accent: #c87830; /* warm amber — selected room, highlights */
 
 	/* Text — opacity tiers applied via CSS where needed */
-	--opacity-text-primary:   1;
+	--opacity-text-primary: 1;
 	--opacity-text-secondary: 0.6;
-	--opacity-text-muted:     0.42;
+	--opacity-text-muted: 0.42;
 
 	/* Ink tokens for light tile */
-	--ink-1: rgba(255, 232, 190, 0.90);   /* warm cream */
-	--ink-2: rgba(220, 175, 110, 0.65);   /* warm tan */
-	--ink-3: rgba(175, 125, 65,  0.50);   /* warm muted */
+	--ink-1: rgba(255, 232, 190, 0.9); /* warm cream */
+	--ink-2: rgba(220, 175, 110, 0.65); /* warm tan */
+	--ink-3: rgba(175, 125, 65, 0.5); /* warm muted */
 	--rule-strong: rgba(200, 148, 72, 0.48);
 
 	/* Elevation */
-	--shadow-thumb: 0 2px 8px rgba(0, 0, 0, 0.55);   /* slider thumb */
+	--shadow-thumb: 0 2px 8px rgba(0, 0, 0, 0.55); /* slider thumb */
 
 	/* Floorplan */
-	--floorplan-filter:      invert(1);           /* invert light-bg PNG for dark theme */
-	--floorplan-dimmed-fill: rgba(0, 0, 0, 0.45); /* darken inactive rooms */
+	--floorplan-filter: invert(1); /* invert light-bg PNG for dark theme */
+	--floorplan-dimmed-fill: rgba(0, 0, 0, 0.7); /* darken inactive rooms */
 
 	/* Clock aliases — intentional splits from --color-* */
-	--surface-1:   var(--color-surface);
-	--accent-warm: #c87830;   /* gold for clock hands; = --color-accent in dark */
+	--surface-1: var(--color-surface);
+	--accent-warm: #c87830; /* gold for clock hands; = --color-accent in dark */
 }
 
 /* ── Colours — light (Paper scheme) ─────────
    Exact values from the design handoff. */
 [data-theme='light'] {
-	--color-bg:        #f4ece0;   /* warm cream page bg */
-	--color-surface:   #fbf5e9;   /* tile / card background */
-	--color-surface-2: #eee3d0;   /* drawer, elevated panels */
-	--color-border:    #e0d2b8;   /* rule — tile border off */
+	--color-bg: #f4ece0; /* warm cream page bg */
+	--color-surface: #fbf5e9; /* tile / card background */
+	--color-surface-2: #eee3d0; /* drawer, elevated panels */
+	--color-border: #e0d2b8; /* rule — tile border off */
 
-	--color-positive: #6b8a3a;   /* state-on: olive green */
+	--color-positive: #6b8a3a; /* state-on: olive green */
 	--color-negative: #c43c3c;
-	--color-accent:   #c95a2e;   /* warm rust/terracotta */
+	--color-accent: #c95a2e; /* warm rust/terracotta */
 
-	--opacity-text-primary:   1;
+	--opacity-text-primary: 1;
 	--opacity-text-secondary: 0.65;
-	--opacity-text-muted:     0.45;
+	--opacity-text-muted: 0.45;
 
 	/* Ink tokens — Paper scheme exact values */
 	--ink-1: #2a2118;
@@ -103,13 +112,13 @@
 	--rule-strong: #8a7a60;
 
 	/* Elevation */
-	--shadow-thumb: 0 2px 8px rgba(0, 0, 0, 0.30);   /* lighter on light bg */
+	--shadow-thumb: 0 2px 8px rgba(0, 0, 0, 0.3); /* lighter on light bg */
 
 	/* Floorplan */
-	--floorplan-filter:      none;
-	--floorplan-dimmed-fill: rgba(255, 255, 255, 0.70);
+	--floorplan-filter: none;
+	--floorplan-dimmed-fill: rgba(255, 255, 255, 0.7);
 
 	/* Clock aliases — intentional splits from --color-* */
-	--surface-1:   var(--color-surface);
-	--accent-warm: #e0a040;   /* gold for clock hands; warmer than --color-accent */
+	--surface-1: var(--color-surface);
+	--accent-warm: #e0a040; /* gold for clock hands; warmer than --color-accent */
 }
