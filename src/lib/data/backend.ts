@@ -11,6 +11,7 @@ import {
 	fetchEntityRegistry,
 	fetchWeatherForecast,
 	fetchHourlyForecast,
+	fetchTemperatureHistory,
 	fetchCalendarEvents,
 	setHiddenEntityIds,
 	handleStateMessage,
@@ -21,16 +22,24 @@ import {
 	changeLightBrightness,
 	changeLightColor,
 	changeLightTemperature,
-	changeLightEffect
+	changeLightEffect,
+	TEMPERATURE_SENSOR_ENTITY_ID
 } from './ws';
 import type { DeviceInfoLookupTable, EntityAreaMap } from './types';
 import { Rooms } from './types';
-import { calendarStore, hourlyForecastStore, weatherStore } from './backendStores';
+import {
+	calendarStore,
+	hourlyForecastStore,
+	temperatureHistoryStore,
+	weatherStore
+} from './backendStores';
 
 // Module-scoped connection state
 let connection: Connection | null = null;
 let unsubscribe: UnsubscribeFunc | null = null;
 let calendarPollTimer: ReturnType<typeof setInterval> | null = null;
+let tempHistoryPollTimer: ReturnType<typeof setInterval> | null = null;
+const TEMP_HISTORY_REFRESH_MS = 15 * 60 * 1000;
 
 /** Reactive store for entity → area mapping, used by components for room filtering */
 export const entityAreaMapStore = writable<EntityAreaMap>({});
@@ -50,6 +59,12 @@ async function refreshCalendar(): Promise<void> {
 	const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14).toISOString();
 	const events = await fetchCalendarEvents(conn, PUBLIC_CALENDAR_ENTITY_ID, start, end);
 	calendarStore.set(events);
+}
+
+async function refreshTemperatureHistory(): Promise<void> {
+	const conn = getConnection();
+	const samples = await fetchTemperatureHistory(conn, TEMPERATURE_SENSOR_ENTITY_ID);
+	if (samples.length) temperatureHistoryStore.set(samples);
 }
 
 /**
@@ -91,6 +106,9 @@ export async function initBackend(): Promise<void> {
 	refreshCalendar();
 	calendarPollTimer = setInterval(refreshCalendar, 60 * 60 * 1000);
 
+	refreshTemperatureHistory();
+	tempHistoryPollTimer = setInterval(refreshTemperatureHistory, TEMP_HISTORY_REFRESH_MS);
+
 	// Build entity_id → area_id map. Entity-level area_id takes precedence over device area_id.
 	const entityAreaMap = entityRegistry.reduce<EntityAreaMap>((acc, entry) => {
 		acc[entry.entity_id] =
@@ -109,6 +127,10 @@ export function destroyBackend(): void {
 	if (calendarPollTimer) {
 		clearInterval(calendarPollTimer);
 		calendarPollTimer = null;
+	}
+	if (tempHistoryPollTimer) {
+		clearInterval(tempHistoryPollTimer);
+		tempHistoryPollTimer = null;
 	}
 	connection = null;
 	isConnectedStore.set(false);

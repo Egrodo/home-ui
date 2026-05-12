@@ -1,8 +1,19 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import { hourlyForecastStore, sunStore, weatherStore } from '../data/backendStores';
+	import {
+		hourlyForecastStore,
+		outdoorTempStore,
+		sunStore,
+		temperatureHistoryStore,
+		weatherStore
+	} from '../data/backendStores';
 	import { showFahrenheitStore } from '../data/stores';
 	import { displayTemp } from '../utils/temperature';
+
+	/** Convert a temperature in °F (sensor's native unit) to the unit the rest of the graph uses. */
+	function fahrenheitTo(tempF: number, targetUnit: string): number {
+		return targetUnit === '°C' ? ((tempF - 32) * 5) / 9 : tempF;
+	}
 
 	const PAD_LEFT = 30; // Y-label column
 	const PAD_RIGHT = 8;
@@ -12,16 +23,162 @@
 	const PAD_BOTTOM = 13; // hour-tick room
 	const LOOKBACK_MIN = 60; // 1h of empty space before "now"
 	const WINDOW_MIN = 12 * 60; // total window width in minutes
+	const HISTORY_MIN = 48 * 60; // 2d of history is the farthest you can scroll back
+	const SNAP_DELAY_MS = 4_000; // idle time after release before snapping home
+	const SNAP_DURATION_MS = 400;
+	const ANCHORED_THRESHOLD_MIN = 2; // within 2min of home counts as "at now"
+	const MOMENTUM_DECAY_PER_FRAME = 0.93; // ~60fps reference; normalized per-ms below
+	const MOMENTUM_STOP_THRESHOLD = 0.001; // viewport-min per ms
 
 	let containerWidth = 0;
 	let containerHeight = 0;
 	let now = new Date();
 	let interval: ReturnType<typeof setInterval>;
 
+	// Viewport state — mutable so gesture handlers can drag it. Initialized in onMount.
+	let vStart = toAbsMin(new Date()) - LOOKBACK_MIN;
+	let dragState: 'idle' | 'dragging' | 'momentum' | 'snapping' = 'idle';
+
+	// Gesture internals
+	let dragStartViewport = 0;
+	let dragStartX = 0;
+	let velocityMinPerMs = 0;
+	let moveHistory: { t: number; x: number }[] = [];
+	let snapTimer: ReturnType<typeof setTimeout> | null = null;
+	let momentumRaf: number | null = null;
+	let snapRaf: number | null = null;
+
+	function isAnchoredToNow(): boolean {
+		return Math.abs(vStart - (toAbsMin(now) - LOOKBACK_MIN)) < ANCHORED_THRESHOLD_MIN;
+	}
+
+	function clampViewport(v: number): number {
+		const nMin = toAbsMin(now);
+		const minStart = nMin - HISTORY_MIN; // can't scroll further into the past than data goes
+		const maxStart = nMin - LOOKBACK_MIN; // home position; can't scroll into the future
+		return Math.max(minStart, Math.min(maxStart, v));
+	}
+
+	function cancelPendingMotion() {
+		if (snapTimer) {
+			clearTimeout(snapTimer);
+			snapTimer = null;
+		}
+		if (momentumRaf != null) {
+			cancelAnimationFrame(momentumRaf);
+			momentumRaf = null;
+		}
+		if (snapRaf != null) {
+			cancelAnimationFrame(snapRaf);
+			snapRaf = null;
+		}
+	}
+
+	function onPointerDown(e: PointerEvent) {
+		cancelPendingMotion();
+		dragState = 'dragging';
+		(e.currentTarget as Element).setPointerCapture(e.pointerId);
+		dragStartX = e.clientX;
+		dragStartViewport = vStart;
+		moveHistory = [{ t: e.timeStamp, x: e.clientX }];
+	}
+
+	function onPointerMove(e: PointerEvent) {
+		if (dragState !== 'dragging') return;
+		const usableWidth = Math.max(1, containerWidth - PAD_LEFT - PAD_RIGHT);
+		const minPerPx = WINDOW_MIN / usableWidth;
+		vStart = clampViewport(dragStartViewport - (e.clientX - dragStartX) * minPerPx);
+		moveHistory.push({ t: e.timeStamp, x: e.clientX });
+		// Keep ~100ms tail for velocity estimate at release
+		while (moveHistory.length > 1 && moveHistory[0].t < e.timeStamp - 100) moveHistory.shift();
+	}
+
+	function onPointerUp(e: PointerEvent) {
+		if (dragState !== 'dragging') return;
+		try {
+			(e.currentTarget as Element).releasePointerCapture(e.pointerId);
+		} catch {
+			// Some browsers throw if the pointer was never captured; safe to ignore.
+		}
+		// Velocity from the recent move history
+		const first = moveHistory[0];
+		const last = moveHistory[moveHistory.length - 1];
+		const dt = last.t - first.t;
+		const pxPerMs = dt > 0 ? (last.x - first.x) / dt : 0;
+		const usableWidth = Math.max(1, containerWidth - PAD_LEFT - PAD_RIGHT);
+		const minPerPx = WINDOW_MIN / usableWidth;
+		// Pointer right → viewport leftward (older). Negate.
+		velocityMinPerMs = -pxPerMs * minPerPx;
+		moveHistory = [];
+		if (Math.abs(velocityMinPerMs) > 0.005) {
+			dragState = 'momentum';
+			startMomentum();
+		} else {
+			dragState = 'idle';
+			scheduleSnapBack();
+		}
+	}
+
+	function startMomentum() {
+		let lastT = performance.now();
+		// Decay 0.93 per 16.67ms (60fps reference), normalized per-ms via exp(ln(0.93)/16.67 * dt)
+		const decayPerMs = Math.log(MOMENTUM_DECAY_PER_FRAME) / 16.67;
+		function frame(t: number) {
+			const dt = t - lastT;
+			lastT = t;
+			vStart = clampViewport(vStart + velocityMinPerMs * dt);
+			velocityMinPerMs *= Math.exp(decayPerMs * dt);
+			if (Math.abs(velocityMinPerMs) < MOMENTUM_STOP_THRESHOLD) {
+				momentumRaf = null;
+				dragState = 'idle';
+				scheduleSnapBack();
+				return;
+			}
+			momentumRaf = requestAnimationFrame(frame);
+		}
+		momentumRaf = requestAnimationFrame(frame);
+	}
+
+	function scheduleSnapBack() {
+		cancelPendingMotion();
+		if (isAnchoredToNow()) return;
+		snapTimer = setTimeout(snapBack, SNAP_DELAY_MS);
+	}
+
+	function snapBack() {
+		snapTimer = null;
+		const startVal = vStart;
+		const target = toAbsMin(now) - LOOKBACK_MIN;
+		const t0 = performance.now();
+		dragState = 'snapping';
+		function frame(t: number) {
+			const k = Math.min(1, (t - t0) / SNAP_DURATION_MS);
+			const eased = 1 - Math.pow(1 - k, 3); // ease-out cubic
+			vStart = startVal + (target - startVal) * eased;
+			if (k < 1) {
+				snapRaf = requestAnimationFrame(frame);
+			} else {
+				snapRaf = null;
+				dragState = 'idle';
+			}
+		}
+		snapRaf = requestAnimationFrame(frame);
+	}
+
 	onMount(() => {
-		interval = setInterval(() => (now = new Date()), 30_000);
+		interval = setInterval(() => {
+			const wasAnchored = isAnchoredToNow();
+			now = new Date();
+			// Advance the viewport with time only when the user is parked at home and not interacting
+			if (wasAnchored && dragState === 'idle') {
+				vStart = toAbsMin(now) - LOOKBACK_MIN;
+			}
+		}, 30_000);
 	});
-	onDestroy(() => clearInterval(interval));
+	onDestroy(() => {
+		clearInterval(interval);
+		cancelPendingMotion();
+	});
 
 	function toAbsMin(d: Date): number {
 		return Math.floor(d.getTime() / 60_000);
@@ -48,26 +205,42 @@
 	$: unit = $weatherStore?.attributes.temperature_unit ?? '°F';
 
 	$: hourly = $hourlyForecastStore;
+	$: history = $temperatureHistoryStore;
 	$: sun = $sunStore;
-	$: currentTemp = $weatherStore?.attributes.temperature ?? null;
+	// Prefer the sensor (denser + same source as history). Fall back to weather entity if sensor unavailable.
+	$: outdoorTempF = $outdoorTempStore;
+	$: currentTemp =
+		outdoorTempF != null
+			? fahrenheitTo(outdoorTempF, unit)
+			: ($weatherStore?.attributes.temperature ?? null);
 
-	// Rolling window: 1h before now → 11h after now
+	// Rolling viewport: vStart is mutable (gesture handlers above), vEnd derives reactively
 	$: nowMin = toAbsMin(now);
-	$: windowStart = nowMin - LOOKBACK_MIN;
-	$: windowEnd = windowStart + WINDOW_MIN;
+	$: vEnd = vStart + WINDOW_MIN;
 
-	// Entries within the window (all future, HA provides no historical data)
-	$: windowEntries = hourly.filter((e) => {
-		const abs = toAbsMin(new Date(e.datetime));
-		return abs >= windowStart && abs <= windowEnd;
-	});
+	// Merged data — past samples (°F → unit) + now anchor + forecast (already in unit), sorted by time
+	$: pastPoints = history.map((s) => ({
+		abs: toAbsMin(new Date(s.datetime)),
+		temp: fahrenheitTo(s.temperature, unit)
+	}));
+	$: futurePoints = hourly.map((e) => ({
+		abs: toAbsMin(new Date(e.datetime)),
+		temp: e.temperature
+	}));
+	$: allPoints = [
+		...pastPoints,
+		...(currentTemp != null ? [{ abs: nowMin, temp: currentTemp }] : []),
+		...futurePoints
+	].sort((a, b) => a.abs - b.abs);
 
-	// X: inlined so Svelte tracks windowStart and containerWidth as deps
-	$: nowX =
-		PAD_LEFT + ((nowMin - windowStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT);
+	// Points visible in the current viewport — drives Y-axis scale
+	$: visiblePoints = allPoints.filter((p) => p.abs >= vStart && p.abs <= vEnd);
 
-	// Y scale over the window's forecast range
-	$: temps = windowEntries.map((e) => e.temperature);
+	// X: inlined so Svelte tracks vStart and containerWidth as deps
+	$: nowX = PAD_LEFT + ((nowMin - vStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT);
+
+	// Y scale over the visible window's temperature range
+	$: temps = visiblePoints.map((p) => p.temp);
 	$: rawMin = temps.length ? Math.min(...temps) : 0;
 	$: rawMax = temps.length ? Math.max(...temps) : 10;
 	// 1° breathing room so curve doesn't clip the edges; labels sit at rawMin/rawMax
@@ -82,24 +255,13 @@
 				(1 - (currentTemp - scaledMin) / scaledRange) * (containerHeight - PAD_TOP - PAD_BOTTOM)
 			: containerHeight / 2;
 
-	// Forecast curve points — inlined so all deps are tracked
-	$: forecastPoints = windowEntries.map((e) => ({
-		x:
-			PAD_LEFT +
-			((toAbsMin(new Date(e.datetime)) - windowStart) / WINDOW_MIN) *
-				(containerWidth - PAD_LEFT - PAD_RIGHT),
-		y:
-			PAD_TOP +
-			(1 - (e.temperature - scaledMin) / scaledRange) * (containerHeight - PAD_TOP - PAD_BOTTOM)
+	// Curve: include a 60min buffer outside the viewport so Catmull-Rom edges stay smooth.
+	// Off-screen points are clipped by <clipPath> in the markup.
+	$: curveSourcePoints = allPoints.filter((p) => p.abs >= vStart - 60 && p.abs <= vEnd + 60);
+	$: curvePoints = curveSourcePoints.map((p) => ({
+		x: PAD_LEFT + ((p.abs - vStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT),
+		y: PAD_TOP + (1 - (p.temp - scaledMin) / scaledRange) * (containerHeight - PAD_TOP - PAD_BOTTOM)
 	}));
-
-	// Prepend synthetic "now" anchor so curve starts at current temp
-	$: curvePoints = (() => {
-		if (currentTemp == null) return forecastPoints;
-		const synth = { x: nowX, y: nowY };
-		if (!forecastPoints.length || synth.x <= forecastPoints[0].x) return [synth, ...forecastPoints];
-		return forecastPoints;
-	})();
 
 	$: pathD = catmullRomPath(curvePoints);
 
@@ -113,38 +275,36 @@
 	$: sunsetAbs = sun?.attributes.next_setting
 		? toAbsMin(new Date(sun.attributes.next_setting))
 		: null;
-	$: sunsetInRange = sunsetAbs != null && sunsetAbs >= windowStart && sunsetAbs <= windowEnd;
+	$: sunsetInRange = sunsetAbs != null && sunsetAbs >= vStart && sunsetAbs <= vEnd;
 	$: sunsetX =
 		sunsetAbs != null
-			? PAD_LEFT +
-				((sunsetAbs - windowStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT)
+			? PAD_LEFT + ((sunsetAbs - vStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT)
 			: 0;
 
 	$: sunriseAbs = sun?.attributes.next_rising
 		? toAbsMin(new Date(sun.attributes.next_rising))
 		: null;
-	$: sunriseInRange = sunriseAbs != null && sunriseAbs >= windowStart && sunriseAbs <= windowEnd;
+	$: sunriseInRange = sunriseAbs != null && sunriseAbs >= vStart && sunriseAbs <= vEnd;
 	$: sunriseX =
 		sunriseAbs != null
-			? PAD_LEFT +
-				((sunriseAbs - windowStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT)
+			? PAD_LEFT + ((sunriseAbs - vStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT)
 			: 0;
 
 	// Hour ticks: every 3h, snapped to whole-hour boundaries within the window
 	$: tickHours = (() => {
 		if (!containerWidth) return [];
 		const ticks: { label: string; x: number }[] = [];
-		const startDate = new Date(windowStart * 60_000);
+		const startDate = new Date(vStart * 60_000);
 		startDate.setMinutes(0, 0, 0);
 		// Advance to the next whole hour if we're mid-minute
-		if (startDate.getTime() / 60_000 < windowStart) startDate.setHours(startDate.getHours() + 1);
+		if (startDate.getTime() / 60_000 < vStart) startDate.setHours(startDate.getHours() + 1);
 		// Advance to next 3h boundary
 		while (startDate.getHours() % 3 !== 0) startDate.setHours(startDate.getHours() + 1);
-		while (toAbsMin(startDate) <= windowEnd) {
+		while (toAbsMin(startDate) <= vEnd) {
 			const abs = toAbsMin(startDate);
 			ticks.push({
 				label: formatHour(startDate.getHours()),
-				x: PAD_LEFT + ((abs - windowStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT)
+				x: PAD_LEFT + ((abs - vStart) / WINDOW_MIN) * (containerWidth - PAD_LEFT - PAD_RIGHT)
 			});
 			startDate.setHours(startDate.getHours() + 3);
 		}
@@ -162,11 +322,21 @@
 	.graph {
 		width: 100%;
 		height: 100%;
+		/* Let the browser keep vertical page scroll; we own horizontal gestures. */
+		touch-action: pan-y;
 	}
 
 	svg {
 		display: block;
 		overflow: visible;
+		/* Avoid native text selection / image-drag during scrub. */
+		user-select: none;
+		-webkit-user-select: none;
+		cursor: grab;
+	}
+
+	svg:active {
+		cursor: grabbing;
 	}
 
 	.now-label {
@@ -205,7 +375,24 @@
 
 <div class="graph" bind:clientWidth={containerWidth} bind:clientHeight={containerHeight}>
 	{#if containerWidth > 0}
-		<svg width={containerWidth} height={containerHeight}>
+		<svg
+			width={containerWidth}
+			height={containerHeight}
+			on:pointerdown={onPointerDown}
+			on:pointermove={onPointerMove}
+			on:pointerup={onPointerUp}
+			on:pointercancel={onPointerUp}
+		>
+			<defs>
+				<clipPath id="hourly-temp-curve-clip">
+					<rect
+						x={PAD_LEFT}
+						y="0"
+						width={Math.max(0, containerWidth - PAD_LEFT - PAD_RIGHT)}
+						height={containerHeight}
+					/>
+				</clipPath>
+			</defs>
 			<!-- High/low boundary lines + labels -->
 			{#if temps.length}
 				<line
@@ -236,7 +423,7 @@
 				{/if}
 			{/if}
 
-			<!-- Temperature curve (now-anchor + forecast) -->
+			<!-- Temperature curve (past + now-anchor + forecast) -->
 			{#if pathD}
 				<path
 					d={pathD}
@@ -246,6 +433,7 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					opacity="0.8"
+					clip-path="url(#hourly-temp-curve-clip)"
 				/>
 			{/if}
 

@@ -16,6 +16,7 @@ import { get } from 'svelte/store';
 import {
 	hourlyForecastStore,
 	lightStore,
+	outdoorTempStore,
 	sceneStore,
 	sunStore,
 	switchStore,
@@ -29,8 +30,12 @@ import {
 	type SceneEntity,
 	type SunEntity,
 	type SwitchEntity,
+	type TemperatureSample,
 	type WeatherEntity
 } from './types';
+
+/** Outdoor temperature sensor — denser and same unit (°F) as we want for the graph. */
+export const TEMPERATURE_SENSOR_ENTITY_ID = 'sensor.weather_temperature';
 
 import type { DeviceInfo, EntityRegistryEntry } from './types';
 
@@ -95,6 +100,9 @@ export function handleStateMessage(states: HassEntities) {
 			} else if (entity_id === 'sun.sun') {
 				// @ts-expect-error Refining type
 				sunStore.set(entity as SunEntity);
+			} else if (entity_id === TEMPERATURE_SENSOR_ENTITY_ID) {
+				const t = parseFloat(entity.state);
+				if (!isNaN(t)) outdoorTempStore.set(t);
 			}
 
 			return [lights, switches, scenes, newWeather];
@@ -343,6 +351,47 @@ export async function fetchHourlyForecast(
 		return result?.response?.[entityId]?.forecast ?? [];
 	} catch (err) {
 		console.error('Failed to fetch hourly weather forecast:', err);
+		return [];
+	}
+}
+
+/**
+ * Fetch outdoor temperature history for the given entity over the last `hoursBack` hours.
+ * Uses HA's `history/history_during_period` WS command with `minimal_response` for a compact payload
+ * (the response uses short field names: `s` = state, `lu` = last_updated epoch seconds).
+ */
+export async function fetchTemperatureHistory(
+	connection: Connection,
+	entityId: string,
+	hoursBack: number = 48
+): Promise<TemperatureSample[]> {
+	const end = new Date();
+	const start = new Date(end.getTime() - hoursBack * 3600_000);
+	try {
+		const result = await connection.sendMessagePromise<
+			Record<string, Array<{ s?: string; state?: string; lu?: number; last_updated?: string }>>
+		>({
+			type: 'history/history_during_period',
+			start_time: start.toISOString(),
+			end_time: end.toISOString(),
+			entity_ids: [entityId],
+			minimal_response: true,
+			no_attributes: true
+		});
+		const rows = result?.[entityId] ?? [];
+		return rows
+			.map((r) => {
+				const stateStr = r.s ?? r.state ?? '';
+				const temperature = parseFloat(stateStr);
+				const datetime =
+					typeof r.lu === 'number'
+						? new Date(r.lu * 1000).toISOString()
+						: (r.last_updated ?? '');
+				return { datetime, temperature };
+			})
+			.filter((s) => !isNaN(s.temperature) && s.datetime !== '');
+	} catch (err) {
+		console.error('Failed to fetch temperature history:', err);
 		return [];
 	}
 }

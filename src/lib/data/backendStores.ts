@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { CalendarEvent, ForecastType, LightEntity, SceneEntity, SunEntity, SwitchEntity, WeatherEntity } from './types';
+import type { CalendarEvent, ForecastType, LightEntity, SceneEntity, SunEntity, SwitchEntity, TemperatureSample, WeatherEntity } from './types';
 
 export interface LightStore {
 	[lightId: string]: LightEntity;
@@ -73,3 +73,7 @@ export const weatherStore = createWeatherStore();
 export const calendarStore = writable<CalendarEvent[]>([]);
 export const hourlyForecastStore = writable<ForecastType[]>([]);
 export const sunStore = writable<SunEntity | null>(null);
+/** Current outdoor temperature reading from sensor.weather_temperature (always °F — sensor's native unit) */
+export const outdoorTempStore = writable<number | null>(null);
+/** Last ~48h of outdoor temperature samples from sensor.weather_temperature (always °F) */
+export const temperatureHistoryStore = writable<TemperatureSample[]>([]);

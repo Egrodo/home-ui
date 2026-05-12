@@ -58,6 +58,11 @@ export interface ForecastType {
 	templow?: number; // only present in daily forecasts
 }
 
+export interface TemperatureSample {
+	datetime: string;
+	temperature: number;
+}
+
 interface SunEntityAttributes {
 	next_rising: string;
 	next_setting: string;
