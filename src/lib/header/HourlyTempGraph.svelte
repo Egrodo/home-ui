@@ -4,7 +4,7 @@
 	import { showFahrenheitStore } from '../data/stores';
 	import { displayTemp } from '../utils/temperature';
 
-	const PAD_LEFT = 26; // Y-label column
+	const PAD_LEFT = 30; // Y-label column
 	const PAD_RIGHT = 8;
 	// TODO (human): I don't like this approach of adding padding to the top and using that to render the now-line label.
 	// I'd rather have the curve use the full height and intelligently position the now-line label to avoid collisions with the curve (place it below if the curve is on top ie).
