@@ -4,6 +4,7 @@
 	import Pager from '$lib/pager/Pager.svelte';
 	import HomePage from '$lib/pages/HomePage.svelte';
 	import SecondPage from '$lib/pages/SecondPage.svelte';
+	import TouchProbe from '$lib/pager/TouchProbe.svelte';
 </script>
 
 <style>
@@ -20,6 +21,7 @@
 </style>
 
 <div class="container">
+	<TouchProbe />
 	{#if !$isConnectedStore}
 		<Loader />
 	{:else}
