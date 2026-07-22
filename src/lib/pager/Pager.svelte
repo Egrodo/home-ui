@@ -66,6 +66,11 @@
 		/* Isolates each page's layout/paint; also makes each page a stacking
 		   context, confining LightDrawer's z-index to page 1. */
 		contain: layout paint;
+		/* Keep each page on its own retained compositor layer so scrolling one
+		   back into view is a pure GPU translate, not a full re-rasterize — the
+		   Pi evicts offscreen tiles, so without this the heavy home page repaints
+		   mid-settle and drops frames. */
+		will-change: transform;
 	}
 </style>
 
