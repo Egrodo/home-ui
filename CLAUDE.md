@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a SvelteKit 2 webapp for controlling Home Assistant smart lights, switches, and scenes. It's designed for a fixed-resolution display (1360x768) as a dedicated smart home controller interface.
+This is a SvelteKit 2 webapp for controlling Home Assistant smart lights, switches, and scenes. It's designed for a fixed-resolution display (1080x1920) as a dedicated smart home controller interface.
 
 ## Commands
 
