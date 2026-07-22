@@ -4,10 +4,12 @@ import type {
 	CalendarEvent,
 	ForecastType,
 	LightEntity,
+	NoteList,
 	SceneEntity,
 	SunEntity,
 	SwitchEntity,
 	TemperatureSample,
+	TodoItem,
 	WeatherEntity
 } from './types';
 
@@ -76,10 +78,42 @@ function createWeatherStore() {
 	};
 }
 
+export interface NotesStore {
+	[entityId: string]: NoteList;
+}
+function createNotesStore() {
+	const { subscribe, update } = writable<NotesStore>({});
+
+	return {
+		subscribe,
+		/**
+		 * Register the full set of discovered lists (from entity state messages).
+		 * Rebuilds the map so deleted lists drop out, while preserving items
+		 * already loaded via each list's item subscription.
+		 */
+		setLists: (lists: { entityId: string; title: string }[]) =>
+			update((store: NotesStore) => {
+				const next: NotesStore = {};
+				for (const { entityId, title } of lists) {
+					next[entityId] = { entityId, title, items: store[entityId]?.items ?? [] };
+				}
+				return next;
+			}),
+		/** Update one list's items (from its `todo/item/subscribe` stream). */
+		setItems: (entityId: string, items: TodoItem[]) =>
+			update((store: NotesStore) => {
+				const existing = store[entityId];
+				if (!existing) return store;
+				return { ...store, [entityId]: { ...existing, items } };
+			})
+	};
+}
+
 export const lightStore = createLightStore();
 export const switchStore = createSwitchStore();
 export const sceneStore = createSceneStore();
 export const weatherStore = createWeatherStore();
+export const notesStore = createNotesStore();
 export const calendarStore = writable<CalendarEvent[]>([]);
 export const hourlyForecastStore = writable<ForecastType[]>([]);
 export const sunStore = writable<SunEntity | null>(null);

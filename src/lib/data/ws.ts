@@ -9,6 +9,7 @@ import {
 	createConnection,
 	Connection,
 	type MessageBase,
+	type UnsubscribeFunc,
 	createLongLivedTokenAuth,
 	type HassEntities,
 	type HassEntity
@@ -16,8 +17,8 @@ import {
 import { get } from 'svelte/store';
 import {
 	airQualityStore,
-	hourlyForecastStore,
 	lightStore,
+	notesStore,
 	outdoorTempStore,
 	sceneStore,
 	sunStore,
@@ -34,6 +35,7 @@ import {
 	type SunEntity,
 	type SwitchEntity,
 	type TemperatureSample,
+	type TodoItem,
 	type WeatherEntity
 } from './types';
 
@@ -161,6 +163,23 @@ export function handleStateMessage(states: HassEntities) {
 	}
 
 	airQualityStore.set(extractAirQuality(states));
+
+	// Discover every `todo.*` list and register its title. subscribeEntities always
+	// hands us the full state collection, so rebuilding this set each message also
+	// drops lists that were deleted. Items arrive separately via per-list subscriptions.
+	const todoLists = Object.entries(states)
+		.filter(
+			([entityId, entity]) =>
+				entityId.startsWith('todo.') &&
+				entity.state !== 'unavailable' &&
+				entity.attributes?.friendly_name != null &&
+				!hiddenEntityIds.has(entityId)
+		)
+		.map(([entityId, entity]) => ({
+			entityId,
+			title: entity.attributes.friendly_name as string
+		}));
+	notesStore.setLists(todoLists);
 }
 
 export const ROOM_AREA_IDS: Partial<Record<Rooms, string[]>> = {
@@ -318,6 +337,64 @@ export async function activateScene(connection: Connection, sceneId: string) {
 			entity_id: sceneId
 		}
 	});
+}
+
+/**
+ * Subscribe to live item updates for a single `todo.*` list. The callback fires
+ * immediately with the current items and again on every change (including edits
+ * made from the HA app or voice). Returns the unsubscribe handle.
+ */
+export function subscribeTodoItems(
+	connection: Connection,
+	entityId: string,
+	onItems: (items: TodoItem[]) => void
+): Promise<UnsubscribeFunc> {
+	return connection.subscribeMessage<{ items: TodoItem[] }>((msg) => onItems(msg?.items ?? []), {
+		type: 'todo/item/subscribe',
+		entity_id: entityId
+	});
+}
+
+/** Set a todo item's status (used to mark items done / not-done). */
+export async function setTodoItemStatus(
+	connection: Connection,
+	entityId: string,
+	uid: string,
+	status: TodoItem['status']
+) {
+	return sendWsMessage(connection, {
+		type: 'call_service',
+		domain: 'todo',
+		service: 'update_item',
+		target: { entity_id: entityId },
+		service_data: { item: uid, status }
+	});
+}
+
+/**
+ * Delete an entire todo list. Local To-do lists are backed by a config entry, so
+ * we resolve the list entity's config_entry_id and remove that entry. This is
+ * irreversible and removes the list from Home Assistant, not just from this UI.
+ */
+export async function deleteTodoList(connection: Connection, entityId: string) {
+	const entry = await connection.sendMessagePromise<{ config_entry_id: string | null }>({
+		type: 'config/entity_registry/get',
+		entity_id: entityId
+	});
+	if (!entry?.config_entry_id) {
+		throw new Error(`Cannot delete ${entityId}: no config_entry_id found`);
+	}
+	// Removing a config entry is a REST-only HA endpoint with no CORS headers, so
+	// the browser can't call it directly — go through our same-origin proxy, which
+	// forwards the DELETE to HA server-side.
+	const response = await fetch(
+		`/api/todo-list?config_entry_id=${encodeURIComponent(entry.config_entry_id)}`,
+		{ method: 'DELETE' }
+	);
+	if (!response.ok) {
+		throw new Error(`Failed to delete config entry ${entry.config_entry_id}: ${response.status}`);
+	}
+	return response.json();
 }
 
 export async function initWsConnection() {

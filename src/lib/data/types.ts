@@ -156,3 +156,18 @@ export interface CalendarEvent {
 	description?: string;
 	location?: string;
 }
+
+/** A single item within a Home Assistant `todo.*` list. */
+export interface TodoItem {
+	uid: string;
+	summary: string;
+	status: 'needs_action' | 'completed';
+	description?: string;
+}
+
+/** A discovered `todo.*` list rendered as one sticky note. */
+export interface NoteList {
+	entityId: string;
+	title: string;
+	items: TodoItem[];
+}

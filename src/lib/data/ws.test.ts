@@ -11,13 +11,19 @@ vi.mock('$env/static/public', () => ({
 }));
 
 // Mock stores — use vi.hoisted() so fns are available in the hoisted vi.mock factory
-const { mockLightAddOrUpdate, mockSwitchAddOrUpdate, mockSceneAddOrUpdate, mockWeatherSet } =
-	vi.hoisted(() => ({
-		mockLightAddOrUpdate: vi.fn(),
-		mockSwitchAddOrUpdate: vi.fn(),
-		mockSceneAddOrUpdate: vi.fn(),
-		mockWeatherSet: vi.fn()
-	}));
+const {
+	mockLightAddOrUpdate,
+	mockSwitchAddOrUpdate,
+	mockSceneAddOrUpdate,
+	mockWeatherSet,
+	mockNotesSetLists
+} = vi.hoisted(() => ({
+	mockLightAddOrUpdate: vi.fn(),
+	mockSwitchAddOrUpdate: vi.fn(),
+	mockSceneAddOrUpdate: vi.fn(),
+	mockWeatherSet: vi.fn(),
+	mockNotesSetLists: vi.fn()
+}));
 
 vi.mock('./backendStores', () => ({
 	lightStore: { addOrUpdate: mockLightAddOrUpdate, subscribe: vi.fn(() => vi.fn()) },
@@ -26,7 +32,8 @@ vi.mock('./backendStores', () => ({
 	weatherStore: { set: mockWeatherSet, subscribe: vi.fn(() => vi.fn()) },
 	sunStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) },
 	hourlyForecastStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) },
-	airQualityStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) }
+	airQualityStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) },
+	notesStore: { setLists: mockNotesSetLists, subscribe: vi.fn(() => vi.fn()) }
 }));
 
 import { setHiddenEntityIds, handleStateMessage, ROOM_AREA_IDS } from './ws';
@@ -227,5 +234,35 @@ describe('handleStateMessage', () => {
 		expect(mockSwitchAddOrUpdate).toHaveBeenCalled();
 		expect(mockSceneAddOrUpdate).toHaveBeenCalled();
 		expect(mockWeatherSet).toHaveBeenCalled();
+	});
+
+	it('registers todo lists with notesStore', () => {
+		const states: HassEntities = {
+			'todo.groceries': makeEntity('todo.groceries', 'on', 'Groceries'),
+			'todo.chores': makeEntity('todo.chores', 'on', 'Chores')
+		};
+
+		handleStateMessage(states);
+
+		expect(mockNotesSetLists).toHaveBeenCalledWith([
+			{ entityId: 'todo.groceries', title: 'Groceries' },
+			{ entityId: 'todo.chores', title: 'Chores' }
+		]);
+	});
+
+	it('excludes unavailable and hidden todo lists', () => {
+		setHiddenEntityIds([makeRegistryEntry({ entity_id: 'todo.hidden', hidden_by: 'user' })]);
+
+		const states: HassEntities = {
+			'todo.active': makeEntity('todo.active', 'on', 'Active'),
+			'todo.offline': makeEntity('todo.offline', 'unavailable', 'Offline'),
+			'todo.hidden': makeEntity('todo.hidden', 'on', 'Hidden')
+		};
+
+		handleStateMessage(states);
+
+		expect(mockNotesSetLists).toHaveBeenCalledWith([
+			{ entityId: 'todo.active', title: 'Active' }
+		]);
 	});
 });

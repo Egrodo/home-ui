@@ -23,6 +23,9 @@ import {
 	changeLightColor,
 	changeLightTemperature,
 	changeLightEffect,
+	subscribeTodoItems,
+	setTodoItemStatus,
+	deleteTodoList,
 	TEMPERATURE_SENSOR_ENTITY_ID
 } from './ws';
 import type { DeviceInfoLookupTable, EntityAreaMap } from './types';
@@ -30,8 +33,10 @@ import { Rooms } from './types';
 import {
 	calendarStore,
 	hourlyForecastStore,
+	notesStore,
 	temperatureHistoryStore,
-	weatherStore
+	weatherStore,
+	type NotesStore
 } from './backendStores';
 
 // Module-scoped connection state
@@ -40,6 +45,11 @@ let unsubscribe: UnsubscribeFunc | null = null;
 let calendarPollTimer: ReturnType<typeof setInterval> | null = null;
 let tempHistoryPollTimer: ReturnType<typeof setInterval> | null = null;
 const TEMP_HISTORY_REFRESH_MS = 15 * 60 * 1000;
+
+// Per-list item subscriptions, keyed by todo entity_id, plus the notesStore
+// subscription that keeps them in sync with the discovered set of lists.
+const todoItemUnsubs = new Map<string, UnsubscribeFunc>();
+let notesStoreUnsub: (() => void) | null = null;
 
 /** Reactive store for entity → area mapping, used by components for room filtering */
 export const entityAreaMapStore = writable<EntityAreaMap>({});
@@ -65,6 +75,39 @@ async function refreshTemperatureHistory(): Promise<void> {
 	const conn = getConnection();
 	const samples = await fetchTemperatureHistory(conn, TEMPERATURE_SENSOR_ENTITY_ID);
 	if (samples.length) temperatureHistoryStore.set(samples);
+}
+
+/**
+ * Reconcile per-list item subscriptions with the currently discovered lists:
+ * subscribe to any new `todo.*` list, unsubscribe from any that disappeared.
+ * Driven by notesStore changes, which are in turn fed by entity state messages.
+ */
+function syncTodoSubscriptions(store: NotesStore): void {
+	if (!connection) return;
+	const conn = connection;
+	const currentIds = new Set(Object.keys(store));
+
+	for (const entityId of currentIds) {
+		if (todoItemUnsubs.has(entityId)) continue;
+		// Placeholder reserves the slot so a rapid second sync can't double-subscribe.
+		todoItemUnsubs.set(entityId, () => {});
+		subscribeTodoItems(conn, entityId, (items) => notesStore.setItems(entityId, items))
+			.then((unsub) => {
+				if (todoItemUnsubs.has(entityId)) todoItemUnsubs.set(entityId, unsub);
+				else unsub(); // list was removed while the subscription was resolving
+			})
+			.catch((err) => {
+				console.error(`Failed to subscribe to todo items for ${entityId}`, err);
+				todoItemUnsubs.delete(entityId);
+			});
+	}
+
+	for (const [entityId, unsub] of todoItemUnsubs) {
+		if (!currentIds.has(entityId)) {
+			unsub();
+			todoItemUnsubs.delete(entityId);
+		}
+	}
 }
 
 /**
@@ -95,6 +138,9 @@ export async function initBackend(): Promise<void> {
 	// Subscribe AFTER hidden set is populated so the first state message is filtered correctly
 	unsubscribe = subscribeEntities(connection, handleStateMessage);
 
+	// Keep todo item subscriptions in lock-step with the discovered lists.
+	notesStoreUnsub = notesStore.subscribe(syncTodoSubscriptions);
+
 	// Forecast data was moved out of state attributes in HA 2024.3+ — fetch separately
 	fetchWeatherForecast(connection, PUBLIC_WEATHER_ENTITY_ID).then((forecast) => {
 		if (forecast.length) weatherStore.patchForecast(forecast);
@@ -124,6 +170,10 @@ export async function initBackend(): Promise<void> {
 export function destroyBackend(): void {
 	unsubscribe?.();
 	unsubscribe = null;
+	notesStoreUnsub?.();
+	notesStoreUnsub = null;
+	for (const unsub of todoItemUnsubs.values()) unsub();
+	todoItemUnsubs.clear();
 	if (calendarPollTimer) {
 		clearInterval(calendarPollTimer);
 		calendarPollTimer = null;
@@ -168,4 +218,16 @@ export function changeTemperature(entityId: string, temperature: number) {
 
 export function changeEffect(entityId: string, effect: string) {
 	return changeLightEffect(getConnection(), entityId, effect);
+}
+
+export function setNoteItemStatus(
+	entityId: string,
+	uid: string,
+	status: 'needs_action' | 'completed'
+) {
+	return setTodoItemStatus(getConnection(), entityId, uid, status);
+}
+
+export function deleteNoteList(entityId: string) {
+	return deleteTodoList(getConnection(), entityId);
 }
