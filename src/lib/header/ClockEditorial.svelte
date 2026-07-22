@@ -65,7 +65,7 @@
 	{#each Array.from({ length: 12 }, (_, i) => i) as i}
 		{@const [x1, y1] = polar(c, c, c - 6, i * 30)}
 		{@const [x2, y2] = polar(c, c, c - 14, i * 30)}
-		<line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ink-1)" stroke-width={2} />
+		<line {x1} {y1} {x2} {y2} stroke="var(--ink-1)" stroke-width={2} />
 	{/each}
 
 	<!-- hour hand -->

@@ -6,7 +6,8 @@ vi.mock('$app/environment', () => ({ browser: true }));
 vi.mock('$env/static/public', () => ({
 	PUBLIC_WS_AUTH_KEY: 'test-key',
 	PUBLIC_SERVER_URL: 'http://localhost:8123',
-	PUBLIC_WEATHER_ENTITY_ID: 'weather.home'
+	PUBLIC_WEATHER_ENTITY_ID: 'weather.home',
+	PUBLIC_AIR_QUALITY_DEVICE: 'air_qualington'
 }));
 
 // Mock stores — use vi.hoisted() so fns are available in the hoisted vi.mock factory
@@ -24,7 +25,8 @@ vi.mock('./backendStores', () => ({
 	sceneStore: { addOrUpdate: mockSceneAddOrUpdate, subscribe: vi.fn(() => vi.fn()) },
 	weatherStore: { set: mockWeatherSet, subscribe: vi.fn(() => vi.fn()) },
 	sunStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) },
-	hourlyForecastStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) }
+	hourlyForecastStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) },
+	airQualityStore: { set: vi.fn(), subscribe: vi.fn(() => vi.fn()) }
 }));
 
 import { setHiddenEntityIds, handleStateMessage, ROOM_AREA_IDS } from './ws';

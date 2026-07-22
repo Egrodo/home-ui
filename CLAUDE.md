@@ -44,6 +44,8 @@ Required in `.env`:
 - `PUBLIC_SERVER_URL` - Home Assistant server URL
 - `PUBLIC_WEATHER_ENTITY_ID` - Entity ID for weather display
 - `PUBLIC_HOME_NAME` - Display name for the home
+- `PUBLIC_CALENDAR_ENTITY_ID` - Entity ID for the calendar panel
+- `PUBLIC_AIR_QUALITY_DEVICE` - Entity slug of the Airthings air-quality device (e.g. `air_qualington`); the six `sensor.<slug>_*` entity IDs are derived from it in `ws.ts`
 
 ### Device Filtering
 

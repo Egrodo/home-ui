@@ -92,11 +92,32 @@ beforeEach(() => {
 
 	mockInitWsConnection.mockResolvedValue(mockConnection);
 	mockFetchDeviceRegistry.mockResolvedValue([
-		{ id: 'device1', area_id: 'living_room', name: 'Device 1', name_by_user: '', model: null, manufacturer: null }
+		{
+			id: 'device1',
+			area_id: 'living_room',
+			name: 'Device 1',
+			name_by_user: '',
+			model: null,
+			manufacturer: null
+		}
 	]);
 	mockFetchEntityRegistry.mockResolvedValue([
-		{ entity_id: 'light.lamp', device_id: 'device1', area_id: null, hidden_by: null, disabled_by: null, entity_category: null },
-		{ entity_id: 'light.custom_area', device_id: null, area_id: 'bedroom', hidden_by: null, disabled_by: null, entity_category: null }
+		{
+			entity_id: 'light.lamp',
+			device_id: 'device1',
+			area_id: null,
+			hidden_by: null,
+			disabled_by: null,
+			entity_category: null
+		},
+		{
+			entity_id: 'light.custom_area',
+			device_id: null,
+			area_id: 'bedroom',
+			hidden_by: null,
+			disabled_by: null,
+			entity_category: null
+		}
 	]);
 });
 

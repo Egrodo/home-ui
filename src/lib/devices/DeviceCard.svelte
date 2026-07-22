@@ -293,8 +293,8 @@
 				</div>
 			{:else}
 				<div class="bulb-icon">
-						<MdiIcon name={bulbIconName} />
-					</div>
+					<MdiIcon name={bulbIconName} />
+				</div>
 			{/if}
 			{#if isOn}
 				<span class="mode-label">

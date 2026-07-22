@@ -15,9 +15,15 @@
 
 	// Ordered: Scenes → Switches → Lights, filtered by room
 	// $selectedRoomStore and $entityAreaMapStore passed explicitly so Svelte tracks them as dependencies
-	$: visibleScenes = Object.values($sceneStore).filter((e) => inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore));
-	$: visibleSwitches = Object.values($switchStore).filter((e) => inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore));
-	$: visibleLights = Object.values($lightStore).filter((e) => inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore));
+	$: visibleScenes = Object.values($sceneStore).filter((e) =>
+		inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore)
+	);
+	$: visibleSwitches = Object.values($switchStore).filter((e) =>
+		inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore)
+	);
+	$: visibleLights = Object.values($lightStore).filter((e) =>
+		inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore)
+	);
 </script>
 
 <style>

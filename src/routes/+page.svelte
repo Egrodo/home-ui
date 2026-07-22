@@ -6,7 +6,6 @@
 	import Devices from '$lib/devices/Devices.svelte';
 	import Stocks from '$lib/stocks/Stocks.svelte';
 	import LightDrawer from '$lib/drawer/LightDrawer.svelte';
-
 </script>
 
 <style>

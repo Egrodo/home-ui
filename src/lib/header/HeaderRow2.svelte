@@ -8,7 +8,7 @@
 	.row {
 		display: grid;
 		grid-template-columns: 1fr 200px 220px;
-		height: 200px;
+		height: 180px;
 		border-top: 1px solid var(--color-border);
 	}
 </style>

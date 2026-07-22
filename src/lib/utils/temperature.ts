@@ -1,6 +1,10 @@
 export type TemperatureUnit = '°C' | '°F';
 
-export function displayTemp(temp: number, sourceUnit: TemperatureUnit, showFahrenheit: boolean): string {
+export function displayTemp(
+	temp: number,
+	sourceUnit: TemperatureUnit,
+	showFahrenheit: boolean
+): string {
 	if (showFahrenheit && sourceUnit === '°C') {
 		return Math.round((temp * 9) / 5 + 32) + '°F';
 	}

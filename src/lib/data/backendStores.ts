@@ -1,5 +1,15 @@
 import { writable } from 'svelte/store';
-import type { CalendarEvent, ForecastType, LightEntity, SceneEntity, SunEntity, SwitchEntity, TemperatureSample, WeatherEntity } from './types';
+import type {
+	AirQualityReadings,
+	CalendarEvent,
+	ForecastType,
+	LightEntity,
+	SceneEntity,
+	SunEntity,
+	SwitchEntity,
+	TemperatureSample,
+	WeatherEntity
+} from './types';
 
 export interface LightStore {
 	[lightId: string]: LightEntity;
@@ -77,3 +87,5 @@ export const sunStore = writable<SunEntity | null>(null);
 export const outdoorTempStore = writable<number | null>(null);
 /** Last ~48h of outdoor temperature samples from sensor.weather_temperature (always °F) */
 export const temperatureHistoryStore = writable<TemperatureSample[]>([]);
+/** Latest readings from the Airthings air quality monitor */
+export const airQualityStore = writable<AirQualityReadings | null>(null);

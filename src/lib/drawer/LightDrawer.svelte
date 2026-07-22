@@ -77,11 +77,18 @@
 
 	function kelvinToRgb(k: number): [number, number, number] {
 		const t = k / 100;
-		const r = t <= 66 ? 255 : Math.min(255, Math.max(0, Math.round(329.699 * Math.pow(t - 60, -0.1332))));
-		const g = t <= 66
-			? Math.min(255, Math.max(0, Math.round(99.471 * Math.log(t) - 161.12)))
-			: Math.min(255, Math.max(0, Math.round(288.122 * Math.pow(t - 60, -0.0755))));
-		const b = t >= 66 ? 255 : t <= 19 ? 0 : Math.min(255, Math.max(0, Math.round(138.518 * Math.log(t - 10) - 305.045)));
+		const r =
+			t <= 66 ? 255 : Math.min(255, Math.max(0, Math.round(329.699 * Math.pow(t - 60, -0.1332))));
+		const g =
+			t <= 66
+				? Math.min(255, Math.max(0, Math.round(99.471 * Math.log(t) - 161.12)))
+				: Math.min(255, Math.max(0, Math.round(288.122 * Math.pow(t - 60, -0.0755))));
+		const b =
+			t >= 66
+				? 255
+				: t <= 19
+					? 0
+					: Math.min(255, Math.max(0, Math.round(138.518 * Math.log(t - 10) - 305.045)));
 		return [r, g, b];
 	}
 
@@ -92,7 +99,12 @@
 
 	function onColorTempChangeEnd(e: CustomEvent<number>) {
 		if (!target) return;
-		colorHistory = addToHistory(target.entityId, [...kelvinToRgb(e.detail), e.detail] as [number, number, number, number]);
+		colorHistory = addToHistory(target.entityId, [...kelvinToRgb(e.detail), e.detail] as [
+			number,
+			number,
+			number,
+			number
+		]);
 	}
 
 	function pickHistoryEntry(entry: HistoryEntry) {

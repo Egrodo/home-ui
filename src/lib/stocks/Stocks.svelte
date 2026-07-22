@@ -38,9 +38,12 @@
 	onMount(() => {
 		fetchStocks();
 		// Refetch hourly — only during market hours to avoid unnecessary calls
-		interval = setInterval(() => {
-			if (isMarketOpen()) fetchStocks();
-		}, 60 * 60 * 1000);
+		interval = setInterval(
+			() => {
+				if (isMarketOpen()) fetchStocks();
+			},
+			60 * 60 * 1000
+		);
 	});
 
 	onDestroy(() => clearInterval(interval));

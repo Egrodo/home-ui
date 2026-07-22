@@ -2,7 +2,8 @@ import { browser } from '$app/environment';
 import {
 	PUBLIC_WS_AUTH_KEY,
 	PUBLIC_SERVER_URL,
-	PUBLIC_WEATHER_ENTITY_ID
+	PUBLIC_WEATHER_ENTITY_ID,
+	PUBLIC_AIR_QUALITY_DEVICE
 } from '$env/static/public';
 import {
 	createConnection,
@@ -14,6 +15,7 @@ import {
 } from 'home-assistant-js-websocket';
 import { get } from 'svelte/store';
 import {
+	airQualityStore,
 	hourlyForecastStore,
 	lightStore,
 	outdoorTempStore,
@@ -24,6 +26,7 @@ import {
 } from './backendStores';
 import {
 	Rooms,
+	type AirQualityReadings,
 	type CalendarEvent,
 	type ForecastType,
 	type LightEntity,
@@ -36,6 +39,36 @@ import {
 
 /** Outdoor temperature sensor — denser and same unit (°F) as we want for the graph. */
 export const TEMPERATURE_SENSOR_ENTITY_ID = 'sensor.weather_temperature';
+
+/**
+ * Airthings air quality monitor sensors, derived from the device's entity slug
+ * (PUBLIC_AIR_QUALITY_DEVICE, e.g. "air_qualington"). The suffixes are the
+ * standard names the Airthings HA integration assigns to each sensor.
+ */
+export const AIR_QUALITY_ENTITY_IDS = {
+	radon: `sensor.${PUBLIC_AIR_QUALITY_DEVICE}_radon`,
+	co2: `sensor.${PUBLIC_AIR_QUALITY_DEVICE}_carbon_dioxide`,
+	voc: `sensor.${PUBLIC_AIR_QUALITY_DEVICE}_volatile_organic_compounds_parts`,
+	pm25: `sensor.${PUBLIC_AIR_QUALITY_DEVICE}_pm2_5`,
+	humidity: `sensor.${PUBLIC_AIR_QUALITY_DEVICE}_humidity`,
+	temperature: `sensor.${PUBLIC_AIR_QUALITY_DEVICE}_temperature`
+} as const;
+
+/** Pull the latest Airthings readings straight from the full entity collection. */
+function extractAirQuality(states: HassEntities): AirQualityReadings {
+	const read = (entityId: string): number | null => {
+		const value = parseFloat(states[entityId]?.state ?? '');
+		return isNaN(value) ? null : value;
+	};
+	return {
+		radon: read(AIR_QUALITY_ENTITY_IDS.radon),
+		co2: read(AIR_QUALITY_ENTITY_IDS.co2),
+		voc: read(AIR_QUALITY_ENTITY_IDS.voc),
+		pm25: read(AIR_QUALITY_ENTITY_IDS.pm25),
+		humidity: read(AIR_QUALITY_ENTITY_IDS.humidity),
+		temperature: read(AIR_QUALITY_ENTITY_IDS.temperature)
+	};
+}
 
 import type { DeviceInfo, EntityRegistryEntry } from './types';
 
@@ -126,6 +159,8 @@ export function handleStateMessage(states: HassEntities) {
 			: existing?.attributes.forecast;
 		weatherStore.set({ ...weatherEntity, attributes: { ...weatherEntity.attributes, forecast } });
 	}
+
+	airQualityStore.set(extractAirQuality(states));
 }
 
 export const ROOM_AREA_IDS: Partial<Record<Rooms, string[]>> = {
@@ -384,9 +419,7 @@ export async function fetchTemperatureHistory(
 				const stateStr = r.s ?? r.state ?? '';
 				const temperature = parseFloat(stateStr);
 				const datetime =
-					typeof r.lu === 'number'
-						? new Date(r.lu * 1000).toISOString()
-						: (r.last_updated ?? '');
+					typeof r.lu === 'number' ? new Date(r.lu * 1000).toISOString() : (r.last_updated ?? '');
 				return { datetime, temperature };
 			})
 			.filter((s) => !isNaN(s.temperature) && s.datetime !== '');

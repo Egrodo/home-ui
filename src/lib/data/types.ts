@@ -63,6 +63,16 @@ export interface TemperatureSample {
 	temperature: number;
 }
 
+/** Latest readings from the Airthings air quality monitor. `null` = reading unavailable. */
+export interface AirQualityReadings {
+	radon: number | null; // Bq/m³
+	co2: number | null; // ppm
+	voc: number | null; // ppb
+	pm25: number | null; // μg/m³
+	humidity: number | null; // %
+	temperature: number | null; // °C (sensor's native unit)
+}
+
 interface SunEntityAttributes {
 	next_rising: string;
 	next_setting: string;

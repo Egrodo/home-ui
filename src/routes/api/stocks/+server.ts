@@ -26,9 +26,7 @@ async function fetchStock(ticker: string): Promise<StockData> {
 	const changePercent = (change / prevClose) * 100;
 
 	// Downsample to every 5 minutes, drop nulls, normalize to 0–1 for sparkline
-	const sampled = closes
-		.filter((_, i) => i % 5 === 0)
-		.filter((c): c is number => c !== null);
+	const sampled = closes.filter((_, i) => i % 5 === 0).filter((c): c is number => c !== null);
 	const min = Math.min(...sampled);
 	const max = Math.max(...sampled);
 	const range = max - min || 1;
