@@ -355,6 +355,36 @@ export function subscribeTodoItems(
 	});
 }
 
+/** Add a new item to a todo list. */
+export async function addTodoItem(connection: Connection, entityId: string, summary: string) {
+	return sendWsMessage(connection, {
+		type: 'call_service',
+		domain: 'todo',
+		service: 'add_item',
+		target: { entity_id: entityId },
+		service_data: { item: summary }
+	});
+}
+
+/**
+ * Create a new local to-do list. Local lists are backed by a `local_todo` config
+ * entry, created via HA's REST config-flow API — which sends no CORS headers, so
+ * we go through our same-origin proxy, which forwards the create server-side.
+ * Returns once HA has created the entry; the new `todo.*` entity then arrives
+ * through the normal entity subscription.
+ */
+export async function createTodoList(name: string) {
+	const response = await fetch('/api/todo-list', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ name })
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to create todo list "${name}": ${response.status}`);
+	}
+	return response.json();
+}
+
 /** Set a todo item's status (used to mark items done / not-done). */
 export async function setTodoItemStatus(
 	connection: Connection,

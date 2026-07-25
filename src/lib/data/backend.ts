@@ -25,6 +25,8 @@ import {
 	changeLightEffect,
 	subscribeTodoItems,
 	setTodoItemStatus,
+	addTodoItem,
+	createTodoList,
 	deleteTodoList,
 	TEMPERATURE_SENSOR_ENTITY_ID
 } from './ws';
@@ -226,6 +228,14 @@ export function setNoteItemStatus(
 	status: 'needs_action' | 'completed'
 ) {
 	return setTodoItemStatus(getConnection(), entityId, uid, status);
+}
+
+export function addNoteItem(entityId: string, summary: string) {
+	return addTodoItem(getConnection(), entityId, summary);
+}
+
+export function createNoteList(name: string) {
+	return createTodoList(name);
 }
 
 export function deleteNoteList(entityId: string) {

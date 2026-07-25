@@ -261,8 +261,6 @@ describe('handleStateMessage', () => {
 
 		handleStateMessage(states);
 
-		expect(mockNotesSetLists).toHaveBeenCalledWith([
-			{ entityId: 'todo.active', title: 'Active' }
-		]);
+		expect(mockNotesSetLists).toHaveBeenCalledWith([{ entityId: 'todo.active', title: 'Active' }]);
 	});
 });

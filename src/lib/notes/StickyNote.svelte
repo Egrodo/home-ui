@@ -18,6 +18,27 @@
 	export let onEnd: () => void;
 	export let onToggleItem: (item: TodoItem) => void;
 	export let onDelete: () => void;
+	/** A not-yet-created note whose title is being entered — no delete, no items. */
+	export let isDraft = false;
+	/** Which field on this note the keyboard is currently driving, if any. */
+	export let activeField: 'title' | 'item' | null = null;
+	/** Live text for the active field (title or new item). */
+	export let fieldValue = '';
+	/**
+	 * Y coordinate (board space) of the keyboard's top edge while this note is being
+	 * edited; null when it isn't. The note lifts just enough to clear it.
+	 */
+	export let keyboardClearance: number | null = null;
+	export let onStartAddItem: () => void = () => {};
+
+	const LIFT_MARGIN = 24;
+	let noteHeight = 0;
+
+	// Rise only if the note's bottom would fall behind the keyboard.
+	$: liftY =
+		keyboardClearance != null
+			? Math.max(0, pos.y + noteHeight + LIFT_MARGIN - keyboardClearance)
+			: 0;
 
 	let confirming = false;
 	let confirmTimer: ReturnType<typeof setTimeout> | null = null;
@@ -50,6 +71,9 @@
 		user-select: none;
 		/* Own the touch so dragging never scrolls the pager underneath. */
 		touch-action: none;
+		/* Smoothly lift/settle when rising clear of the keyboard (drag uses left/top,
+		   not transform, so this never affects dragging). */
+		transition: transform 0.18s ease;
 	}
 
 	.note-header {
@@ -69,6 +93,11 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.note-title.placeholder {
+		color: var(--ink-3);
+		font-weight: var(--font-weight-normal);
 	}
 
 	.close-btn {
@@ -126,41 +155,104 @@
 		color: var(--ink-3);
 		padding: 4px 2px;
 	}
+
+	.add-row {
+		display: flex;
+		gap: 8px;
+		align-items: baseline;
+		padding: 4px 2px;
+		margin-top: 2px;
+		background: transparent;
+		border: none;
+		text-align: left;
+		cursor: pointer;
+		font-size: var(--text-body);
+		color: var(--ink-3);
+	}
+
+	.add-field {
+		display: flex;
+		gap: 8px;
+		align-items: baseline;
+		padding: 4px 2px;
+		margin-top: 2px;
+		font-size: var(--text-body);
+		color: var(--ink-1);
+	}
+
+	/* Blinking caret marking the field the keyboard is driving. Sits inside the text
+	   span so it shares the text baseline instead of the full flex line box. */
+	.caret {
+		display: inline-block;
+		width: 2px;
+		height: 1.1em;
+		vertical-align: text-bottom;
+		margin-left: 1px;
+		background: var(--color-accent, var(--ink-1));
+		animation: blink 1s step-start infinite;
+	}
+
+	@keyframes blink {
+		50% {
+			opacity: 0;
+		}
+	}
 </style>
 
 <div
 	class="sticky-note"
-	style="left: {pos.x}px; top: {pos.y}px; z-index: {pos.z}; --note-width: {NOTE_WIDTH}px;"
+	style="left: {pos.x}px; top: {pos.y}px; z-index: {pos.z}; --note-width: {NOTE_WIDTH}px; transform: translateY({-liftY}px);"
+	bind:clientHeight={noteHeight}
 	use:dragAction={{ handle: '.note-header', onStart: onBringToFront, onMove, onEnd }}
 	out:popOut|global
 >
 	<div class="note-header">
-		<span class="note-title">{list.title}</span>
-		<button
-			class="close-btn"
-			class:confirming
-			data-no-drag
-			on:click={handleClose}
-			aria-label={confirming ? 'Confirm delete list' : 'Delete list'}
-		>
-			{confirming ? 'Delete?' : '✕'}
-		</button>
+		{#if activeField === 'title'}
+			<span class="note-title" class:placeholder={!fieldValue}>
+				{fieldValue || 'List title'}<span class="caret"></span>
+			</span>
+		{:else}
+			<span class="note-title" class:placeholder={isDraft && !list.title}>
+				{list.title || 'List title'}
+			</span>
+		{/if}
+		{#if !isDraft}
+			<button
+				class="close-btn"
+				class:confirming
+				data-no-drag
+				on:click={handleClose}
+				aria-label={confirming ? 'Confirm delete list' : 'Delete list'}
+			>
+				{confirming ? 'Delete?' : '✕'}
+			</button>
+		{/if}
 	</div>
 
 	<div class="note-body">
-		{#if list.items.length === 0}
+		{#each list.items as item (item.uid)}
+			<button
+				class="todo-line"
+				class:done={item.status === 'completed'}
+				on:click={() => onToggleItem(item)}
+			>
+				<span class="checkbox">{item.status === 'completed' ? '[x]' : '[ ]'}</span>
+				<span class="summary">{item.summary}</span>
+			</button>
+		{/each}
+
+		{#if activeField === 'item'}
+			<div class="add-field">
+				<span class="checkbox">[ ]</span>
+				<span class="field-text">{fieldValue}<span class="caret"></span></span>
+			</div>
+		{:else if !isDraft}
+			<button class="add-row" data-no-drag on:click={onStartAddItem}>
+				<span class="checkbox">＋</span>
+				<span>add item</span>
+			</button>
+		{:else if list.items.length === 0}
 			<span class="empty">No items</span>
-		{:else}
-			{#each list.items as item (item.uid)}
-				<button
-					class="todo-line"
-					class:done={item.status === 'completed'}
-					on:click={() => onToggleItem(item)}
-				>
-					<span class="checkbox">{item.status === 'completed' ? '[x]' : '[ ]'}</span>
-					<span class="summary">{item.summary}</span>
-				</button>
-			{/each}
 		{/if}
 	</div>
 </div>
