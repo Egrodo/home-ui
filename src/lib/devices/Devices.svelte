@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { entityAreaMapStore } from '$lib/data/backend';
+	import { entityAreaMapStore, toggleArea } from '$lib/data/backend';
 	import { lightStore, switchStore, sceneStore } from '$lib/data/backendStores';
 	import { selectedRoomStore } from '$lib/data/stores';
-	import { Rooms } from '$lib/data/types';
+	import { Rooms, type SceneEntity } from '$lib/data/types';
 	import { ROOM_AREA_IDS } from '$lib/data/ws';
 	import { getIconKey } from '$lib/utils/getIcon';
 	import DeviceCard from './DeviceCard.svelte';
@@ -24,6 +24,23 @@
 	$: visibleLights = Object.values($lightStore).filter((e) =>
 		inRoom(e.entity_id, $selectedRoomStore, $entityAreaMapStore)
 	);
+
+	$: roomLabel = $selectedRoomStore === Rooms.AllRooms ? 'House' : $selectedRoomStore;
+	$: allOnEntity = {
+		entity_id: 'scene.__all_on__',
+		state: 'off',
+		attributes: { entity_id: [], friendly_name: `${roomLabel} All On`, icon: '', id: '__all_on__' }
+	} satisfies SceneEntity;
+	$: allOffEntity = {
+		entity_id: 'scene.__all_off__',
+		state: 'off',
+		attributes: {
+			entity_id: [],
+			friendly_name: `${roomLabel} All Off`,
+			icon: '',
+			id: '__all_off__'
+		}
+	} satisfies SceneEntity;
 </script>
 
 <style>
@@ -54,6 +71,20 @@
 <section class="devices">
 	<p class="roomLabel">{$selectedRoomStore}</p>
 	<div class="grid">
+		{#if visibleLights.length > 0}
+			<DeviceCard
+				entity={allOnEntity}
+				icon="mdiToggleSwitch"
+				tint="on"
+				onClick={() => toggleArea($selectedRoomStore, 'on')}
+			/>
+			<DeviceCard
+				entity={allOffEntity}
+				icon="mdiToggleSwitchOff"
+				tint="off"
+				onClick={() => toggleArea($selectedRoomStore, 'off')}
+			/>
+		{/if}
 		{#each visibleScenes as scene (scene.entity_id)}
 			<DeviceCard entity={scene} icon={getIconKey(scene.attributes.icon ?? 'mdi:palette')} />
 		{/each}

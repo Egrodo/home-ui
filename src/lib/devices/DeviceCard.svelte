@@ -6,6 +6,8 @@
 
 	export let entity: LightEntity | SwitchEntity | SceneEntity;
 	export let icon: string | null = null;
+	export let onClick: (() => void) | null = null;
+	export let tint: 'on' | 'off' | null = null;
 
 	$: isLight = entity.entity_id.startsWith('light.');
 	$: isSwitch = entity.entity_id.startsWith('switch.');
@@ -55,6 +57,10 @@
 	let hasMoved = false;
 
 	function handleAction() {
+		if (onClick) {
+			onClick();
+			return;
+		}
 		if (isLight) toggleLight(entity.entity_id, isOn ? 'off' : 'on');
 		else if (isSwitch) toggleSwitch(entity.entity_id, isOn ? 'off' : 'on');
 		else if (isScene) activateScene(entity.entity_id);
@@ -215,6 +221,16 @@
 		opacity: 0.7;
 	}
 
+	.icon-wrap--tint-on {
+		color: var(--color-positive);
+		opacity: 0.9;
+	}
+
+	.icon-wrap--tint-off {
+		color: var(--color-negative);
+		opacity: 0.9;
+	}
+
 	/* ── Bottom meta ─────────────────────────────────────── */
 	.meta {
 		position: relative;
@@ -314,7 +330,11 @@
 			<span class="type-badge">{isScene ? 'Scene' : 'Switch'}</span>
 		{/if}
 
-		<div class="icon-wrap">
+		<div
+			class="icon-wrap"
+			class:icon-wrap--tint-on={tint === 'on'}
+			class:icon-wrap--tint-off={tint === 'off'}
+		>
 			{#if icon}
 				<MdiIcon name={icon} size="32" />
 			{:else}
