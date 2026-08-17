@@ -6,6 +6,10 @@
 	import StickyNote from './StickyNote.svelte';
 	import OnScreenKeyboard, { KEYBOARD_HEIGHT } from './OnScreenKeyboard.svelte';
 	import { findFreeSlot, loadPositions, savePositions, type NotePositions } from './notePositions';
+	import { currentPageStore } from '../pager/pagerStore';
+
+	/** This board is the pager's second page. */
+	const NOTES_PAGE_INDEX = 1;
 
 	let boardEl: HTMLDivElement;
 	let boardWidth = 1080;
@@ -43,6 +47,11 @@
 
 	// Which field the on-screen keyboard is currently driving.
 	let editing: { noteId: string; kind: 'title' | 'item'; value: string } | null = null;
+
+	// The pager keeps this page mounted after you swipe away, so an open keyboard would
+	// otherwise stay docked (and keep the page dots pushed up) off-screen. Leaving the
+	// board ends the edit the same way "Done" does.
+	$: if ($currentPageStore !== NOTES_PAGE_INDEX && editing) stopEditing();
 
 	// Top edge of the docked keyboard, in board space — how high notes must clear.
 	$: keyboardTopY = boardHeight - KEYBOARD_HEIGHT;
@@ -311,6 +320,7 @@
 	{#if editing}
 		<OnScreenKeyboard
 			value={editing.value}
+			enterLabel={editing.kind === 'title' ? 'Create' : 'Add'}
 			onInput={onKeyInput}
 			onEnter={onKeyEnter}
 			onClose={stopEditing}
