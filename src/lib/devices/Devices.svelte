@@ -44,11 +44,17 @@
 </script>
 
 <style>
+	/* The only flexible row of the page column: it absorbs whatever vertical space
+	   the fixed header/floorplan/stocks leave, and scrolls the grid internally when
+	   the unfiltered device list is taller than that. */
 	.devices {
 		margin: 16px 24px;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
 		padding: 10px 20px;
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
 	}
 
 	.roomLabel {
@@ -65,6 +71,11 @@
 		display: grid;
 		grid-template-columns: repeat(6, 1fr);
 		gap: 8px;
+		align-content: start;
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior-y: contain;
+		scrollbar-width: none;
 	}
 </style>
 

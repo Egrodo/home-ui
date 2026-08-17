@@ -55,6 +55,7 @@
 	.floorplanContainer {
 		display: flex;
 		justify-content: center;
+		flex-shrink: 0;
 		padding: 16px 24px;
 		margin: 0 24px;
 		border: 1px solid var(--color-border);

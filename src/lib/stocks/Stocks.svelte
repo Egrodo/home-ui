@@ -51,6 +51,7 @@
 
 <style>
 	.stocks {
+		flex-shrink: 0;
 		margin: 0 24px 24px;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
