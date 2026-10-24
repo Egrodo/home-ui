@@ -88,7 +88,7 @@
 </style>
 
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-<div class="floorplanContainer" on:click={handleContainerClick}>
+<section class="floorplanContainer" on:click={handleContainerClick}>
 	<div class="floorplanWrapper">
 		<img class="floorplan" src="/floorplan.png" alt="Floorplan" />
 		<svg class="regionsOverlay" viewBox="0 0 1698 1110" xmlns="http://www.w3.org/2000/svg">
@@ -166,4 +166,4 @@
 			/>
 		</svg>
 	</div>
-</div>
+</section>

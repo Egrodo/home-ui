@@ -44,10 +44,9 @@
 </script>
 
 <style>
-	/* The only flexible row of the page column: it absorbs whatever vertical space
-	   the fixed header/floorplan/stocks leave, and scrolls the grid internally when
-	   the unfiltered device list is taller than that. */
 	.devices {
+		flex-shrink: 1; /* The devices container is the only section that will scroll vertically to absorb overflow */
+		grid-auto-rows: max-content; /* Needed to stop grid cells shrinking */
 		margin: 16px 24px;
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);

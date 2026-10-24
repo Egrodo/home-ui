@@ -47,10 +47,6 @@ Required in `.env`:
 - `PUBLIC_CALENDAR_ENTITY_ID` - Entity ID for the calendar panel
 - `PUBLIC_AIR_QUALITY_DEVICE` - Entity slug of the Airthings air-quality device (e.g. `air_qualington`); the six `sensor.<slug>_*` entity IDs are derived from it in `ws.ts`
 
-### Device Filtering
-
-To hide a device from the UI, add "donotshow" to its friendly_name in Home Assistant.
-
 ### Room Configuration
 
 Rooms are defined in `src/lib/data/types.ts` as an enum mapping display names to Home Assistant area IDs in `ws.ts:getAreaIds()`.
