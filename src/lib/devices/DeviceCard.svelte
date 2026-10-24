@@ -13,6 +13,8 @@
 	$: isSwitch = entity.entity_id.startsWith('switch.');
 	$: isScene = entity.entity_id.startsWith('scene.');
 	$: isOn = entity.state === 'on';
+	// Switches that drive lights get the same warm halo as an "on" light
+	$: isLightSwitch = isSwitch && /light/i.test(entity.attributes.friendly_name);
 
 	$: light = isLight ? (entity as LightEntity) : null;
 	$: rgb = isOn && light?.attributes.rgb_color ? light.attributes.rgb_color : null;
@@ -42,9 +44,16 @@
 		? rgb
 			? `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`
 			: tempColor(normalizedTemp)
-		: null;
+		: isLightSwitch
+			? tempColor(0)
+			: null;
 
-	$: haloOpacity = isOn ? 0.35 + (brightnessPercent / 100) * (0.85 - 0.35) : 0;
+	// Light switches have no brightness, so glow as if at full brightness
+	$: haloOpacity = !isOn
+		? 0
+		: isLightSwitch
+			? 0.85
+			: 0.35 + (brightnessPercent / 100) * (0.85 - 0.35);
 
 	// Use entity's custom HA icon when defined; fall back to MDI lightbulb
 	$: hasCustomIcon = isLight && !!(entity as LightEntity).attributes.icon;
@@ -221,6 +230,11 @@
 		opacity: 0.7;
 	}
 
+	.card--switch.card--on .icon-wrap {
+		color: var(--ink-1);
+		opacity: 1;
+	}
+
 	.icon-wrap--tint-on {
 		color: var(--color-positive);
 		opacity: 0.9;
@@ -289,18 +303,18 @@
 		? `, ${isOn ? 'on' : 'off'}${isOn ? `, ${brightnessPercent}%` : ''}${isOn && lightMode === 'temp' && colorTempKelvin ? `, ${colorTempKelvin}K` : ''}`
 		: ''}"
 >
-	{#if isLight}
-		<!-- Halo glow — decorative, only when on -->
-		{#if isLight && displayHaloColor}
-			<div
-				class="halo"
-				aria-hidden="true"
-				style:background="radial-gradient(circle, {displayHaloColor} 0%, transparent 70%)"
-				style:opacity={haloOpacity}
-				style:transform={isOn ? 'scale(1)' : 'scale(0)'}
-			></div>
-		{/if}
+	<!-- Halo glow — decorative, only when on (lights and light switches) -->
+	{#if displayHaloColor}
+		<div
+			class="halo"
+			aria-hidden="true"
+			style:background="radial-gradient(circle, {displayHaloColor} 0%, transparent 70%)"
+			style:opacity={haloOpacity}
+			style:transform={isOn ? 'scale(1)' : 'scale(0)'}
+		></div>
+	{/if}
 
+	{#if isLight}
 		<!-- Top: icon + mode label -->
 		<div class="icon-row">
 			{#if hasCustomIcon && icon}
