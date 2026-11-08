@@ -1,9 +1,13 @@
 import { loop } from '../../loop';
 import type { Screensaver } from '../../types';
 import * as config from './config';
-import { COLOR_SHADER, FIELD_SHADER, VERTEX_SHADER } from './shader';
+import { COLOR_SHADER, FIELD_SHADER, VERTEX_SHADER, WARP_SHADER } from './shader';
 
 const TAU = Math.PI * 2;
+
+const PREVIOUS_TEXTURE_UNIT = 0;
+const LATEST_TEXTURE_UNIT = 1;
+const WARP_TEXTURE_UNIT = 2;
 
 const ease = (x: number) => x * x * (3 - 2 * x);
 
@@ -110,39 +114,33 @@ function createProgram(gl: WebGL2RenderingContext, fragmentSource: string): WebG
 	return program;
 }
 
-/** Creates the half-float render target for the field pass, leaving its texture bound. */
-function createFieldTarget(
-	gl: WebGL2RenderingContext,
-	width: number,
-	height: number
-): WebGLFramebuffer {
-	if (
-		!gl.getExtension('EXT_color_buffer_float') &&
-		!gl.getExtension('EXT_color_buffer_half_float')
-	) {
-		throw new Error('Rendering to half-float textures is not supported');
-	}
+interface Target {
+	texture: WebGLTexture;
+	framebuffer: WebGLFramebuffer;
+}
 
-	gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
-	gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA16F, width, height);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+function createTarget(
+	gl: WebGL2RenderingContext,
+	format: number,
+	width: number,
+	height: number,
+	filter: number
+): Target {
+	const texture = gl.createTexture() as WebGLTexture;
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texStorage2D(gl.TEXTURE_2D, 1, format, width, height);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-	const target = gl.createFramebuffer() as WebGLFramebuffer;
-	gl.bindFramebuffer(gl.FRAMEBUFFER, target);
-	gl.framebufferTexture2D(
-		gl.FRAMEBUFFER,
-		gl.COLOR_ATTACHMENT0,
-		gl.TEXTURE_2D,
-		gl.getParameter(gl.TEXTURE_BINDING_2D),
-		0
-	);
+	const framebuffer = gl.createFramebuffer() as WebGLFramebuffer;
+	gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 	if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
-		throw new Error('Half-float render target is incomplete');
+		throw new Error(`Render target is incomplete (format ${format})`);
 	}
-	return target;
+	return { texture, framebuffer };
 }
 
 const hexToRgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.substring(i, i + 2), 16) / 255);
@@ -153,9 +151,22 @@ const rainbowContours: Screensaver = {
 		const gl = canvas.getContext('webgl2', { alpha: false, antialias: false });
 		if (!gl) throw new Error('WebGL2 not available');
 
-		const fieldWidth = Math.max(1, Math.round(width * config.FIELD_SCALE));
-		const fieldHeight = Math.max(1, Math.round(height * config.FIELD_SCALE));
-		const fieldTarget = createFieldTarget(gl, fieldWidth, fieldHeight);
+		// Unlike half-float, R32F can't be filtered on the Pi's GPU, but it is sampled 1:1 here.
+		if (!gl.getExtension('EXT_color_buffer_float')) {
+			throw new Error('Rendering to float textures is not supported');
+		}
+
+		const warpWidth = Math.max(1, Math.round(width * config.WARP_SCALE));
+		const warpHeight = Math.max(1, Math.round(height * config.WARP_SCALE));
+		const warpTarget = createTarget(gl, gl.RG16F, warpWidth, warpHeight, gl.LINEAR);
+
+		// The screen blends previous to latest while pending is drawn a slice per frame.
+		const createFieldTarget = () => createTarget(gl, gl.R32F, width, height, gl.NEAREST);
+		let previous = createFieldTarget();
+		let latest = createFieldTarget();
+		let pending = createFieldTarget();
+
+		const warpProgram = createProgram(gl, WARP_SHADER);
 		const fieldProgram = createProgram(gl, FIELD_SHADER);
 		const colorProgram = createProgram(gl, COLOR_SHADER);
 
@@ -165,23 +176,34 @@ const rainbowContours: Screensaver = {
 		gl.enableVertexAttribArray(0);
 		gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
+		const warpUniform = (name: string) => gl.getUniformLocation(warpProgram, name);
+		const uNoiseOff = warpUniform('uNoiseOff');
+
 		const fieldUniform = (name: string) => gl.getUniformLocation(fieldProgram, name);
-		const uNoiseOff = fieldUniform('uNoiseOff');
 		const uWarp = fieldUniform('uWarp');
 		const uSmooth = fieldUniform('uSmooth');
+		const uSeedCount = fieldUniform('uSeedCount');
 		const uSeed = fieldUniform('uSeed');
-		const uSeedP = fieldUniform('uSeedP');
+		const uSeedTurn = fieldUniform('uSeedTurn');
+		const uSeedShape = fieldUniform('uSeedShape');
 
 		const colorUniform = (name: string) => gl.getUniformLocation(colorProgram, name);
+		const uBlend = colorUniform('uBlend');
 		const uPhase = colorUniform('uPhase');
 		const uBand = colorUniform('uBand');
 		const uGrain = colorUniform('uGrain');
 
+		gl.useProgram(warpProgram);
+		gl.uniform2f(warpUniform('uRes'), warpWidth, warpHeight);
+		gl.uniform1f(warpUniform('uWScale'), config.WOBBLE_SCALE);
+
 		gl.useProgram(fieldProgram);
-		gl.uniform2f(fieldUniform('uRes'), fieldWidth, fieldHeight);
-		gl.uniform1f(fieldUniform('uWScale'), config.WOBBLE_SCALE);
+		gl.uniform1i(fieldUniform('uWarpPattern'), WARP_TEXTURE_UNIT);
+		gl.uniform2f(fieldUniform('uRes'), width, height);
 
 		gl.useProgram(colorProgram);
+		gl.uniform1i(colorUniform('uFieldA'), PREVIOUS_TEXTURE_UNIT);
+		gl.uniform1i(colorUniform('uFieldB'), LATEST_TEXTURE_UNIT);
 		gl.uniform2f(colorUniform('uRes'), width, height);
 		gl.uniform1f(colorUniform('uLine'), config.LINE_WEIGHT);
 		gl.uniform3fv(colorUniform('uLineColor'), new Float32Array(hexToRgb(config.LINE_COLOR)));
@@ -209,7 +231,83 @@ const rainbowContours: Screensaver = {
 		let noiseAngle = Math.random() * TAU;
 
 		const seedData = new Float32Array(config.SEED_SLOTS * 4);
-		const seedParams = new Float32Array(config.SEED_SLOTS * 4);
+		const seedTurn = new Float32Array(config.SEED_SLOTS * 4);
+		const seedShape = new Float32Array(config.SEED_SLOTS * 4);
+
+		const bindFields = () => {
+			gl.activeTexture(gl.TEXTURE0 + PREVIOUS_TEXTURE_UNIT);
+			gl.bindTexture(gl.TEXTURE_2D, previous.texture);
+			gl.activeTexture(gl.TEXTURE0 + LATEST_TEXTURE_UNIT);
+			gl.bindTexture(gl.TEXTURE_2D, latest.texture);
+		};
+
+		/** Copies visible seeds in slot order, returning how many there are. */
+		const packSeeds = () => {
+			const { SEED_ORBIT_RADIUS: orbit, SEED_ORBIT_PHASE_SKEW: skew } = config;
+			let count = 0;
+			for (const seed of seeds) {
+				if (seed.presence <= 0) continue;
+				const i = count++ * 4;
+				seedData[i] = seed.x + orbit * Math.sin(morphClock * seed.fx + seed.ph);
+				seedData[i + 1] = seed.y + orbit * Math.cos(morphClock * seed.fy + seed.ph * skew);
+				seedData[i + 2] = seed.r;
+				seedData[i + 3] = (1 - ease(seed.presence)) * config.SEED_SINK_DEPTH;
+				seedTurn[i] = Math.cos(seed.rot);
+				seedTurn[i + 1] = Math.sin(seed.rot);
+				seedTurn[i + 2] = seed.n;
+				seedTurn[i + 3] = seed.type;
+				if (seed.type === 1) {
+					seedShape[i] = Math.cos(Math.PI / seed.n);
+					seedShape[i + 1] = Math.sin(Math.PI / seed.n);
+					seedShape[i + 2] = Math.cos(Math.PI / seed.m);
+					seedShape[i + 3] = Math.sin(Math.PI / seed.m);
+				} else {
+					seedShape[i] = seed.m;
+				}
+			}
+			return count;
+		};
+
+		/** Freezes the current state for the next field, which may take several frames to draw. */
+		const prepareField = () => {
+			gl.useProgram(warpProgram);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, warpTarget.framebuffer);
+			gl.viewport(0, 0, warpWidth, warpHeight);
+			gl.uniform2f(
+				uNoiseOff,
+				config.NOISE_RADIUS * Math.cos(noiseAngle),
+				config.NOISE_RADIUS * Math.sin(noiseAngle)
+			);
+			gl.drawArrays(gl.TRIANGLES, 0, 3);
+			gl.viewport(0, 0, width, height);
+
+			gl.useProgram(fieldProgram);
+			gl.uniform1f(uWarp, drift.warp.value(elapsed));
+			gl.uniform1f(uSmooth, drift.rounding.value(elapsed));
+			gl.uniform1i(uSeedCount, packSeeds());
+			gl.uniform4fv(uSeed, seedData);
+			gl.uniform4fv(uSeedTurn, seedTurn);
+			gl.uniform4fv(uSeedShape, seedShape);
+		};
+
+		const drawField = (target: Target, bottom: number, top: number) => {
+			gl.useProgram(fieldProgram);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
+			gl.enable(gl.SCISSOR_TEST);
+			gl.scissor(0, bottom, width, top - bottom);
+			gl.drawArrays(gl.TRIANGLES, 0, 3);
+			gl.disable(gl.SCISSOR_TEST);
+		};
+
+		gl.activeTexture(gl.TEXTURE0 + WARP_TEXTURE_UNIT);
+		gl.bindTexture(gl.TEXTURE_2D, warpTarget.texture);
+		bindFields();
+
+		prepareField();
+		drawField(previous, 0, height);
+		drawField(latest, 0, height);
+
+		let slice = 0;
 
 		loop(signal, (frameDt) => {
 			const dt = frameDt * config.ANIMATION_SPEED;
@@ -221,7 +319,7 @@ const rainbowContours: Screensaver = {
 			morphClock += dt * morph;
 			noiseAngle = (noiseAngle + (dt * config.NOISE_SPEED) / config.NOISE_RADIUS) % TAU;
 
-			seeds.forEach((seed, i) => {
+			seeds.forEach((seed) => {
 				const change = ((seed.on ? 1 : -1) * dt) / config.SEED_FADE_SECONDS;
 				seed.presence = Math.min(1, Math.max(0, seed.presence + change));
 				if (!seed.on && seed.presence === 0 && !seed.fresh) {
@@ -230,35 +328,25 @@ const rainbowContours: Screensaver = {
 				}
 				if (seed.on) seed.fresh = false;
 				seed.rot = (seed.rot + dt * morph * seed.sp * config.SEED_SPIN_RATE) % TAU;
-
-				const { SEED_ORBIT_RADIUS: orbit, SEED_ORBIT_PHASE_SKEW: skew } = config;
-				seedData[i * 4] = seed.x + orbit * Math.sin(morphClock * seed.fx + seed.ph);
-				seedData[i * 4 + 1] = seed.y + orbit * Math.cos(morphClock * seed.fy + seed.ph * skew);
-				seedData[i * 4 + 2] = seed.r;
-				seedData[i * 4 + 3] = seed.n;
-				seedParams[i * 4] = seed.m;
-				seedParams[i * 4 + 1] = seed.rot;
-				seedParams[i * 4 + 2] = seed.type;
-				seedParams[i * 4 + 3] = (1 - ease(seed.presence)) * config.SEED_SINK_DEPTH;
 			});
 
-			gl.useProgram(fieldProgram);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, fieldTarget);
-			gl.viewport(0, 0, fieldWidth, fieldHeight);
-			gl.uniform2f(
-				uNoiseOff,
-				config.NOISE_RADIUS * Math.cos(noiseAngle),
-				config.NOISE_RADIUS * Math.sin(noiseAngle)
+			const slices = config.FIELD_UPDATE_FRAMES;
+			if (slice === 0) prepareField();
+			drawField(
+				pending,
+				Math.round((height * slice) / slices),
+				Math.round((height * (slice + 1)) / slices)
 			);
-			gl.uniform1f(uWarp, drift.warp.value(elapsed));
-			gl.uniform1f(uSmooth, drift.rounding.value(elapsed));
-			gl.uniform4fv(uSeed, seedData);
-			gl.uniform4fv(uSeedP, seedParams);
-			gl.drawArrays(gl.TRIANGLES, 0, 3);
+			slice++;
+			if (slice === slices) {
+				[previous, latest, pending] = [latest, pending, previous];
+				bindFields();
+				slice = 0;
+			}
 
 			gl.useProgram(colorProgram);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.viewport(0, 0, width, height);
+			gl.uniform1f(uBlend, slice / slices);
 			gl.uniform1f(uPhase, phase);
 			gl.uniform1f(uBand, drift.band.value(elapsed));
 			gl.uniform1f(uGrain, drift.grain.value(elapsed));

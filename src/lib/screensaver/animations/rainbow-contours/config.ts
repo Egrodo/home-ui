@@ -31,11 +31,18 @@ const flower = (lobes: number, amplitude: number): Shape => ({ type: 2, n: lobes
 // ---------- Rendering ----------
 
 /**
- * Resolution of the expensive shape and warp calculation, relative to the screen. Lower
- * is faster but rounds the sharp seams between shapes. 1 is exact, 0.5 draws a quarter
- * of the pixels, 0.25 a sixteenth. Bands, outlines and grain always stay full resolution.
+ * How many display frames each full-resolution redraw of the shapes is spread across,
+ * with the image blending between finished redraws. Higher is faster but updates the
+ * shapes less often, softening seams while they move quickly. 1 redraws every frame.
+ * Bands, outlines and grain update every frame regardless.
  */
-export const FIELD_SCALE = 0.25;
+export const FIELD_UPDATE_FRAMES = 6;
+
+/**
+ * Resolution of the bending pattern, relative to the screen. The pattern is smooth, so
+ * it can be far smaller than the screen. Higher is slightly more accurate and slower.
+ */
+export const WARP_SCALE = 0.125;
 
 // ---------- Color ----------
 
@@ -92,7 +99,7 @@ export const ROUNDING: DriftRange = { min: 0, max: 0.18, period: 32 };
 /** Size of the bending pattern. Lower values make broad curves; higher makes tight wiggles. */
 export const WOBBLE_SCALE = 0.5;
 
-/** Layers of detail in the bending pattern. Each adds fine detail and costs GPU time. */
+/** Layers of detail in the bending pattern. Each adds finer wiggles that WARP_SCALE must resolve. */
 export const NOISE_OCTAVES = 4;
 
 /** How fast the bending pattern evolves over time. */
@@ -104,8 +111,8 @@ export const NOISE_RADIUS = 40;
 // ---------- Shapes ----------
 
 /**
- * The most shapes that can exist at once. Sets the shader's size, and every slot is
- * evaluated for every FIELD_SCALE pixel, so this is a direct performance control.
+ * The most shapes that can exist at once. Sets the shader's size, and every visible
+ * shape is evaluated for every pixel, so this is a direct performance control.
  */
 export const SEED_SLOTS = 6;
 
