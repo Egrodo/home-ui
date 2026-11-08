@@ -59,7 +59,7 @@ float sdSeed(vec2 p, vec4 a, vec4 t, vec4 s){
   float d;
   if(t.w<.5) d=length(p)-a.z;                                   // circle
   else if(t.w<1.5) d=sdStar(p,a.z,t.z,s.xy,s.zw);                // polygon / star
-  else { float an=atan(p.y,p.x); d=length(p)-a.z*(1.+s.x*sin(an*t.z)); d*=.8; } // soft flower
+  else { float an=atan(p.y,p.x), l=length(p); d=l-a.z*(1.+s.x*sin(an*t.z)*smoothstep(0.,.5*a.z,l)); d*=.8; } // soft flower, lobes fading out at its center
   return d+a.w;
 }
 
@@ -96,8 +96,10 @@ void main(){
   vec3 col=uPal[int(mod(floor(x),${PALETTE.length}.)+.5)];
 
   float f=fract(x); float edge=min(f,1.-f);
-  float fw=fwidth(x);
+  // Not fwidth: it overshoots on the crease at a sharp point, leaving stray pixels past it.
+  float fw=1.2*length(vec2(dFdx(x),dFdy(x)));
   float line=1.-smoothstep(uLine*.5*fw, uLine*.5*fw+fw, edge);
+  line*=1.-smoothstep(.3,.7,fw); // bands thinner than a pixel can't be outlined
   col=mix(col, uLineColor, line*step(.01,uLine));
 
   col+=(hash(gl_FragCoord.xy)-.5)*uGrain;

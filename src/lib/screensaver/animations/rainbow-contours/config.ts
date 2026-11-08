@@ -36,7 +36,7 @@ const flower = (lobes: number, amplitude: number): Shape => ({ type: 2, n: lobes
  * shapes less often, softening seams while they move quickly. 1 redraws every frame.
  * Bands, outlines and grain update every frame regardless.
  */
-export const FIELD_UPDATE_FRAMES = 6;
+export const FIELD_UPDATE_FRAMES = 4;
 
 /**
  * Resolution of the bending pattern, relative to the screen. The pattern is smooth, so

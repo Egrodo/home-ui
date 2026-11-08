@@ -148,7 +148,7 @@ const hexToRgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.substring(i,
 const rainbowContours: Screensaver = {
 	start({ canvas, width, height, signal }) {
 		// Opaque, so the browser needn't composite the UI underneath it.
-		const gl = canvas.getContext('webgl2', { alpha: false, antialias: false });
+		const gl = canvas.getContext('webgl2', { alpha: false, antialias: false, depth: false });
 		if (!gl) throw new Error('WebGL2 not available');
 
 		// Unlike half-float, R32F can't be filtered on the Pi's GPU, but it is sampled 1:1 here.
