@@ -122,11 +122,9 @@
 
 	<!-- House name + date -->
 	<div class="identity">
-		<!-- Debug: tap the home name to start the animation being worked on. -->
+		<!-- Debug: tap the home name to start the screensaver. -->
 		<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-		<span class="p-name" on:click={() => (window as any).screensaver('spectral')}
-			>{PUBLIC_HOME_NAME}</span
-		>
+		<span class="p-name" on:click={() => (window as any).screensaver()}>{PUBLIC_HOME_NAME}</span>
 		<span class="p-date">{dateString}</span>
 	</div>
 
