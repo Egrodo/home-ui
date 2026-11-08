@@ -5,6 +5,11 @@
 
 	let scroller: HTMLDivElement;
 
+	export function goToFirstPage() {
+		// The scrollend handler below syncs currentPageStore.
+		scroller.scrollLeft = 0;
+	}
+
 	onMount(() => {
 		// Fresh mount (initial load or reconnect) always starts on page 1.
 		scroller.scrollLeft = 0;
