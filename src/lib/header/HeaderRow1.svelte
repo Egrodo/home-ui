@@ -122,7 +122,9 @@
 
 	<!-- House name + date -->
 	<div class="identity">
-		<span class="p-name">{PUBLIC_HOME_NAME}</span>
+		<!-- Debug: tap the home name to start the screensaver. -->
+		<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+		<span class="p-name" on:click={() => (window as any).screensaver()}>{PUBLIC_HOME_NAME}</span>
 		<span class="p-date">{dateString}</span>
 	</div>
 
