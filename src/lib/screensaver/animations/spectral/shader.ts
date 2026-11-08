@@ -6,15 +6,17 @@ void main(){gl_Position=vec4(a,0.,1.);}`;
 
 export const COLOR_SHADER = `#version 300 es
 precision highp float;
-uniform sampler2D uInterior, uFrame;
-uniform vec2 uRes, uDitherSeed;
+uniform sampler2D uInterior, uFrame, uCore;
+uniform vec2 uRes, uDitherSeed, uCoreHalf;
 uniform float uVisible, uCurve, uPhase, uDither;
 uniform float uCornerSharpness, uCornerSize, uMaxDistance, uReach, uDensity;
 uniform float uUnevenness, uColorWander;
+uniform float uCoreSharpness, uCoreRange, uCoreBreath, uCoreWobble;
 uniform vec3 uWave[${HALO_WAVES.length}]; // x and y frequency, then phase
 out vec4 outColor;
 
 const float FRAME_ROWS=5.;
+const float CORE_ROWS=3.;
 
 vec3 oklabToLinear(vec3 c){
   float l=c.x+.3963377774*c.y+.2158037573*c.z;
@@ -45,16 +47,22 @@ float edgeDistance(vec2 edge){
 }
 
 // Picks between the top, side and bottom ramps. Eased, so the blend has no kink at the side row.
-float frameRow(float down){
+float edgeRow(float down,float rows){
   float s=down*2.;
   float row=min(floor(s),1.);
   float f=s-row;
-  return (row+f*f*(3.-2.*f)+.5)/FRAME_ROWS;
+  return (row+f*f*(3.-2.*f)+.5)/rows;
 }
 
 // Picks between the top and bottom corner ramps, the last two rows.
 float cornerRow(float down){
   return (3.+smoothstep(.3,.7,down)+.5)/FRAME_ROWS;
+}
+
+// Zero across the flat center, so its ramps level out there and no crease can form.
+float coreDistance(vec2 p){
+  vec2 q=max(abs(p)-uCoreHalf*uCoreBreath,0.);
+  return pow(pow(q.x,uCoreSharpness)+pow(q.y,uCoreSharpness),1./uCoreSharpness)/uCoreBreath;
 }
 
 // Two versions of the same broad waves, offset so width and color don't move in lockstep.
@@ -77,9 +85,18 @@ void main(){
   float shortEdge=min(uRes.x,uRes.y);
   vec2 edge=min(gl_FragCoord.xy,uRes-gl_FragCoord.xy)/shortEdge;
   vec2 wave=waves(gl_FragCoord.xy/shortEdge);
+
+  // Sits between the interior and the frame, staying put while the colors scroll behind it.
+  vec2 center=(gl_FragCoord.xy-uRes*.5)/shortEdge+uCoreWobble*wave.yx;
+  // Cubed so the side ramp holds along the core's length, or its middle pinches into a diamond.
+  float rise=clamp(center.y/max(uCoreHalf.y,.01),-1.,1.);
+  float coreDown=.5-.5*rise*rise*rise;
+  vec4 core=texture(uCore,vec2(coreDistance(center)/uCoreRange,edgeRow(coreDown,CORE_ROWS)));
+  interior=mix(interior,core.xyz,max(core.a,0.));
+
   float reach=edgeDistance(edge)/(uReach*(1.+uUnevenness*wave.x))/uMaxDistance;
   float rowDown=clamp(down+uColorWander*wave.y,0.,1.);
-  vec4 frame=texture(uFrame,vec2(reach,frameRow(rowDown)));
+  vec4 frame=texture(uFrame,vec2(reach,edgeRow(rowDown,FRAME_ROWS)));
 
   // A soft patch around each corner. Weighting by angle instead shows as a diagonal wedge.
   vec2 nearCorner=1.-smoothstep(0.,uCornerSize,edge);

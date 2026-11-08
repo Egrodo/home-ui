@@ -92,7 +92,7 @@ export function bakeLoopingRamp(stops: ColorStop[], size: number): Float32Array 
  * Bakes one row per ramp into RGBA float pixels holding OKLab colors and opacity, with
  * size samples per row spanning distances from 0 to maxDistance.
  */
-export function bakeFrameRamps(
+export function bakeDistanceRamps(
 	ramps: FrameStop[][],
 	size: number,
 	maxDistance: number
