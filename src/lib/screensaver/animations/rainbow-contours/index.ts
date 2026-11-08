@@ -1,14 +1,18 @@
+import { createDeck } from '../../deck';
 import { loop } from '../../loop';
-import type { Screensaver } from '../../types';
+import type { Screensaver, ScreensaverContext } from '../../types';
 import { createProgram } from '../../webgl';
 import * as config from './config';
-import { COLOR_SHADER, FIELD_SHADER, VERTEX_SHADER, WARP_SHADER } from './shader';
+import { colorShader, FIELD_SHADER, VERTEX_SHADER, WARP_SHADER } from './shader';
 
 const TAU = Math.PI * 2;
 
 const PREVIOUS_TEXTURE_UNIT = 0;
 const LATEST_TEXTURE_UNIT = 1;
 const WARP_TEXTURE_UNIT = 2;
+
+// Modules load once, so this carries on between showings and each one gets the next palette.
+const palettes = createDeck(config.PALETTES);
 
 const ease = (x: number) => x * x * (3 - 2 * x);
 
@@ -124,8 +128,12 @@ function createTarget(
 
 const hexToRgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.substring(i, i + 2), 16) / 255);
 
-const rainbowContours: Screensaver = {
-	start({ canvas, width, height, signal }) {
+const rainbowContours = {
+	/** The palette review page passes its own palette; the screensaver host never does. */
+	start(
+		{ canvas, width, height, signal }: ScreensaverContext,
+		palette: config.Palette = palettes.next()
+	) {
 		// Opaque, so the browser needn't composite the UI underneath it.
 		const gl = canvas.getContext('webgl2', { alpha: false, antialias: false, depth: false });
 		if (!gl) throw new Error('WebGL2 not available');
@@ -147,7 +155,7 @@ const rainbowContours: Screensaver = {
 
 		const warpProgram = createProgram(gl, VERTEX_SHADER, WARP_SHADER);
 		const fieldProgram = createProgram(gl, VERTEX_SHADER, FIELD_SHADER);
-		const colorProgram = createProgram(gl, VERTEX_SHADER, COLOR_SHADER);
+		const colorProgram = createProgram(gl, VERTEX_SHADER, colorShader(palette.bands.length));
 
 		// One oversized triangle, so the fragment shader runs once per pixel.
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
@@ -185,9 +193,9 @@ const rainbowContours: Screensaver = {
 		gl.uniform1i(colorUniform('uFieldB'), LATEST_TEXTURE_UNIT);
 		gl.uniform2f(colorUniform('uRes'), width, height);
 		gl.uniform1f(colorUniform('uLine'), config.LINE_WEIGHT);
-		gl.uniform3fv(colorUniform('uLineColor'), new Float32Array(hexToRgb(config.LINE_COLOR)));
+		gl.uniform3fv(colorUniform('uLineColor'), new Float32Array(hexToRgb(palette.line)));
 		gl.uniform1f(colorUniform('uVignette'), config.VIGNETTE);
-		gl.uniform3fv(colorUniform('uPal'), new Float32Array(config.PALETTE.flatMap(hexToRgb)));
+		gl.uniform3fv(colorUniform('uPal'), new Float32Array(palette.bands.flatMap(hexToRgb)));
 
 		const drift = {
 			seeds: new Drift(config.SEED_COUNT),
@@ -294,7 +302,7 @@ const rainbowContours: Screensaver = {
 			const morph = drift.morph.value(elapsed);
 
 			syncSeedCount(seeds, Math.round(drift.seeds.value(elapsed)));
-			phase = (phase + dt * drift.flow.value(elapsed) * config.FLOW_RATE) % config.PALETTE.length;
+			phase = (phase + dt * drift.flow.value(elapsed) * config.FLOW_RATE) % palette.bands.length;
 			morphClock += dt * morph;
 			noiseAngle = (noiseAngle + (dt * config.NOISE_SPEED) / config.NOISE_RADIUS) % TAU;
 
@@ -332,6 +340,6 @@ const rainbowContours: Screensaver = {
 			gl.drawArrays(gl.TRIANGLES, 0, 3);
 		});
 	}
-};
+} satisfies Screensaver;
 
 export default rainbowContours;

@@ -20,6 +20,14 @@ export interface Shape {
 	m: number;
 }
 
+/** The colors for one showing of the animation. */
+export interface Palette {
+	/** Band colors as #rrggbb hex codes, used in order and repeating. Any length of 1 or more works. */
+	bands: string[];
+	/** Color of the thin outline between bands, as a #rrggbb hex code. */
+	line: string;
+}
+
 export const between = (min: number, max: number) => min + Math.random() * (max - min);
 const intBetween = (min: number, max: number) => Math.floor(between(min, max + 1));
 
@@ -46,21 +54,42 @@ export const WARP_SCALE = 0.125;
 
 // ---------- Color ----------
 
-/** Band colors as #rrggbb hex codes, used in order and repeating. Any length of 1 or more works. */
-export const PALETTE = [
-	'#d8322a',
-	'#ea7426',
-	'#f1c93a',
-	'#e9e04a',
-	'#7db82c',
-	'#4fa3d6',
-	'#4a62ad',
-	'#6c3f92',
-	'#c4378a'
+/**
+ * The known-good color sets. Each showing takes the next one, playing every palette once
+ * in a shuffled order before any repeats. Any length of 1 or more works.
+ */
+export const PALETTES: Palette[] = [
+	{
+		bands: [
+			'#d8322a',
+			'#ea7426',
+			'#f1c93a',
+			'#e9e04a',
+			'#7db82c',
+			'#4fa3d6',
+			'#4a62ad',
+			'#6c3f92',
+			'#c4378a'
+		],
+		line: '#140f12'
+	},
+	{ bands: ['#e297bc', '#f46a9f', '#dc7862', '#f7e88f', '#b3e8d3'], line: '#140f12' }, // riso print
+	{
+		bands: ['#d36c00', '#dc9d00', '#88823f', '#784533', '#d7b87d', '#f2debe', '#c14a43'],
+		line: '#140f12'
+	}, // 70s stripes
+	{ bands: ['#2f553e', '#b0604c', '#94a87e', '#745431', '#dacdac'], line: '#140f12' }, // forest
+	{ bands: ['#b3a3d5', '#543086', '#ebe2f1', '#d773aa', '#7a63ad', '#3b254c'], line: '#140f12' }, // plum
+	{ bands: ['#f0ca6e', '#f798c4', '#aed4b8', '#9daff1', '#fff6e8'], line: '#140f12' }, // riso print
+	{ bands: ['#eb90bc', '#de5280', '#f17065', '#f1e7d9', '#addec0'], line: '#140f12' }, // riso print
+	{ bands: ['#818340', '#e56a00', '#683b1c', '#ceaf89', '#f3e7c7', '#d99a00'], line: '#140f12' }, // 70s stripes
+	{
+		bands: ['#3d3061', '#c2b1e8', '#876eae', '#63438d', '#e2d8e3', '#df749c', '#f0bc09'],
+		line: '#140f12'
+	}, // plum
+	{ bands: ['#ba6d59', '#7b573a', '#d39700', '#e6e3c4', '#546122'], line: '#140f12' }, // forest
+	{ bands: ['#3c2c53', '#e4d9e9', '#ecaa11', '#886eaf', '#c3abdd'], line: '#140f12' } // plum
 ];
-
-/** Color of the thin outline between bands, as a #rrggbb hex code. */
-export const LINE_COLOR = '#140f12';
 
 /** Outline thickness in pixels. 0 removes the outlines. */
 export const LINE_WEIGHT = 1.5;

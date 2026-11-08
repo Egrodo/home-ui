@@ -1,4 +1,4 @@
-import { NOISE_OCTAVES, PALETTE, SEED_SLOTS } from './config';
+import { NOISE_OCTAVES, SEED_SLOTS } from './config';
 
 export const VERTEX_SHADER = `#version 300 es
 layout(location=0) in vec2 a;
@@ -76,13 +76,13 @@ void main(){
 `;
 
 /** The cheap pass: blends two finished fields into bands, outlines and grain. */
-export const COLOR_SHADER = `#version 300 es
+export const colorShader = (bandCount: number) => `#version 300 es
 precision highp float;
 uniform highp sampler2D uFieldA, uFieldB;
 uniform vec2 uRes;
 uniform float uBlend, uPhase, uBand, uLine, uGrain, uVignette;
 uniform vec3 uLineColor;
-uniform vec3 uPal[${PALETTE.length}];
+uniform vec3 uPal[${bandCount}];
 out vec4 outColor;
 
 ${HASH}
@@ -93,7 +93,7 @@ void main(){
   vec2 uv=(gl_FragCoord.xy-.5*uRes)/min(uRes.x,uRes.y);
 
   float x=d/uBand - uPhase;
-  vec3 col=uPal[int(mod(floor(x),${PALETTE.length}.)+.5)];
+  vec3 col=uPal[int(mod(floor(x),${bandCount}.)+.5)];
 
   float f=fract(x); float edge=min(f,1.-f);
   // Not fwidth: it overshoots on the crease at a sharp point, leaving stray pixels past it.

@@ -34,7 +34,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // Browsers cap live WebGL contexts and removing a canvas only frees its context on GC,
 // which a panel swapping animations for weeks can't rely on. getContext returns the
 // existing context of a matching type and null for any other.
-function releaseCanvas(canvas: HTMLCanvasElement) {
+export function releaseCanvas(canvas: HTMLCanvasElement) {
 	const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
 	gl?.getExtension('WEBGL_lose_context')?.loseContext();
 	canvas.width = 0;

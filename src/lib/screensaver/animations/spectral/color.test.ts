@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { bakeDistanceRamps, bakeLoopingRamp, hexToOklab } from './color';
+import { hexToOklab } from '../../oklab';
+import { bakeDistanceRamps, bakeLoopingRamp } from './color';
 import { CORE_RAMP_RANGE, PALETTES, type FrameStop } from './config';
 
 const SIZE = 1000;
