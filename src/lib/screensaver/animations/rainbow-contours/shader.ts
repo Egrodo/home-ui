@@ -1,17 +1,21 @@
 import { NOISE_OCTAVES, PALETTE, SEED_SLOTS } from './config';
 
-export const VERTEX_SHADER = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
+export const VERTEX_SHADER = `#version 300 es
+layout(location=0) in vec2 a;
+void main(){gl_Position=vec4(a,0.,1.);}`;
 
-export const FRAGMENT_SHADER = `#extension GL_OES_standard_derivatives : enable
+const HASH = 'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }';
+
+/** The expensive pass: writes each pixel's distance to the nearest shape, at reduced resolution. */
+export const FIELD_SHADER = `#version 300 es
 precision highp float;
 uniform vec2 uRes, uNoiseOff;
-uniform float uPhase, uBand, uWarp, uWScale, uLine, uGrain, uSmooth, uVignette;
-uniform vec3 uLineColor;
+uniform float uWarp, uWScale, uSmooth;
 uniform vec4 uSeed[${SEED_SLOTS}];   // xy pos, radius, n (points/sides)
 uniform vec4 uSeedP[${SEED_SLOTS}];  // m (star sharpness) or flower amp, rotation, type, sink offset
-uniform vec3 uPal[${PALETTE.length}];
+out vec4 outDistance;
 
-float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+${HASH}
 float noise(vec2 p){
   vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.-2.*f);
   return mix(mix(hash(i),hash(i+vec2(1,0)),u.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x), u.y);
@@ -43,13 +47,6 @@ float sdSeed(vec2 p, vec4 a, vec4 b){
   return d+b.w;
 }
 
-vec3 pal(float i){
-  float m=mod(i,${PALETTE.length}.);
-  vec3 c=uPal[0];
-  for(int k=0;k<${PALETTE.length};k++){ if(abs(float(k)-m)<.5) c=uPal[k]; }
-  return c;
-}
-
 void main(){
   vec2 uv=(gl_FragCoord.xy-.5*uRes)/min(uRes.x,uRes.y);
   vec2 q=uv*uWScale;
@@ -60,10 +57,28 @@ void main(){
   for(int i=0;i<${SEED_SLOTS};i++){
     d=smin(d,sdSeed(p-uSeed[i].xy,uSeed[i],uSeedP[i]),uSmooth);
   }
+  outDistance=vec4(d,0.,0.,1.);
+}
+`;
+
+/** The cheap pass: turns the distances into bands, outlines and grain at full resolution. */
+export const COLOR_SHADER = `#version 300 es
+precision highp float;
+uniform highp sampler2D uField;
+uniform vec2 uRes;
+uniform float uPhase, uBand, uLine, uGrain, uVignette;
+uniform vec3 uLineColor;
+uniform vec3 uPal[${PALETTE.length}];
+out vec4 outColor;
+
+${HASH}
+
+void main(){
+  float d=texture(uField,gl_FragCoord.xy/uRes).r;
+  vec2 uv=(gl_FragCoord.xy-.5*uRes)/min(uRes.x,uRes.y);
 
   float x=d/uBand - uPhase;
-  float idx=floor(x);
-  vec3 col=pal(idx);
+  vec3 col=uPal[int(mod(floor(x),${PALETTE.length}.)+.5)];
 
   float f=fract(x); float edge=min(f,1.-f);
   float fw=fwidth(x);
@@ -72,6 +87,6 @@ void main(){
 
   col+=(hash(gl_FragCoord.xy)-.5)*uGrain;
   col*=1.-uVignette*dot(uv,uv);
-  gl_FragColor=vec4(col,1.);
+  outColor=vec4(col,1.);
 }
 `;

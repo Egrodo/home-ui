@@ -28,6 +28,15 @@ const polygon = (sides: number): Shape => ({ type: 1, n: sides, m: sides });
 const star = (points: number, sharpness: number): Shape => ({ type: 1, n: points, m: sharpness });
 const flower = (lobes: number, amplitude: number): Shape => ({ type: 2, n: lobes, m: amplitude });
 
+// ---------- Rendering ----------
+
+/**
+ * Resolution of the expensive shape and warp calculation, relative to the screen. Lower
+ * is faster but rounds the sharp seams between shapes. 1 is exact, 0.5 draws a quarter
+ * of the pixels, 0.25 a sixteenth. Bands, outlines and grain always stay full resolution.
+ */
+export const FIELD_SCALE = 0.25;
+
 // ---------- Color ----------
 
 /** Band colors as #rrggbb hex codes, used in order and repeating. Any length of 1 or more works. */
@@ -96,7 +105,7 @@ export const NOISE_RADIUS = 40;
 
 /**
  * The most shapes that can exist at once. Sets the shader's size, and every slot is
- * evaluated for every pixel, so this is a direct performance control.
+ * evaluated for every FIELD_SCALE pixel, so this is a direct performance control.
  */
 export const SEED_SLOTS = 6;
 

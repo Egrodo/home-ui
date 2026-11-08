@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { createScreensaverController, type Phase } from './controller';
+	import { createScreensaverController, SHOW_FPS, type Phase } from './controller';
+	import { startFpsMeter } from './fps';
 	import { animations } from './registry';
 
 	/** Runs as the screensaver comes up, so the UI is already reset when it wakes. */
@@ -8,6 +9,19 @@
 
 	let stage: HTMLDivElement;
 	let phase: Phase = 'off';
+	let fps: number | null = null;
+	let stopFpsMeter: (() => void) | undefined;
+
+	function updateFpsMeter(current: Phase) {
+		stopFpsMeter?.();
+		stopFpsMeter = undefined;
+		fps = null;
+		if (SHOW_FPS && current === 'active') {
+			stopFpsMeter = startFpsMeter((value) => (fps = value));
+		}
+	}
+
+	$: updateFpsMeter(phase);
 
 	onMount(() => {
 		const controller = createScreensaverController({
@@ -22,6 +36,7 @@
 
 		return () => {
 			controller.destroy();
+			stopFpsMeter?.();
 			delete (window as any).screensaver;
 		};
 	});
@@ -64,6 +79,17 @@
 		width: 100%;
 		height: 100%;
 	}
+
+	.fps {
+		position: absolute;
+		top: 16px;
+		left: 16px;
+		padding: 4px 10px;
+		background: rgba(0, 0, 0, 0.7);
+		color: #fff;
+		font-size: 28px;
+		font-variant-numeric: tabular-nums;
+	}
 </style>
 
 <div
@@ -72,4 +98,7 @@
 	class:screensaver--waking={phase === 'waking'}
 >
 	<div class="stage" bind:this={stage}></div>
+	{#if fps !== null}
+		<div class="fps">{fps.toFixed(1)} fps</div>
+	{/if}
 </div>

@@ -9,6 +9,8 @@ export const TRANSITION_MS = 1000;
 export const SHIELD_RELEASE_MS = 350;
 /** A missed pointerup must never leave an invisible overlay blocking the panel. */
 export const SHIELD_FAILSAFE_MS = 3000;
+/** Debug: shows a frame rate readout over the animation. */
+export const SHOW_FPS = true;
 
 export type Phase = 'off' | 'active' | 'waking';
 

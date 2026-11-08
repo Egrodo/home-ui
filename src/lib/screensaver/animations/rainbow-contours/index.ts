@@ -1,7 +1,7 @@
 import { loop } from '../../loop';
 import type { Screensaver } from '../../types';
 import * as config from './config';
-import { FRAGMENT_SHADER, VERTEX_SHADER } from './shader';
+import { COLOR_SHADER, FIELD_SHADER, VERTEX_SHADER } from './shader';
 
 const TAU = Math.PI * 2;
 
@@ -88,7 +88,7 @@ function syncSeedCount(seeds: Seed[], count: number) {
 	}
 }
 
-function compile(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
+function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
 	const shader = gl.createShader(type) as WebGLShader;
 	gl.shaderSource(shader, source);
 	gl.compileShader(shader);
@@ -98,48 +98,95 @@ function compile(gl: WebGLRenderingContext, type: number, source: string): WebGL
 	return shader;
 }
 
+function createProgram(gl: WebGL2RenderingContext, fragmentSource: string): WebGLProgram {
+	const program = gl.createProgram() as WebGLProgram;
+	gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERTEX_SHADER));
+	gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, fragmentSource));
+	gl.linkProgram(program);
+	// Large palettes or seed counts can exceed the GPU's uniform limit.
+	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+		throw new Error(`Shader failed to link: ${gl.getProgramInfoLog(program)}`);
+	}
+	return program;
+}
+
+/** Creates the half-float render target for the field pass, leaving its texture bound. */
+function createFieldTarget(
+	gl: WebGL2RenderingContext,
+	width: number,
+	height: number
+): WebGLFramebuffer {
+	if (
+		!gl.getExtension('EXT_color_buffer_float') &&
+		!gl.getExtension('EXT_color_buffer_half_float')
+	) {
+		throw new Error('Rendering to half-float textures is not supported');
+	}
+
+	gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+	gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA16F, width, height);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+	const target = gl.createFramebuffer() as WebGLFramebuffer;
+	gl.bindFramebuffer(gl.FRAMEBUFFER, target);
+	gl.framebufferTexture2D(
+		gl.FRAMEBUFFER,
+		gl.COLOR_ATTACHMENT0,
+		gl.TEXTURE_2D,
+		gl.getParameter(gl.TEXTURE_BINDING_2D),
+		0
+	);
+	if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+		throw new Error('Half-float render target is incomplete');
+	}
+	return target;
+}
+
 const hexToRgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.substring(i, i + 2), 16) / 255);
 
 const rainbowContours: Screensaver = {
 	start({ canvas, width, height, signal }) {
-		const gl = canvas.getContext('webgl', { antialias: false });
-		if (!gl) throw new Error('WebGL not available');
-		gl.getExtension('OES_standard_derivatives');
+		// Opaque, so the browser needn't composite the UI underneath it.
+		const gl = canvas.getContext('webgl2', { alpha: false, antialias: false });
+		if (!gl) throw new Error('WebGL2 not available');
 
-		const program = gl.createProgram() as WebGLProgram;
-		gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERTEX_SHADER));
-		gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER));
-		gl.linkProgram(program);
-		// Large palettes or seed counts can exceed the GPU's uniform limit.
-		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-			throw new Error(`Shader failed to link: ${gl.getProgramInfoLog(program)}`);
-		}
-		gl.useProgram(program);
+		const fieldWidth = Math.max(1, Math.round(width * config.FIELD_SCALE));
+		const fieldHeight = Math.max(1, Math.round(height * config.FIELD_SCALE));
+		const fieldTarget = createFieldTarget(gl, fieldWidth, fieldHeight);
+		const fieldProgram = createProgram(gl, FIELD_SHADER);
+		const colorProgram = createProgram(gl, COLOR_SHADER);
 
 		// One oversized triangle, so the fragment shader runs once per pixel.
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-		const position = gl.getAttribLocation(program, 'a');
-		gl.enableVertexAttribArray(position);
-		gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(0);
+		gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-		const uniform = (name: string) => gl.getUniformLocation(program, name);
-		const uNoiseOff = uniform('uNoiseOff');
-		const uPhase = uniform('uPhase');
-		const uBand = uniform('uBand');
-		const uWarp = uniform('uWarp');
-		const uGrain = uniform('uGrain');
-		const uSmooth = uniform('uSmooth');
-		const uSeed = uniform('uSeed');
-		const uSeedP = uniform('uSeedP');
+		const fieldUniform = (name: string) => gl.getUniformLocation(fieldProgram, name);
+		const uNoiseOff = fieldUniform('uNoiseOff');
+		const uWarp = fieldUniform('uWarp');
+		const uSmooth = fieldUniform('uSmooth');
+		const uSeed = fieldUniform('uSeed');
+		const uSeedP = fieldUniform('uSeedP');
 
-		gl.viewport(0, 0, width, height);
-		gl.uniform2f(uniform('uRes'), width, height);
-		gl.uniform1f(uniform('uWScale'), config.WOBBLE_SCALE);
-		gl.uniform1f(uniform('uLine'), config.LINE_WEIGHT);
-		gl.uniform3fv(uniform('uLineColor'), new Float32Array(hexToRgb(config.LINE_COLOR)));
-		gl.uniform1f(uniform('uVignette'), config.VIGNETTE);
-		gl.uniform3fv(uniform('uPal'), new Float32Array(config.PALETTE.flatMap(hexToRgb)));
+		const colorUniform = (name: string) => gl.getUniformLocation(colorProgram, name);
+		const uPhase = colorUniform('uPhase');
+		const uBand = colorUniform('uBand');
+		const uGrain = colorUniform('uGrain');
+
+		gl.useProgram(fieldProgram);
+		gl.uniform2f(fieldUniform('uRes'), fieldWidth, fieldHeight);
+		gl.uniform1f(fieldUniform('uWScale'), config.WOBBLE_SCALE);
+
+		gl.useProgram(colorProgram);
+		gl.uniform2f(colorUniform('uRes'), width, height);
+		gl.uniform1f(colorUniform('uLine'), config.LINE_WEIGHT);
+		gl.uniform3fv(colorUniform('uLineColor'), new Float32Array(hexToRgb(config.LINE_COLOR)));
+		gl.uniform1f(colorUniform('uVignette'), config.VIGNETTE);
+		gl.uniform3fv(colorUniform('uPal'), new Float32Array(config.PALETTE.flatMap(hexToRgb)));
 
 		const drift = {
 			seeds: new Drift(config.SEED_COUNT),
@@ -195,18 +242,26 @@ const rainbowContours: Screensaver = {
 				seedParams[i * 4 + 3] = (1 - ease(seed.presence)) * config.SEED_SINK_DEPTH;
 			});
 
+			gl.useProgram(fieldProgram);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, fieldTarget);
+			gl.viewport(0, 0, fieldWidth, fieldHeight);
 			gl.uniform2f(
 				uNoiseOff,
 				config.NOISE_RADIUS * Math.cos(noiseAngle),
 				config.NOISE_RADIUS * Math.sin(noiseAngle)
 			);
-			gl.uniform1f(uPhase, phase);
-			gl.uniform1f(uBand, drift.band.value(elapsed));
 			gl.uniform1f(uWarp, drift.warp.value(elapsed));
-			gl.uniform1f(uGrain, drift.grain.value(elapsed));
 			gl.uniform1f(uSmooth, drift.rounding.value(elapsed));
 			gl.uniform4fv(uSeed, seedData);
 			gl.uniform4fv(uSeedP, seedParams);
+			gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+			gl.useProgram(colorProgram);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.viewport(0, 0, width, height);
+			gl.uniform1f(uPhase, phase);
+			gl.uniform1f(uBand, drift.band.value(elapsed));
+			gl.uniform1f(uGrain, drift.grain.value(elapsed));
 			gl.drawArrays(gl.TRIANGLES, 0, 3);
 		});
 	}
