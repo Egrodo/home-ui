@@ -1,5 +1,6 @@
 import { loop } from '../../loop';
 import type { Screensaver } from '../../types';
+import { createProgram } from '../../webgl';
 import * as config from './config';
 import { COLOR_SHADER, FIELD_SHADER, VERTEX_SHADER, WARP_SHADER } from './shader';
 
@@ -92,28 +93,6 @@ function syncSeedCount(seeds: Seed[], count: number) {
 	}
 }
 
-function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
-	const shader = gl.createShader(type) as WebGLShader;
-	gl.shaderSource(shader, source);
-	gl.compileShader(shader);
-	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-		throw new Error(`Shader failed to compile: ${gl.getShaderInfoLog(shader)}`);
-	}
-	return shader;
-}
-
-function createProgram(gl: WebGL2RenderingContext, fragmentSource: string): WebGLProgram {
-	const program = gl.createProgram() as WebGLProgram;
-	gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERTEX_SHADER));
-	gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, fragmentSource));
-	gl.linkProgram(program);
-	// Large palettes or seed counts can exceed the GPU's uniform limit.
-	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-		throw new Error(`Shader failed to link: ${gl.getProgramInfoLog(program)}`);
-	}
-	return program;
-}
-
 interface Target {
 	texture: WebGLTexture;
 	framebuffer: WebGLFramebuffer;
@@ -166,9 +145,9 @@ const rainbowContours: Screensaver = {
 		let latest = createFieldTarget();
 		let pending = createFieldTarget();
 
-		const warpProgram = createProgram(gl, WARP_SHADER);
-		const fieldProgram = createProgram(gl, FIELD_SHADER);
-		const colorProgram = createProgram(gl, COLOR_SHADER);
+		const warpProgram = createProgram(gl, VERTEX_SHADER, WARP_SHADER);
+		const fieldProgram = createProgram(gl, VERTEX_SHADER, FIELD_SHADER);
+		const colorProgram = createProgram(gl, VERTEX_SHADER, COLOR_SHADER);
 
 		// One oversized triangle, so the fragment shader runs once per pixel.
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
