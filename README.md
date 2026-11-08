@@ -11,4 +11,3 @@ In my apartment I have a lot of smart lights that support different colors and c
 TODOS:
 
 - Visually differentiate the scene buttons
-- Make sort consistent / not move when toggled on/off?
